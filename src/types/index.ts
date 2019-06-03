@@ -46,11 +46,13 @@ export type FlexibleFormat = boolean | BigNumber.Format
 
 export interface FormatSignificantOptions {
   significantDigits: number
+  roundingMode: BigNumber.RoundingMode
   forceIntegerSignificance: boolean
   format: FlexibleFormat
 }
 export interface FormatFixedOptions {
   decimalPlaces: number
+  roundingMode: BigNumber.RoundingMode
   dropTrailingZeros: boolean
   underflowBehavior: FIXED_UNDERFLOW_BEHAVIOR
   format: FlexibleFormat

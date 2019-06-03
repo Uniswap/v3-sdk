@@ -36,18 +36,13 @@ function testMarketRates(
   })
 
   describe('manually inverted', (): void => {
-    const tradeTypeInverted =
-      tradeType === TRADE_TYPE.TOKEN_TO_TOKEN
-        ? TRADE_TYPE.TOKEN_TO_TOKEN
-        : tradeType === TRADE_TYPE.ETH_TO_TOKEN
-        ? TRADE_TYPE.TOKEN_TO_ETH
-        : TRADE_TYPE.ETH_TO_TOKEN
+    const tradeTypeInverted = tradeType === TRADE_TYPE.ETH_TO_TOKEN ? TRADE_TYPE.TOKEN_TO_ETH : TRADE_TYPE.ETH_TO_TOKEN
 
     test('not inverted', (): void => {
       const manuallyInvertedMarketRate: BigNumber = getMarketRate(
         outputTokenReserves,
         inputTokenReserves,
-        tradeTypeInverted,
+        tradeType === TRADE_TYPE.TOKEN_TO_TOKEN ? TRADE_TYPE.TOKEN_TO_TOKEN : tradeTypeInverted,
         false
       )
 
@@ -58,7 +53,7 @@ function testMarketRates(
       const manuallyInvertedInvertedMarketRate: BigNumber = getMarketRate(
         outputTokenReserves,
         inputTokenReserves,
-        tradeTypeInverted,
+        tradeType === TRADE_TYPE.TOKEN_TO_TOKEN ? TRADE_TYPE.TOKEN_TO_TOKEN : tradeTypeInverted,
         true
       )
 
@@ -74,11 +69,10 @@ describe('getMarketRate', (): void => {
       '4039700561005906883487',
       '1094055210563660633471343'
     )
-    const expectedMarketRate = '0.003692410147130181'
-    const expectedMarketRateInverted = '270.825818409480102284'
+    const expectedMarketRate = '270.825818409480102284'
+    const expectedMarketRateInverted = '0.003692410147130181'
 
     testMarketRates(null, tokenReserves, TRADE_TYPE.ETH_TO_TOKEN, expectedMarketRate, expectedMarketRateInverted)
-    testMarketRates(tokenReserves, null, TRADE_TYPE.TOKEN_TO_ETH, expectedMarketRateInverted, expectedMarketRate)
   })
 
   describe('dummy ETH/USDC and USDC/ETH', (): void => {
@@ -86,8 +80,7 @@ describe('getMarketRate', (): void => {
     const expectedMarketRate = '0.003678674143683891'
     const expectedMarketRateInverted = '271.837069808684359442'
 
-    testMarketRates(null, tokenReserves, TRADE_TYPE.ETH_TO_TOKEN, expectedMarketRate, expectedMarketRateInverted)
-    testMarketRates(tokenReserves, null, TRADE_TYPE.TOKEN_TO_ETH, expectedMarketRateInverted, expectedMarketRate)
+    testMarketRates(tokenReserves, null, TRADE_TYPE.TOKEN_TO_ETH, expectedMarketRate, expectedMarketRateInverted)
   })
 
   describe('dummy DAI/USDC and USDC/DAI', (): void => {
@@ -97,8 +90,8 @@ describe('getMarketRate', (): void => {
       '1094055210563660633471343'
     )
     const USDCTokenReserves: TokenReserves = constructTokenReserves(6, '1076592291503763426634', '292657693901')
-    const expectedMarketRate = '0.996279935624983178'
-    const expectedMarketRateInverted = '1.003733954927721499'
+    const expectedMarketRate = '1.003733954927721392'
+    const expectedMarketRateInverted = '0.996279935624983143'
 
     testMarketRates(
       DAITokenReserves,
@@ -106,14 +99,6 @@ describe('getMarketRate', (): void => {
       TRADE_TYPE.TOKEN_TO_TOKEN,
       expectedMarketRate,
       expectedMarketRateInverted
-    )
-
-    testMarketRates(
-      USDCTokenReserves,
-      DAITokenReserves,
-      TRADE_TYPE.TOKEN_TO_TOKEN,
-      expectedMarketRateInverted,
-      expectedMarketRate
     )
   })
 })

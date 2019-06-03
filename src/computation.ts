@@ -37,14 +37,19 @@ export function getOutputPrice(outputAmount: BigNumber, inputReserve: BigNumber,
   return inputAmount
 }
 
-function _getMarketRate(tokenReserves: TokenReservesOptional, tradeType: TRADE_TYPE, invert: boolean): BigNumber {
+// returns [numerator, decimal scalar, denominator]
+function getRawMarketRate(
+  tokenReserves: TokenReservesOptional,
+  tradeType: TRADE_TYPE,
+  invert: boolean
+): [BigNumber, BigNumber, BigNumber] {
   if (tokenReserves === null) {
     throw Error('outputTokenReserves must be non-null.')
   } else {
     const numerator: TokenAmount =
-      tradeType === TRADE_TYPE.ETH_TO_TOKEN ? tokenReserves.ethReserve : tokenReserves.tokenReserve
-    const denominator: TokenAmount =
       tradeType === TRADE_TYPE.ETH_TO_TOKEN ? tokenReserves.tokenReserve : tokenReserves.ethReserve
+    const denominator: TokenAmount =
+      tradeType === TRADE_TYPE.ETH_TO_TOKEN ? tokenReserves.ethReserve : tokenReserves.tokenReserve
 
     const numeratorAmount: BigNumber = normalizeBigNumberish(numerator.amount)
     const denominatorAmount: BigNumber = normalizeBigNumberish(denominator.amount)
@@ -55,15 +60,29 @@ function _getMarketRate(tokenReserves: TokenReservesOptional, tradeType: TRADE_T
     ensureAllUInt8([numeratorDecimals, denominatorDecimals])
 
     if (!invert) {
-      const decimalScalar = _10.exponentiatedBy(denominatorDecimals - numeratorDecimals)
-      return numeratorAmount.multipliedBy(decimalScalar).div(denominatorAmount)
+      const decimalScalar: BigNumber = _10.exponentiatedBy(denominatorDecimals - numeratorDecimals)
+      return [numeratorAmount, decimalScalar, denominatorAmount]
     } else {
-      const decimalScalar = _10.exponentiatedBy(numeratorDecimals - denominatorDecimals)
-      return denominatorAmount.multipliedBy(decimalScalar).div(numeratorAmount)
+      const decimalScalar: BigNumber = _10.exponentiatedBy(numeratorDecimals - denominatorDecimals)
+      return [denominatorAmount, decimalScalar, numeratorAmount]
     }
   }
 }
 
+function getRawMarketRateOneSided(
+  tokenReserves: TokenReservesOptional,
+  tradeType: TRADE_TYPE,
+  invert: boolean
+): BigNumber {
+  const [numerator, decimalScalar, denominator]: [BigNumber, BigNumber, BigNumber] = getRawMarketRate(
+    tokenReserves,
+    tradeType,
+    invert
+  )
+  return numerator.multipliedBy(decimalScalar).dividedBy(denominator)
+}
+
+// rounds output rates to 18 decimal places
 export function getMarketRate(
   inputTokenReserves: TokenReservesOptional,
   outputTokenReserves: TokenReservesOptional,
@@ -74,12 +93,26 @@ export function getMarketRate(
     if (inputTokenReserves === null || outputTokenReserves === null) {
       throw Error('Both inputTokenReserves and outputTokenReserves must be non-null.')
     } else {
-      const inputMarketRate: BigNumber = _getMarketRate(inputTokenReserves, TRADE_TYPE.TOKEN_TO_ETH, invert)
-      const outputMarketRate: BigNumber = _getMarketRate(outputTokenReserves, TRADE_TYPE.ETH_TO_TOKEN, invert)
-      return inputMarketRate.multipliedBy(outputMarketRate)
+      const [inputNumerator, inputDecimalScalar, inputDenominator]: [
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ] = getRawMarketRate(inputTokenReserves, TRADE_TYPE.TOKEN_TO_ETH, invert)
+
+      const [outputNumerator, outputDecimalScalar, outputDenominator]: [
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ] = getRawMarketRate(outputTokenReserves, TRADE_TYPE.ETH_TO_TOKEN, invert)
+
+      return inputNumerator
+        .multipliedBy(inputDecimalScalar)
+        .multipliedBy(outputNumerator)
+        .multipliedBy(outputDecimalScalar)
+        .dividedBy(inputDenominator.multipliedBy(outputDenominator))
     }
   } else {
-    return _getMarketRate(
+    return getRawMarketRateOneSided(
       tradeType === TRADE_TYPE.ETH_TO_TOKEN ? outputTokenReserves : inputTokenReserves,
       tradeType,
       invert

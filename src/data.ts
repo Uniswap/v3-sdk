@@ -2,7 +2,7 @@ import { ethers } from 'ethers'
 
 import { ETH, CHAIN_ID_NAME, ERC20_ABI, FACTORY_ADDRESS, FACTORY_ABI } from './constants'
 import { ChainIdOrProvider, ChainIdAndProvider, Token, TokenReserves } from './types'
-import { normalizeAddress } from './utils'
+import { normalizeAddress, normalizeBigNumberish } from './utils'
 
 // abstraction to get contracts
 function _getContract(address: string, ABI: string, provider: ethers.providers.BaseProvider): ethers.Contract {
@@ -80,8 +80,8 @@ export async function getTokenReserves(
     ethers.utils.BigNumber
   ] = await Promise.all([ethTokenPromise, tokenPromise, exchangeTokenPromise, ethBalancePromise, tokenBalancePromise])
 
-  const ethReserve = { token: ethToken, amount: ethBalance }
-  const tokenReserve = { token, amount: tokenBalance }
+  const ethReserve = { token: ethToken, amount: normalizeBigNumberish(ethBalance) }
+  const tokenReserve = { token, amount: normalizeBigNumberish(tokenBalance) }
 
   return { token, exchange: exchangeToken, ethReserve, tokenReserve }
 }

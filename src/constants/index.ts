@@ -34,8 +34,7 @@ export enum TRADE_EXACT {
 export enum FIXED_UNDERFLOW_BEHAVIOR {
   ZERO = 'ZERO',
   LESS_THAN = 'LESS_THAN',
-  ONE_DIGIT = 'ONE_DIGIT',
-  MAX_DECIMAL_PLACES = 'MAX_DECIMAL_PLACES'
+  ONE_DIGIT = 'ONE_DIGIT'
 }
 
 //// constants for internal use
