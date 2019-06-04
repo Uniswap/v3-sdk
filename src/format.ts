@@ -21,7 +21,7 @@ function _format(
 
 // bignumberish is converted to significantDigits, then cast back as a bignumber and formatted, dropping trailing 0s
 export function formatSignificant(bigNumberish: BigNumberish, options?: FormatSignificantOptions): string {
-  const { significantDigits = 6, forceIntegerSignificance = true, roundingMode = ROUNDING_MODE, format = false } =
+  const { significantDigits = 6, roundingMode = ROUNDING_MODE, forceIntegerSignificance = true, format = false } =
     options || {}
 
   const bigNumber: BigNumber = normalizeBigNumberish(bigNumberish)
