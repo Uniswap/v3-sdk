@@ -22,7 +22,7 @@ const DAI_EXCHANGE: Token = {
 
 describe('getTokenReserves', (): void => {
   test('DAI', async (done: jest.DoneCallback): Promise<void> => {
-    jest.setTimeout(20000) // 20 seconds
+    jest.setTimeout(10000) // 10 seconds
     const tokenReserves: TokenReserves = await getTokenReserves(DAI.address as string)
 
     expect(tokenReserves.token).toEqual(DAI)

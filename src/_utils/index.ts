@@ -1,8 +1,8 @@
 import BigNumber from 'bignumber.js'
 import { ethers } from 'ethers'
 
-import { _0, MAX_UINT8, MAX_UINT256 } from '../constants'
 import { BigNumberish } from '../types'
+import { _0, MAX_UINT8, MAX_UINT256 } from '../constants'
 
 // check(s) that number(s) is(are) uint8(s)
 function ensureUInt8(number: number): void {
@@ -18,7 +18,7 @@ export function ensureAllUInt8(numbers: number[]): void {
 // check(s) that BigNumber(s) is(are) uint256(s)
 function ensureUInt256(bigNumber: BigNumber): void {
   if (!bigNumber.isInteger() || bigNumber.isLessThan(_0) || bigNumber.isGreaterThan(MAX_UINT256)) {
-    throw Error(`Passed BigNumber '${bigNumber}' is not a valid uint256.`)
+    throw Error(`Passed bigNumber '${bigNumber}' is not a valid uint256.`)
   }
 }
 
@@ -35,22 +35,22 @@ export function ensureBoundedInteger(number: number, bounds: number | number[]):
   }
 }
 
+export function normalizeBigNumberish(bigNumberish: BigNumberish): BigNumber {
+  try {
+    const bigNumber = BigNumber.isBigNumber(bigNumberish) ? bigNumberish : new BigNumber(bigNumberish.toString())
+    if (!bigNumber.isFinite()) {
+      throw Error
+    }
+    return bigNumber
+  } catch (error) {
+    throw Error(`Passed bigNumberish '${bigNumberish}' of type '${typeof bigNumberish}' is invalid. Error: '${error}'.`)
+  }
+}
+
 export function normalizeAddress(address: string): string {
   try {
     return ethers.utils.getAddress(address.toLowerCase())
   } catch {
     throw Error(`Passed address '${address}' is not valid.`)
-  }
-}
-
-export function normalizeBigNumberish(bigNumberish: BigNumberish): BigNumber {
-  try {
-    const bigNumber = BigNumber.isBigNumber(bigNumberish) ? bigNumberish : new BigNumber(bigNumberish.toString())
-    if (!bigNumber.isFinite()) {
-      throw Error(`Passed BigNumberish '${bigNumberish}' of type '${typeof bigNumberish}' is not finite.`)
-    }
-    return bigNumber
-  } catch (error) {
-    throw Error(`Passed BigNumberish '${bigNumberish}' of type '${typeof bigNumberish}' is invalid. Error: '${error}'.`)
   }
 }

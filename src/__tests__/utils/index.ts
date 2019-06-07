@@ -1,8 +1,8 @@
 import BigNumber from 'bignumber.js'
+import { ethers } from 'ethers'
 
 import { BigNumberish } from '../../types'
-import { normalizeBigNumberish } from '../../utils'
-import { ethers } from 'ethers'
+import { normalizeBigNumberish } from '../../_utils'
 
 interface TestCase {
   input: BigNumberish

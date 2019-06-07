@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js'
 
+import { Token } from '../types'
 import ERC20 from './abis/ERC20.json'
 import FACTORY from './abis/FACTORY.json'
 
@@ -47,11 +48,17 @@ export const _1: BigNumber = new BigNumber('1')
 export const _10: BigNumber = new BigNumber('10')
 export const _997: BigNumber = new BigNumber('997')
 export const _1000: BigNumber = new BigNumber('1000')
+export const _10000: BigNumber = new BigNumber('10000')
 export const MAX_UINT8: number = 2 ** 8 - 1
 export const MAX_UINT256: BigNumber = new BigNumber('2').exponentiatedBy(new BigNumber('256')).minus(_1)
 
-export const ERC20_ABI: string = JSON.stringify(ERC20)
-export const FACTORY_ABI: string = JSON.stringify(FACTORY)
+export function ETH_TOKEN(chainId?: number): Token {
+  return {
+    ...(chainId ? { chainId } : {}),
+    address: ETH,
+    decimals: 18
+  }
+}
 
 export const CHAIN_ID_NAME: { [key: number]: string } = {
   [SUPPORTED_CHAIN_ID.Mainnet]: 'homestead',
@@ -59,3 +66,6 @@ export const CHAIN_ID_NAME: { [key: number]: string } = {
   [SUPPORTED_CHAIN_ID.Rinkeby]: 'rinkeby',
   [SUPPORTED_CHAIN_ID.Kovan]: 'kovan'
 }
+
+export const ERC20_ABI: string = JSON.stringify(ERC20)
+export const FACTORY_ABI: string = JSON.stringify(FACTORY)

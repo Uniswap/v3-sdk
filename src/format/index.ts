@@ -1,8 +1,8 @@
 import BigNumber from 'bignumber.js'
 
-import { MAX_DECIMAL_PLACES, ROUNDING_MODE, FIXED_UNDERFLOW_BEHAVIOR, _0, _10 } from './constants'
-import { BigNumberish, FlexibleFormat, FormatSignificantOptions, FormatFixedOptions } from './types'
-import { normalizeBigNumberish, ensureBoundedInteger, ensureAllUInt256, ensureAllUInt8 } from './utils'
+import { BigNumberish, FlexibleFormat, isFormat, FormatSignificantOptions, FormatFixedOptions } from '../types'
+import { _0, _10, MAX_DECIMAL_PLACES, ROUNDING_MODE, FIXED_UNDERFLOW_BEHAVIOR } from '../constants'
+import { normalizeBigNumberish, ensureBoundedInteger, ensureAllUInt256, ensureAllUInt8 } from '../_utils'
 
 function _format(
   bigNumber: BigNumber,
@@ -10,13 +10,9 @@ function _format(
   roundingMode: BigNumber.RoundingMode = ROUNDING_MODE,
   format: FlexibleFormat
 ): string {
-  return typeof format === 'boolean' && format === false
-    ? bigNumber.toFixed(decimalPlaces, roundingMode)
-    : bigNumber.toFormat(
-        decimalPlaces,
-        roundingMode,
-        typeof format === 'boolean' && format === true ? undefined : format
-      )
+  return isFormat(format) || format
+    ? bigNumber.toFormat(decimalPlaces, roundingMode, isFormat(format) ? format : undefined)
+    : bigNumber.toFixed(decimalPlaces, roundingMode)
 }
 
 // bignumberish is converted to significantDigits, then cast back as a bignumber and formatted, dropping trailing 0s
