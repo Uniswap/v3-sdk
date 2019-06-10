@@ -1,11 +1,15 @@
 import BigNumber from 'bignumber.js'
 
 import {
+  TokenAmount,
   TokenAmountNormalized,
-  OptionalReserves,
+  TokenReserves,
   TokenReservesNormalized,
-  NormalizedReserves,
   areTokenReservesNormalized,
+  areETHReserves,
+  areTokenReserves,
+  OptionalReserves,
+  NormalizedReserves,
   Rate,
   MarketDetails,
   _ParsedOptionalReserves,
@@ -13,7 +17,67 @@ import {
   _AnyRate
 } from '../types'
 import { TRADE_TYPE } from '../constants'
-import { parseOptionalReserves, calculateDecimalRate } from './_utils'
+import { normalizeBigNumberish, ensureAllUInt8, ensureAllUInt256 } from '../_utils'
+import { getEthToken } from '../data'
+import { calculateDecimalRate } from './_utils'
+
+function normalizeTokenAmount(tokenAmount: TokenAmount): TokenAmountNormalized {
+  ensureAllUInt8([tokenAmount.token.decimals])
+
+  const normalizedAmount: BigNumber = normalizeBigNumberish(tokenAmount.amount)
+  ensureAllUInt256([normalizedAmount])
+
+  return {
+    token: { ...tokenAmount.token },
+    amount: normalizedAmount
+  }
+}
+
+function normalizeTokenReserves(tokenReserves: TokenReserves): TokenReservesNormalized {
+  ensureAllUInt8([tokenReserves.token.decimals])
+
+  return {
+    token: { ...tokenReserves.token },
+    ...(tokenReserves.exchange ? { exchange: { ...tokenReserves.exchange } } : {}),
+    ethReserve: normalizeTokenAmount(tokenReserves.ethReserve),
+    tokenReserve: normalizeTokenAmount(tokenReserves.tokenReserve)
+  }
+}
+
+function parseOptionalReserves(
+  optionalReservesInput: OptionalReserves,
+  optionalReservesOutput: OptionalReserves
+): _ParsedOptionalReserves {
+  if (areTokenReserves(optionalReservesInput) && areTokenReserves(optionalReservesOutput)) {
+    return {
+      tradeType: TRADE_TYPE.TOKEN_TO_TOKEN,
+      inputReserves: normalizeTokenReserves(optionalReservesInput),
+      outputReserves: normalizeTokenReserves(optionalReservesOutput)
+    }
+  } else if (areTokenReserves(optionalReservesInput) && !areTokenReserves(optionalReservesOutput)) {
+    return {
+      tradeType: TRADE_TYPE.TOKEN_TO_ETH,
+      inputReserves: normalizeTokenReserves(optionalReservesInput),
+      outputReserves: areETHReserves(optionalReservesOutput)
+        ? optionalReservesOutput
+        : {
+            token: getEthToken(optionalReservesInput.token.chainId)
+          }
+    }
+  } else if (!areTokenReserves(optionalReservesInput) && areTokenReserves(optionalReservesOutput)) {
+    return {
+      tradeType: TRADE_TYPE.ETH_TO_TOKEN,
+      inputReserves: areETHReserves(optionalReservesInput)
+        ? optionalReservesInput
+        : {
+            token: getEthToken(optionalReservesOutput.token.chainId)
+          },
+      outputReserves: normalizeTokenReserves(optionalReservesOutput)
+    }
+  } else {
+    throw Error('optionalReservesInput, optionalReservesOutput, or both must be defined.')
+  }
+}
 
 // calculates the market rate for ETH_TO_TOKEN or TOKEN_TO_ETH trades
 function getMarketRate(tradeType: TRADE_TYPE, reserves: NormalizedReserves, keepAsDecimal?: boolean): _AnyRate {
@@ -31,14 +95,12 @@ function getMarketRate(tradeType: TRADE_TYPE, reserves: NormalizedReserves, keep
 
 // note: rounds rates to 18 decimal places
 export function getMarketDetails(
-  tradeType: TRADE_TYPE,
   optionalReservesInput: OptionalReserves,
   optionalReservesOutput: OptionalReserves
 ): MarketDetails {
-  const { inputReserves, outputReserves }: _ParsedOptionalReserves = parseOptionalReserves(
+  const { tradeType, inputReserves, outputReserves }: _ParsedOptionalReserves = parseOptionalReserves(
     optionalReservesInput,
-    optionalReservesOutput,
-    tradeType
+    optionalReservesOutput
   )
 
   if (tradeType === TRADE_TYPE.TOKEN_TO_TOKEN) {

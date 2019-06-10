@@ -1,13 +1,13 @@
 import BigNumber from 'bignumber.js'
 
 import { BigNumberish, FlexibleFormat, isFormat, FormatSignificantOptions, FormatFixedOptions } from '../types'
-import { _0, _10, MAX_DECIMAL_PLACES, ROUNDING_MODE, FIXED_UNDERFLOW_BEHAVIOR } from '../constants'
+import { _0, _10, _MAX_DECIMAL_PLACES, _ROUNDING_MODE, FIXED_UNDERFLOW_BEHAVIOR } from '../constants'
 import { normalizeBigNumberish, ensureBoundedInteger, ensureAllUInt256, ensureAllUInt8 } from '../_utils'
 
 function _format(
   bigNumber: BigNumber,
   decimalPlaces: number,
-  roundingMode: BigNumber.RoundingMode = ROUNDING_MODE,
+  roundingMode: BigNumber.RoundingMode = _ROUNDING_MODE,
   format: FlexibleFormat
 ): string {
   return isFormat(format) || format
@@ -17,11 +17,11 @@ function _format(
 
 // bignumberish is converted to significantDigits, then cast back as a bignumber and formatted, dropping trailing 0s
 export function formatSignificant(bigNumberish: BigNumberish, options?: FormatSignificantOptions): string {
-  const { significantDigits = 6, roundingMode = ROUNDING_MODE, forceIntegerSignificance = true, format = false } =
+  const { significantDigits = 6, roundingMode = _ROUNDING_MODE, forceIntegerSignificance = true, format = false } =
     options || {}
 
   const bigNumber: BigNumber = normalizeBigNumberish(bigNumberish)
-  ensureBoundedInteger(significantDigits, [1, MAX_DECIMAL_PLACES])
+  ensureBoundedInteger(significantDigits, [1, _MAX_DECIMAL_PLACES])
 
   const minimumSignificantDigits: number = forceIntegerSignificance ? bigNumber.integerValue().toFixed().length : 0
   const preciseBigNumber: BigNumber = new BigNumber(
@@ -34,14 +34,14 @@ export function formatSignificant(bigNumberish: BigNumberish, options?: FormatSi
 export function formatFixed(bigNumberish: BigNumberish, options?: FormatFixedOptions): string {
   const {
     decimalPlaces = 4,
-    roundingMode = ROUNDING_MODE,
+    roundingMode = _ROUNDING_MODE,
     dropTrailingZeros = true,
     underflowBehavior = FIXED_UNDERFLOW_BEHAVIOR.ONE_DIGIT,
     format = false
   } = options || {}
 
   const bigNumber: BigNumber = normalizeBigNumberish(bigNumberish)
-  ensureBoundedInteger(decimalPlaces, MAX_DECIMAL_PLACES)
+  ensureBoundedInteger(decimalPlaces, _MAX_DECIMAL_PLACES)
 
   const minimumNonZeroValue: BigNumber = new BigNumber(decimalPlaces === 0 ? '0.5' : `0.${'0'.repeat(decimalPlaces)}5`)
   if (bigNumber.isLessThan(minimumNonZeroValue)) {
@@ -75,8 +75,8 @@ function decimalize(bigNumberish: BigNumberish, decimals: number): BigNumber {
 
   ensureAllUInt8([decimals])
 
-  if (decimals > MAX_DECIMAL_PLACES) {
-    throw Error(`This function does not support decimals greater than ${MAX_DECIMAL_PLACES}.`)
+  if (decimals > _MAX_DECIMAL_PLACES) {
+    throw Error(`This function does not support decimals greater than ${_MAX_DECIMAL_PLACES}.`)
   }
 
   return bigNumber.dividedBy(_10.exponentiatedBy(decimals))

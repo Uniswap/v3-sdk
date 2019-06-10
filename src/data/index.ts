@@ -1,26 +1,29 @@
 import { ethers } from 'ethers'
 
-import { ETH, ETH_TOKEN, CHAIN_ID_NAME, ERC20_ABI, FACTORY_ADDRESS, FACTORY_ABI } from '../constants'
-import { ChainIdOrProvider, isChainId, _ChainIdAndProvider, Token, TokenReservesNormalized } from '../types'
-import { normalizeAddress, normalizeBigNumberish } from '../_utils'
+import { ChainIdOrProvider, isChainId, Token, TokenReservesNormalized, _ChainIdAndProvider } from '../types'
+import { ETH, SUPPORTED_CHAIN_ID, FACTORY_ABI, FACTORY_ADDRESS, _CHAIN_ID_NAME, _ERC20_ABI } from '../constants'
+import { normalizeBigNumberish, normalizeAddress } from '../_utils'
 
-// get contract object with address, ABI, and provider
-function _getContract(address: string, ABI: string, provider: ethers.providers.BaseProvider): ethers.Contract {
-  return new ethers.Contract(normalizeAddress(address), ABI, provider)
+function getContract(address: string, ABI: string, provider: ethers.providers.BaseProvider): ethers.Contract {
+  return new ethers.Contract(address, ABI, provider)
 }
 
-// get chain id and provider with either a chain id or a provider
-async function _getChainIdAndProvider(chainIdOrProvider: ChainIdOrProvider): Promise<_ChainIdAndProvider> {
+async function getChainIdAndProvider(chainIdOrProvider: ChainIdOrProvider): Promise<_ChainIdAndProvider> {
   // if a chainId is provided, get a default provider for it
   if (isChainId(chainIdOrProvider)) {
     return {
       chainId: chainIdOrProvider,
-      provider: ethers.getDefaultProvider(CHAIN_ID_NAME[chainIdOrProvider])
+      provider: ethers.getDefaultProvider(_CHAIN_ID_NAME[chainIdOrProvider])
     }
   }
   // if a provider is provided, fetch the chainId from it
   else {
     const { chainId }: ethers.utils.Network = await chainIdOrProvider.getNetwork()
+
+    if (!(chainId in SUPPORTED_CHAIN_ID)) {
+      throw Error(`chainId ${chainId} is not valid.`)
+    }
+
     return {
       chainId,
       provider: chainIdOrProvider
@@ -28,13 +31,21 @@ async function _getChainIdAndProvider(chainIdOrProvider: ChainIdOrProvider): Pro
   }
 }
 
-// get token data from an address and chain id/provider
-async function _getToken(tokenAddress: string, chainIdAndProvider: _ChainIdAndProvider): Promise<Token> {
+export function getEthToken(chainId?: number): Token {
+  return {
+    ...(chainId ? { chainId } : {}),
+    address: ETH,
+    decimals: 18
+  }
+}
+
+async function getToken(tokenAddress: string, chainIdAndProvider: _ChainIdAndProvider): Promise<Token> {
   if (tokenAddress === ETH) {
-    return ETH_TOKEN(chainIdAndProvider.chainId)
+    return getEthToken(chainIdAndProvider.chainId)
   } else {
-    const ERC20Contract: ethers.Contract = _getContract(tokenAddress, ERC20_ABI, chainIdAndProvider.provider)
+    const ERC20Contract: ethers.Contract = getContract(tokenAddress, _ERC20_ABI, chainIdAndProvider.provider)
     const decimals: number = await ERC20Contract.decimals()
+
     return {
       chainId: chainIdAndProvider.chainId,
       address: ERC20Contract.address,
@@ -43,28 +54,31 @@ async function _getToken(tokenAddress: string, chainIdAndProvider: _ChainIdAndPr
   }
 }
 
-// external function to get token reserves
 export async function getTokenReserves(
   tokenAddress: string,
   chainIdOrProvider: ChainIdOrProvider = 1
 ): Promise<TokenReservesNormalized> {
-  const chainIdAndProvider: _ChainIdAndProvider = await _getChainIdAndProvider(chainIdOrProvider)
+  // validate input arguments
+  const normalizedTokenAddress: string = normalizeAddress(tokenAddress)
+  const chainIdAndProvider: _ChainIdAndProvider = await getChainIdAndProvider(chainIdOrProvider)
 
-  // fetch tokens
-  const ethTokenPromise: Promise<Token> = _getToken(ETH, chainIdAndProvider)
-  const tokenPromise: Promise<Token> = _getToken(tokenAddress, chainIdAndProvider)
+  // fetch tokens (async)
+  const ethTokenPromise: Promise<Token> = getToken(ETH, chainIdAndProvider)
+  const tokenPromise: Promise<Token> = getToken(normalizedTokenAddress, chainIdAndProvider)
 
   // get contracts
-  const factoryContract: ethers.Contract = _getContract(
+  const factoryContract: ethers.Contract = getContract(
     FACTORY_ADDRESS[chainIdAndProvider.chainId],
     FACTORY_ABI,
     chainIdAndProvider.provider
   )
-  const tokenContract: ethers.Contract = _getContract(tokenAddress, ERC20_ABI, chainIdAndProvider.provider)
+  const tokenContract: ethers.Contract = getContract(normalizedTokenAddress, _ERC20_ABI, chainIdAndProvider.provider)
 
-  const exchangeAddress: string = await factoryContract.getExchange(tokenContract.address)
+  // fetch exchange adddress (blocking async)
+  const exchangeAddress: string = await factoryContract.getExchange(normalizedTokenAddress)
 
-  const exchangeTokenPromise: Promise<Token> = _getToken(exchangeAddress, chainIdAndProvider)
+  // fetch exchange token and eth/token balances (async)
+  const exchangeTokenPromise: Promise<Token> = getToken(exchangeAddress, chainIdAndProvider)
   const ethBalancePromise: Promise<ethers.utils.BigNumber> = chainIdAndProvider.provider.getBalance(exchangeAddress)
   const tokenBalancePromise: Promise<ethers.utils.BigNumber> = tokenContract.balanceOf(exchangeAddress)
 

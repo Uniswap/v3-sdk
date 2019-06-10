@@ -3,19 +3,20 @@ import cloneDeepWith from 'lodash.clonedeepwith'
 
 import {
   BigNumberish,
-  Rate,
-  MarketDetails,
-  TradeDetails,
   TokenAmountNormalized,
   areTokenReservesNormalized,
   NormalizedReserves,
+  Rate,
+  MarketDetails,
+  TradeDetails,
   _PartialTradeDetails
 } from '../types'
-import { _0, _1, _997, _1000, TRADE_TYPE, TRADE_EXACT } from '../constants'
-import { ensureAllUInt256, normalizeBigNumberish } from '../_utils'
-import { calculateDecimalRate, calculateSlippage } from './_utils'
+import { _0, _1, _997, _1000, TRADE_TYPE, TRADE_EXACT, _10000 } from '../constants'
+import { normalizeBigNumberish, ensureAllUInt256 } from '../_utils'
+import { calculateDecimalRate } from './_utils'
 import { getMarketDetails } from './market'
 
+// emulates the uniswap smart contract logic
 function getInputPrice(inputAmount: BigNumber, inputReserve: BigNumber, outputReserve: BigNumber): BigNumber {
   ensureAllUInt256([inputAmount, inputReserve, outputReserve])
 
@@ -33,6 +34,7 @@ function getInputPrice(inputAmount: BigNumber, inputReserve: BigNumber, outputRe
   return outputAmount
 }
 
+// emulates the uniswap smart contract logic
 function getOutputPrice(outputAmount: BigNumber, inputReserve: BigNumber, outputReserve: BigNumber): BigNumber {
   ensureAllUInt256([outputAmount, inputReserve, outputReserve])
 
@@ -49,7 +51,7 @@ function getOutputPrice(outputAmount: BigNumber, inputReserve: BigNumber, output
   return inputAmount
 }
 
-function _getTradeTransput(
+function getSingleTradeTransput(
   tradeType: TRADE_TYPE,
   tradeExact: TRADE_EXACT,
   tradeAmount: BigNumber,
@@ -72,11 +74,10 @@ function _getTradeTransput(
   return calculatedAmount
 }
 
-function customizer(value: BigNumber): BigNumber | undefined {
+function customizer(value: BigNumber): BigNumber | void {
   if (BigNumber.isBigNumber(value)) {
     return new BigNumber(value)
   }
-  return
 }
 
 // gets the corresponding input/output amount for the passed output/input amount
@@ -96,13 +97,13 @@ function getTradeTransput(
     }
 
     if (tradeExact === TRADE_EXACT.INPUT) {
-      const intermediateTransput: BigNumber = _getTradeTransput(
+      const intermediateTransput: BigNumber = getSingleTradeTransput(
         TRADE_TYPE.TOKEN_TO_ETH,
         TRADE_EXACT.INPUT,
         tradeAmount,
         inputReserves
       )
-      const finalTransput: BigNumber = _getTradeTransput(
+      const finalTransput: BigNumber = getSingleTradeTransput(
         TRADE_TYPE.ETH_TO_TOKEN,
         TRADE_EXACT.INPUT,
         intermediateTransput,
@@ -120,13 +121,13 @@ function getTradeTransput(
         outputReservesPost
       }
     } else {
-      const intermediateTransput: BigNumber = _getTradeTransput(
+      const intermediateTransput: BigNumber = getSingleTradeTransput(
         TRADE_TYPE.ETH_TO_TOKEN,
         TRADE_EXACT.OUTPUT,
         tradeAmount,
         outputReserves
       )
-      const finalTransput: BigNumber = _getTradeTransput(
+      const finalTransput: BigNumber = getSingleTradeTransput(
         TRADE_TYPE.TOKEN_TO_ETH,
         TRADE_EXACT.OUTPUT,
         intermediateTransput,
@@ -147,7 +148,7 @@ function getTradeTransput(
   } else {
     const reserves: NormalizedReserves = tradeType === TRADE_TYPE.ETH_TO_TOKEN ? outputReserves : inputReserves
 
-    const finalTransput: BigNumber = _getTradeTransput(tradeType, tradeExact, tradeAmount, reserves)
+    const finalTransput: BigNumber = getSingleTradeTransput(tradeType, tradeExact, tradeAmount, reserves)
 
     if (tradeType === TRADE_TYPE.ETH_TO_TOKEN) {
       if (!areTokenReservesNormalized(outputReservesPost)) {
@@ -181,13 +182,20 @@ function getTradeTransput(
   }
 }
 
+// slippage in basis points, to 18 decimals
+function calculateSlippage(baseRate: BigNumber, newRate: BigNumber): BigNumber {
+  const difference: BigNumber = baseRate.minus(newRate).absoluteValue()
+  return difference.multipliedBy(_10000).dividedBy(baseRate)
+}
+
 export function getTradeDetails(
   tradeExact: TRADE_EXACT,
   _tradeAmount: BigNumberish,
   marketDetails: MarketDetails
 ): TradeDetails {
-  // get other input/output amount
   const tradeAmount: BigNumber = normalizeBigNumberish(_tradeAmount)
+
+  // get other input/output amount
   const { transput, inputReservesPost, outputReservesPost }: _PartialTradeDetails = getTradeTransput(
     marketDetails.tradeType,
     tradeExact,
@@ -206,11 +214,7 @@ export function getTradeDetails(
     amount: tradeExact === TRADE_EXACT.INPUT ? transput : tradeAmount
   }
 
-  const marketDetailsPost: MarketDetails = getMarketDetails(
-    marketDetails.tradeType,
-    inputReservesPost,
-    outputReservesPost
-  )
+  const marketDetailsPost: MarketDetails = getMarketDetails(inputReservesPost, outputReservesPost)
 
   const executionRate: Rate = calculateDecimalRate(outputAmount, inputAmount) as Rate
 

@@ -2,11 +2,11 @@ import BigInteger from 'bignumber.js'
 
 import { FlexibleFormat, FormatSignificantOptions, FormatFixedOptions } from '../types'
 import { formatSignificant, formatSignificantDecimals, formatFixed, formatFixedDecimals } from '../format'
-import { FIXED_UNDERFLOW_BEHAVIOR, ROUNDING_MODE } from '../constants'
+import { FIXED_UNDERFLOW_BEHAVIOR, _ROUNDING_MODE } from '../constants'
 
 function constructFormatSignificantOptions(
   significantDigits: number,
-  roundingMode: BigInteger.RoundingMode = ROUNDING_MODE,
+  roundingMode: BigInteger.RoundingMode = _ROUNDING_MODE,
   forceIntegerSignificance: boolean = false,
   format: FlexibleFormat = false
 ): FormatSignificantOptions {
@@ -20,7 +20,7 @@ function constructFormatSignificantOptions(
 
 function constructFormatFixedOptions(
   decimalPlaces: number,
-  roundingMode: BigInteger.RoundingMode = ROUNDING_MODE,
+  roundingMode: BigInteger.RoundingMode = _ROUNDING_MODE,
   dropTrailingZeros: boolean = true,
   underflowBehavior: FIXED_UNDERFLOW_BEHAVIOR = FIXED_UNDERFLOW_BEHAVIOR.ONE_DIGIT,
   format: FlexibleFormat = false

@@ -49,18 +49,22 @@ export interface EthReserves {
 }
 
 // type for input data
-export type OptionalReserves = TokenReserves | EthReserves | undefined | null
+export type OptionalReserves = TokenReserves | EthReserves | undefined
 
 // type guard for OptionalReserves
 export function areTokenReserves(reserves: OptionalReserves): reserves is TokenReserves {
   const tokenReserves: TokenReserves = reserves as TokenReserves
-  return !!tokenReserves && tokenReserves.ethReserve !== undefined && tokenReserves.tokenReserve !== undefined
+  return (
+    tokenReserves !== undefined && tokenReserves.ethReserve !== undefined && tokenReserves.tokenReserve !== undefined
+  )
 }
 
 // type guard for OptionalReserves
-export function areETHReserves(reserves: OptionalReserves): reserves is TokenReserves {
+export function areETHReserves(reserves: OptionalReserves): reserves is EthReserves {
   const tokenReserves: TokenReserves = reserves as TokenReserves
-  return !!tokenReserves && tokenReserves.ethReserve !== undefined && tokenReserves.tokenReserve !== undefined
+  return (
+    tokenReserves !== undefined && tokenReserves.ethReserve === undefined && tokenReserves.tokenReserve === undefined
+  )
 }
 
 // type for output data
@@ -95,6 +99,16 @@ export interface TradeDetails {
   executionRate: Rate
   marketRateSlippage: BigNumber
   executionRateSlippage: BigNumber
+}
+
+export type MethodArgument = BigNumber | number | string
+
+export interface ExecutionDetails {
+  exchangeAddress: string
+  methodName: string
+  methodId: string
+  value: BigNumber
+  methodArguments: MethodArgument[]
 }
 
 //// types for formatting data
@@ -146,4 +160,14 @@ export interface _PartialTradeDetails {
   transput: BigNumber
   inputReservesPost: NormalizedReserves
   outputReservesPost: NormalizedReserves
+}
+
+export interface _SlippageBounds {
+  minimum: BigNumber
+  maximum: BigNumber
+}
+
+export interface _PartialExecutionDetails {
+  value: BigNumber
+  methodArguments: MethodArgument[]
 }
