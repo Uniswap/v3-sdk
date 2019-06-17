@@ -6,7 +6,7 @@ import { SUPPORTED_CHAIN_ID, TRADE_TYPE, TRADE_EXACT, FIXED_UNDERFLOW_BEHAVIOR }
 export type BigNumberish = BigNumber | ethers.utils.BigNumber | string | number
 
 //// types for on-chain, submitted, and normalized data
-export type ChainIdOrProvider = SUPPORTED_CHAIN_ID | ethers.providers.BaseProvider
+export type ChainIdOrProvider = SUPPORTED_CHAIN_ID | ethers.providers.AsyncSendable
 
 // type guard for ChainIdOrProvider
 export function isChainId(chainIdOrProvider: ChainIdOrProvider): chainIdOrProvider is SUPPORTED_CHAIN_ID {
@@ -138,7 +138,7 @@ export interface FormatFixedOptions {
 //// internal-only interfaces
 export interface _ChainIdAndProvider {
   chainId: number
-  provider: ethers.providers.BaseProvider
+  provider: ethers.providers.Web3Provider | ethers.providers.BaseProvider
 }
 
 export interface _ParsedOptionalReserves {

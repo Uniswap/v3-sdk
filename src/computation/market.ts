@@ -17,8 +17,7 @@ import {
   _AnyRate
 } from '../types'
 import { TRADE_TYPE } from '../constants'
-import { normalizeBigNumberish, ensureAllUInt8, ensureAllUInt256 } from '../_utils'
-import { getEthToken } from '../data'
+import { normalizeBigNumberish, ensureAllUInt8, ensureAllUInt256, getEthToken } from '../_utils'
 import { calculateDecimalRate } from './_utils'
 
 function normalizeTokenAmount(tokenAmount: TokenAmount): TokenAmountNormalized {

@@ -1,8 +1,8 @@
 import BigNumber from 'bignumber.js'
 import { ethers } from 'ethers'
 
-import { BigNumberish } from '../types'
-import { _0, _MAX_UINT8, _MAX_UINT256 } from '../constants'
+import { BigNumberish, Token } from '../types'
+import { _0, _MAX_UINT8, _MAX_UINT256, ETH } from '../constants'
 
 function ensureUInt8(number: number): void {
   if (!Number.isInteger(number) || number < 0 || number > _MAX_UINT8) {
@@ -46,4 +46,12 @@ export function normalizeBigNumberish(bigNumberish: BigNumberish): BigNumber {
 
 export function normalizeAddress(address: string): string {
   return ethers.utils.getAddress(address.toLowerCase())
+}
+
+export function getEthToken(chainId?: number): Token {
+  return {
+    ...(chainId ? { chainId } : {}),
+    address: ETH,
+    decimals: 18
+  }
 }

@@ -2,7 +2,7 @@ import { ethers } from 'ethers'
 
 import { ChainIdOrProvider, isChainId, Token, TokenReservesNormalized, _ChainIdAndProvider } from '../types'
 import { ETH, SUPPORTED_CHAIN_ID, FACTORY_ABI, FACTORY_ADDRESS, _CHAIN_ID_NAME, _ERC20_ABI } from '../constants'
-import { normalizeBigNumberish, normalizeAddress } from '../_utils'
+import { normalizeBigNumberish, normalizeAddress, getEthToken } from '../_utils'
 
 function getContract(address: string, ABI: string, provider: ethers.providers.BaseProvider): ethers.Contract {
   return new ethers.Contract(address, ABI, provider)
@@ -18,7 +18,8 @@ async function getChainIdAndProvider(chainIdOrProvider: ChainIdOrProvider): Prom
   }
   // if a provider is provided, fetch the chainId from it
   else {
-    const { chainId }: ethers.utils.Network = await chainIdOrProvider.getNetwork()
+    const provider: ethers.providers.Web3Provider = new ethers.providers.Web3Provider(chainIdOrProvider)
+    const { chainId }: ethers.utils.Network = await provider.getNetwork()
 
     if (!(chainId in SUPPORTED_CHAIN_ID)) {
       throw Error(`chainId ${chainId} is not valid.`)
@@ -26,16 +27,8 @@ async function getChainIdAndProvider(chainIdOrProvider: ChainIdOrProvider): Prom
 
     return {
       chainId,
-      provider: chainIdOrProvider
+      provider
     }
-  }
-}
-
-export function getEthToken(chainId?: number): Token {
-  return {
-    ...(chainId ? { chainId } : {}),
-    address: ETH,
-    decimals: 18
   }
 }
 

@@ -1,6 +1,6 @@
 import { Token, TokenReservesNormalized } from '../types'
 import { ETH as _ETH, _CHAIN_ID_NAME } from '../constants'
-import { getTokenReserves, getEthToken } from '../data'
+import { getTokenReserves } from '../data'
 import { ethers } from 'ethers'
 
 const ETH: Token = {
@@ -43,8 +43,4 @@ describe('getTokenReserves', (): void => {
 
     done()
   })
-})
-
-test('getEthToken', (): void => {
-  expect(getEthToken(1)).toEqual(ETH)
 })

@@ -2,7 +2,8 @@ import BigNumber from 'bignumber.js'
 import { ethers } from 'ethers'
 
 import { BigNumberish } from '../types'
-import { normalizeBigNumberish } from '../_utils'
+import { ETH } from '../constants'
+import { normalizeBigNumberish, getEthToken } from '../_utils'
 
 interface TestCase {
   input: BigNumberish
@@ -87,4 +88,8 @@ describe('normalizeBigNumberish', (): void => {
     testSuccesses(expectedSuccesses)
     testFailures(expectedFailures)
   })
+})
+
+test('getEthToken', (): void => {
+  expect(getEthToken(1).address).toEqual(ETH)
 })
