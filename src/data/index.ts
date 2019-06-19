@@ -1,10 +1,17 @@
 import { ethers } from 'ethers'
 
-import { ChainIdOrProvider, isChainId, Token, TokenReservesNormalized, _ChainIdAndProvider } from '../types'
+import {
+  ChainIdOrProvider,
+  isChainId,
+  isLowLevelProvider,
+  Token,
+  TokenReservesNormalized,
+  _ChainIdAndProvider
+} from '../types'
 import { ETH, SUPPORTED_CHAIN_ID, FACTORY_ABI, FACTORY_ADDRESS, _CHAIN_ID_NAME, _ERC20_ABI } from '../constants'
 import { normalizeBigNumberish, normalizeAddress, getEthToken } from '../_utils'
 
-function getContract(address: string, ABI: string, provider: ethers.providers.BaseProvider): ethers.Contract {
+function getContract(address: string, ABI: string, provider: ethers.providers.Provider): ethers.Contract {
   return new ethers.Contract(address, ABI, provider)
 }
 
@@ -18,7 +25,9 @@ async function getChainIdAndProvider(chainIdOrProvider: ChainIdOrProvider): Prom
   }
   // if a provider is provided, fetch the chainId from it
   else {
-    const provider: ethers.providers.Web3Provider = new ethers.providers.Web3Provider(chainIdOrProvider)
+    const provider: ethers.providers.Provider = isLowLevelProvider(chainIdOrProvider)
+      ? new ethers.providers.Web3Provider(chainIdOrProvider)
+      : chainIdOrProvider
     const { chainId }: ethers.utils.Network = await provider.getNetwork()
 
     if (!(chainId in SUPPORTED_CHAIN_ID)) {

@@ -1,6 +1,7 @@
 import { Token, TokenReservesNormalized } from '../types'
 import { ETH as _ETH } from '../constants'
 import { getTokenReserves } from '../data'
+import { ethers } from 'ethers'
 
 const ETH: Token = {
   chainId: 1,
@@ -25,6 +26,13 @@ describe('getTokenReserves', (): void => {
 
   test('DAI', async (done: jest.DoneCallback): Promise<void> => {
     const tokenReserves: TokenReservesNormalized = await getTokenReserves(DAI.address as string)
+
+    const tokenReservesWithProvider: TokenReservesNormalized = await getTokenReserves(
+      DAI.address as string,
+      ethers.getDefaultProvider()
+    )
+
+    expect(tokenReserves.token).toEqual(tokenReservesWithProvider.token)
 
     expect(tokenReserves.token).toEqual(DAI)
     expect(tokenReserves.exchange).toEqual(DAI_EXCHANGE)
