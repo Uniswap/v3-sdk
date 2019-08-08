@@ -21,8 +21,8 @@ export function isLowLevelProvider(
   if (isChainId(chainIdOrProvider)) {
     return false
   } else {
-    const provider: ethers.providers.AsyncSendable = chainIdOrProvider as ethers.providers.AsyncSendable
-    return 'send' in provider || 'sendAsync' in provider
+    const provider: ethers.providers.Provider = chainIdOrProvider as ethers.providers.Provider
+    return !ethers.providers.Provider.isProvider(provider)
   }
 }
 
