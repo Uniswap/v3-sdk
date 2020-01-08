@@ -1,50 +1,33 @@
 {
   "name": "@uniswap/sdk",
-  "version": "1.0.0-beta.4",
-  "description": "An SDK for building applications on top of the Uniswap exchange protocol.",
-  "keywords": [
-    "Uniswap",
-    "Ethereum",
-    "SDK"
-  ],
-  "main": "./dist/index.js",
-  "scripts": {
-    "lint:base": "yarn eslint './src/**/*.ts'",
-    "format:base": "yarn prettier './src/**/*.ts'",
-    "fix:lint": "yarn lint:base --fix",
-    "fix:format": "yarn format:base --write",
-    "fix:all": "yarn fix:lint && yarn fix:format",
-    "check:lint": "yarn lint:base",
-    "check:format": "yarn format:base --check",
-    "check:all": "yarn check:lint && yarn check:format",
-    "prebuild": "rm -rf dist/",
-    "build": "tsc",
-    "watch": "yarn prebuild && tsc --watch",
-    "test": "jest",
-    "coverage": "jest --coverage --coverageReporters=text-lcov | coveralls"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Uniswap/uniswap-sdk.git"
-  },
-  "author": "Noah Zinsmeister <noahwz@gmail.com>",
   "license": "GPL-3.0-or-later",
-  "devDependencies": {
-    "@types/jest": "^24.0.13",
-    "@types/lodash.clonedeepwith": "^4.5.6",
-    "@typescript-eslint/eslint-plugin": "^1.9.0",
-    "@typescript-eslint/parser": "^1.9.0",
-    "coveralls": "^3.0.3",
-    "eslint": "^5.16.0",
-    "eslint-config-prettier": "^4.3.0",
-    "jest": "^24.8.0",
-    "prettier": "^1.17.1",
-    "ts-jest": "^24.0.2",
-    "typescript": "^3.4.5"
+  "version": "2.0.0",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": "https://github.com/Uniswap/uniswap-sdk.git",
+  "keywords": [
+    "uniswap",
+    "ethereum"
+  ],
+  "module": "dist/sdk.esm.js",
+  "scripts": {
+    "lint": "tsdx lint",
+    "build": "tsdx build",
+    "start": "tsdx watch",
+    "test": "tsdx test"
   },
-  "dependencies": {
-    "bignumber.js": "^9.0.0",
-    "ethers": "^4.0.28",
-    "lodash.clonedeepwith": "^4.5.0"
+  "devDependencies": {
+    "@types/jest": "^24.0.25",
+    "tsdx": "^0.12.1",
+    "tslib": "^1.10.0",
+    "typescript": "^3.7.4"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "semi": false,
+    "singleQuote": true
   }
 }

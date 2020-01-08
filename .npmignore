@@ -1,9 +1,0 @@
-src/
-.eslintrc
-.gitignore
-.prettierrc
-.travis.yml
-jest.config.js
-*.md
-tsconfig.json
-yarn.lock
