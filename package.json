@@ -1,7 +1,7 @@
 {
   "name": "@uniswap/sdk",
   "license": "GPL-3.0-or-later",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
@@ -20,10 +20,18 @@
     "test": "tsdx test"
   },
   "devDependencies": {
+    "@types/big.js": "^4.0.5",
     "@types/jest": "^24.0.25",
     "tsdx": "^0.12.1",
     "tslib": "^1.10.0",
     "typescript": "^3.7.4"
+  },
+  "dependencies": {
+    "@ethersproject/address": "^5.0.0-beta.134",
+    "big.js": "^5.2.2",
+    "decimal.js-light": "^2.5.0",
+    "tiny-invariant": "^1.0.6",
+    "toformat": "^2.0.0"
   },
   "prettier": {
     "printWidth": 120,

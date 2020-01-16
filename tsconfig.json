@@ -1,7 +1,7 @@
 {
   "include": ["src", "types", "test"],
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2016",
     "module": "esnext",
     "lib": ["dom", "esnext", "esnext.bigint"],
     "importHelpers": true,
