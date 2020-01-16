@@ -33,6 +33,9 @@
     "tiny-invariant": "^1.0.6",
     "toformat": "^2.0.0"
   },
+  "engines": {
+    "node": ">=10"
+  },
   "prettier": {
     "printWidth": 120,
     "semi": false,

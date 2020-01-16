@@ -14,7 +14,7 @@ export class Route {
     invariant(exchanges.length > 0, `${exchanges} does not consist of at least 1 exchange.`)
 
     // validate conditions that must be true of a Route
-    const chainIds = exchanges.map(exchange => exchange.pair.map(token => token.chainId)).flat()
+    const chainIds = exchanges.map(exchange => exchange.pair[0].chainId) // a sufficent check since exchanges are valid
     chainIds.forEach((chainId, _, array) => invariant(chainId === array[0], `${chainIds} are not all equal.`))
     const path = [input]
     exchanges.forEach((exchange, i) => {
