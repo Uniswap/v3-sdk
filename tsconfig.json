@@ -1,9 +1,8 @@
 {
   "include": ["src", "types", "test"],
   "compilerOptions": {
-    "target": "es2016",
+    "target": "es2020",
     "module": "esnext",
-    "lib": ["dom", "esnext", "esnext.bigint"],
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
@@ -24,7 +23,6 @@
     "paths": {
       "*": ["src/*", "node_modules/*"]
     },
-    "jsx": "react",
     "esModuleInterop": true
   }
 }

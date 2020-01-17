@@ -3,13 +3,12 @@ import _Decimal from 'decimal.js-light'
 import _Big, { RoundingMode } from 'big.js'
 import toFormat from 'toformat'
 
-import { Fraction } from '../types'
-
 const Decimal = toFormat(_Decimal)
 const Big = toFormat(_Big)
 
 export function formatSignificant(
-  [numerator, denominator]: Fraction,
+  numerator: bigint,
+  denominator: bigint,
   significantDigits: number,
   format: object = { groupSeparator: '' },
   roundingMode?: number
@@ -23,7 +22,8 @@ export function formatSignificant(
 }
 
 export function formatFixed(
-  [numerator, denominator]: Fraction,
+  numerator: bigint,
+  denominator: bigint,
   decimalPlaces: number,
   format: object = { groupSeparator: '' },
   roundingMode?: RoundingMode

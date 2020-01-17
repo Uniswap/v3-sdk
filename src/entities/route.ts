@@ -2,7 +2,7 @@ import invariant from 'tiny-invariant'
 
 import { Token } from './token'
 import { Exchange } from './exchange'
-import { Price } from './rate'
+import { Price } from './fractions'
 
 export class Route {
   public readonly exchanges: Exchange[]

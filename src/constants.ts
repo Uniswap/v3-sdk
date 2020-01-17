@@ -18,9 +18,11 @@ export enum TradeType {
 
 // exports for internal consumption
 export const ZERO = BigInt(0)
+export const ONE = BigInt(1)
 export const TEN = BigInt(10)
-export const _1000 = BigInt(1000)
+export const _100 = BigInt(100)
 export const _997 = BigInt(997)
+export const _1000 = BigInt(1000)
 
 export enum SolidityType {
   uint8,

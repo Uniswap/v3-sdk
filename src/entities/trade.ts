@@ -1,17 +1,17 @@
 import invariant from 'tiny-invariant'
 
-import { _997, _1000, SolidityType, TradeType } from '../constants'
-import { BigintIsh, Fraction } from '../types'
+import { ZERO, ONE, _997, _1000, SolidityType, TradeType } from '../constants'
+import { BigintIsh } from '../types'
 import { parseBigintIsh } from '../utils/parseInputs'
 import { validateSolidityTypeInstance } from '../utils/validateInputs'
 import { Exchange } from './exchange'
 import { Route } from './route'
-import { Price, Percent } from './rate'
+import { Fraction, Price, Percent } from './fractions'
 
 function getOutputAmount(inputAmount: bigint, inputReserve: bigint, outputReserve: bigint): bigint {
-  invariant(inputAmount > 0, `${inputAmount} is not positive.`)
-  invariant(inputReserve > 0, `${inputReserve} is not positive.`)
-  invariant(outputReserve > 0, `${outputReserve} is not positive.`)
+  invariant(inputAmount > ZERO, `${inputAmount} is not positive.`)
+  invariant(inputReserve > ZERO, `${inputReserve} is not positive.`)
+  invariant(outputReserve > ZERO, `${outputReserve} is not positive.`)
   const inputAmountWithFee = inputAmount * _997
   const numerator = inputAmountWithFee * outputReserve
   const denominator = inputReserve * _1000 + inputAmountWithFee
@@ -24,26 +24,27 @@ function getInputAmount(outputAmount: bigint, inputReserve: bigint, outputReserv
   invariant(outputReserve > 0, `${outputReserve} is not positive.`)
   const numerator = inputReserve * outputAmount * _1000
   const denominator = (outputReserve - outputAmount) * _997
-  return numerator / denominator + BigInt(1)
+  return numerator / denominator + ONE
 }
 
 function getSlippage(inputAmount: bigint, midPrice: Price, outputAmount: bigint): Percent {
-  const exactQuote: Fraction = [
-    inputAmount * midPrice.rate[0] * midPrice.scalar[0],
-    midPrice.rate[1] * midPrice.scalar[1]
-  ]
-  const normalizedNumerator: Fraction = [outputAmount * exactQuote[1] - exactQuote[0], exactQuote[1]]
-  const invertedDenominator = exactQuote.slice().reverse() as Fraction
-  return new Percent([normalizedNumerator[0] * invertedDenominator[0], normalizedNumerator[1] * invertedDenominator[1]])
+  const exactQuote = midPrice.price.multiply(midPrice.scalar).multiply(new Fraction(inputAmount))
+  const normalizedNumerator = new Fraction(
+    outputAmount * exactQuote.denominator - exactQuote.numerator,
+    exactQuote.denominator
+  )
+  const invertedDenominator = exactQuote.invert()
+  return new Percent(normalizedNumerator.multiply(invertedDenominator))
 }
 
 function getPercentChange(referenceRate: Price, newRate: Price): Percent {
-  const normalizedNumerator: Fraction = [
-    newRate.rate[0] * referenceRate.rate[1] - referenceRate.rate[0] * newRate.rate[1],
-    referenceRate.rate[1] * newRate.rate[1]
-  ]
-  const invertedDenominator = referenceRate.rate.slice().reverse() as Fraction
-  return new Percent([normalizedNumerator[0] * invertedDenominator[0], normalizedNumerator[1] * invertedDenominator[1]])
+  const normalizedNumerator = new Fraction(
+    newRate.price.numerator * referenceRate.price.denominator -
+      referenceRate.price.numerator * newRate.price.denominator,
+    referenceRate.price.denominator * newRate.price.denominator
+  )
+  const invertedDenominator = referenceRate.price.invert()
+  return new Percent(normalizedNumerator.multiply(invertedDenominator))
 }
 
 export class Trade {
@@ -111,14 +112,13 @@ export class Trade {
     this.inputAmount = inputAmount
     this.outputAmount = outputAmount
     this.tradeType = tradeType
-    const executionPrice = new Price(
-      [outputAmount * route.midPrice.scalar[1], inputAmount * route.midPrice.scalar[0]],
+    this.executionPrice = new Price(
+      new Fraction(outputAmount, inputAmount).multiply(route.midPrice.scalar.invert()),
       route.midPrice.scalar
     )
-    this.executionPrice = executionPrice
-    this.slippage = getSlippage(inputAmount, route.midPrice, outputAmount)
     const nextMidPrice = Price.fromRoute(new Route(nextExchanges, route.input))
     this.nextMidPrice = nextMidPrice
+    this.slippage = getSlippage(inputAmount, route.midPrice, outputAmount)
     this.midPricePercentChange = getPercentChange(route.midPrice, nextMidPrice)
   }
 }
