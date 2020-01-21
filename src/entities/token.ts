@@ -1,3 +1,5 @@
+import JSBI from 'jsbi'
+
 import { SolidityType } from '../constants'
 import { validateChainId, validateAddress, validateSolidityTypeInstance } from '../utils/validateInputs'
 
@@ -9,7 +11,7 @@ export class Token {
   static validate(chainId: number, address: string, decimals: number) {
     validateChainId(chainId)
     validateAddress(address)
-    validateSolidityTypeInstance(BigInt(decimals), SolidityType.uint8)
+    validateSolidityTypeInstance(JSBI.BigInt(decimals), SolidityType.uint8)
   }
 
   constructor(chainId: number, address: string, decimals: number) {

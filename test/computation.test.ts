@@ -63,12 +63,15 @@ describe('entities', () => {
       })
 
       it('Rate via Route.marketRate', () => {
-        expect(route.midPrice.quote(decimalize(1, route.input.decimals))).toEqual(
-          decimalize(1234, route.output.decimals)
+        expect(route.midPrice.quote(decimalize(1, route.input.decimals)).toString()).toEqual(
+          decimalize(1234, route.output.decimals).toString()
         )
-        expect(route.midPrice.invert().quote(decimalize(1234, route.output.decimals))).toEqual(
-          decimalize(1, route.input.decimals)
-        )
+        expect(
+          route.midPrice
+            .invert()
+            .quote(decimalize(1234, route.output.decimals))
+            .toString()
+        ).toEqual(decimalize(1, route.input.decimals).toString())
 
         expect(route.midPrice.formatSignificant(1)).toEqual('1000')
         expect(route.midPrice.formatSignificant(2)).toEqual('1200')
@@ -105,13 +108,18 @@ describe('entities', () => {
           const route = new Route(exchanges, tokens[1])
           const inputAmount = decimalize(1, tokens[1].decimals)
           const trade = new Trade(route, inputAmount, TradeType.EXACT_INPUT)
-          expect(trade.inputAmount).toEqual(inputAmount)
-          expect(trade.outputAmount).toEqual(BigInt('1662497915624478906'))
+          expect(trade.inputAmount.toString()).toEqual(inputAmount.toString())
+          expect(trade.outputAmount.toString()).toEqual('1662497915624478906')
 
           expect(trade.executionPrice.formatSignificant(18)).toEqual('1.66249791562447891')
           expect(trade.executionPrice.invert().formatSignificant(18)).toEqual('0.601504513540621866')
-          expect(trade.executionPrice.quote(inputAmount)).toEqual(trade.outputAmount)
-          expect(trade.executionPrice.invert().quote(trade.outputAmount)).toEqual(inputAmount)
+          expect(trade.executionPrice.quote(inputAmount).toString()).toEqual(trade.outputAmount.toString())
+          expect(
+            trade.executionPrice
+              .invert()
+              .quote(trade.outputAmount)
+              .toString()
+          ).toEqual(inputAmount.toString())
 
           expect(trade.nextMidPrice.formatSignificant(18)).toEqual('1.38958368072925352')
           expect(trade.nextMidPrice.invert().formatSignificant(18)).toEqual('0.71964')
@@ -128,14 +136,19 @@ describe('entities', () => {
           const route = new Route(exchanges, tokens[1])
           const outputAmount = BigInt('1662497915624478906')
           const trade = new Trade(route, outputAmount, TradeType.EXACT_OUTPUT)
-          expect(trade.inputAmount).toEqual(decimalize(1, tokens[1].decimals))
-          expect(trade.outputAmount).toEqual(outputAmount)
+          expect(trade.inputAmount.toString()).toEqual(decimalize(1, tokens[1].decimals).toString())
+          expect(trade.outputAmount.toString()).toEqual(outputAmount.toString())
 
           // TODO think about inverse execution price?
           expect(trade.executionPrice.formatSignificant(18)).toEqual('1.66249791562447891')
           expect(trade.executionPrice.invert().formatSignificant(18)).toEqual('0.601504513540621866')
-          expect(trade.executionPrice.quote(trade.inputAmount)).toEqual(outputAmount)
-          expect(trade.executionPrice.invert().quote(outputAmount)).toEqual(trade.inputAmount)
+          expect(trade.executionPrice.quote(trade.inputAmount).toString()).toEqual(outputAmount.toString())
+          expect(
+            trade.executionPrice
+              .invert()
+              .quote(outputAmount)
+              .toString()
+          ).toEqual(trade.inputAmount.toString())
 
           expect(trade.nextMidPrice.formatSignificant(18)).toEqual('1.38958368072925352')
           expect(trade.nextMidPrice.invert().formatSignificant(18)).toEqual('0.71964')

@@ -1,4 +1,5 @@
 import invariant from 'tiny-invariant'
+import JSBI from 'jsbi'
 
 import { SolidityType } from '../constants'
 import { BigintIsh } from '../types'
@@ -8,9 +9,9 @@ import { Token } from './token'
 
 export class Exchange {
   public readonly pair: [Token, Token]
-  public readonly balances: [bigint, bigint]
+  public readonly balances: [JSBI, JSBI]
 
-  static validate(pair: [Token, Token], balances: [bigint, bigint]) {
+  static validate(pair: [Token, Token], balances: [JSBI, JSBI]) {
     // validate components of an Exchange
     balances.forEach(balance => validateSolidityTypeInstance(balance, SolidityType.uint256))
 
@@ -25,7 +26,7 @@ export class Exchange {
     const balancesParsed = balances.map(balance => parseBigintIsh(balance))
     const inOrder = pair[0].address < pair[1].address
     const orderedPair = (inOrder ? pair : pair.slice().reverse()) as [Token, Token]
-    const orderedBalances = (inOrder ? balancesParsed : balancesParsed.slice().reverse()) as [bigint, bigint]
+    const orderedBalances = (inOrder ? balancesParsed : balancesParsed.slice().reverse()) as [JSBI, JSBI]
     Exchange.validate(orderedPair, orderedBalances)
 
     this.pair = orderedPair

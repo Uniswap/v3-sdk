@@ -1,4 +1,5 @@
 import invariant from 'tiny-invariant'
+import JSBI from 'jsbi'
 import { getAddress } from '@ethersproject/address'
 
 import { ZERO, ChainId, SolidityType } from '../constants'
@@ -18,10 +19,10 @@ export function validateAddress(address: string) {
 }
 
 const SolidityTypeMaxima = {
-  [SolidityType.uint8]: BigInt(2 ** 8 - 1),
-  [SolidityType.uint256]: BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+  [SolidityType.uint8]: JSBI.BigInt(2 ** 8 - 1),
+  [SolidityType.uint256]: JSBI.BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
 }
-export function validateSolidityTypeInstance(value: bigint, solidityType: SolidityType) {
-  invariant(value >= ZERO, `${value.toString()} is negative.`)
-  invariant(value <= SolidityTypeMaxima[solidityType], `${value.toString()} is too large.`)
+export function validateSolidityTypeInstance(value: JSBI, solidityType: SolidityType) {
+  invariant(JSBI.greaterThanOrEqual(value, ZERO), `${value} is negative.`)
+  invariant(JSBI.lessThanOrEqual(value, SolidityTypeMaxima[solidityType]), `${value} is too large.`)
 }

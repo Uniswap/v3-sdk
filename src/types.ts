@@ -1,1 +1,3 @@
-export type BigintIsh = bigint | string
+import JSBI from 'jsbi'
+
+export type BigintIsh = bigint | JSBI | string

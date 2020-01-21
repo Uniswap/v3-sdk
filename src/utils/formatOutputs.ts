@@ -1,4 +1,5 @@
 import invariant from 'tiny-invariant'
+import JSBI from 'jsbi'
 import _Decimal from 'decimal.js-light'
 import _Big, { RoundingMode } from 'big.js'
 import toFormat from 'toformat'
@@ -7,8 +8,8 @@ const Decimal = toFormat(_Decimal)
 const Big = toFormat(_Big)
 
 export function formatSignificant(
-  numerator: bigint,
-  denominator: bigint,
+  numerator: JSBI,
+  denominator: JSBI,
   significantDigits: number,
   format: object = { groupSeparator: '' },
   roundingMode?: number
@@ -22,8 +23,8 @@ export function formatSignificant(
 }
 
 export function formatFixed(
-  numerator: bigint,
-  denominator: bigint,
+  numerator: JSBI,
+  denominator: JSBI,
   decimalPlaces: number,
   format: object = { groupSeparator: '' },
   roundingMode?: RoundingMode

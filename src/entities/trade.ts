@@ -1,4 +1,5 @@
 import invariant from 'tiny-invariant'
+import JSBI from 'jsbi'
 
 import { ZERO, ONE, _997, _1000, SolidityType, TradeType } from '../constants'
 import { BigintIsh } from '../types'
@@ -8,29 +9,29 @@ import { Exchange } from './exchange'
 import { Route } from './route'
 import { Fraction, Price, Percent } from './fractions'
 
-function getOutputAmount(inputAmount: bigint, inputReserve: bigint, outputReserve: bigint): bigint {
-  invariant(inputAmount > ZERO, `${inputAmount} is not positive.`)
-  invariant(inputReserve > ZERO, `${inputReserve} is not positive.`)
-  invariant(outputReserve > ZERO, `${outputReserve} is not positive.`)
-  const inputAmountWithFee = inputAmount * _997
-  const numerator = inputAmountWithFee * outputReserve
-  const denominator = inputReserve * _1000 + inputAmountWithFee
-  return numerator / denominator
+function getOutputAmount(inputAmount: JSBI, inputReserve: JSBI, outputReserve: JSBI): JSBI {
+  invariant(JSBI.greaterThan(inputAmount, ZERO), `${inputAmount} is not positive.`)
+  invariant(JSBI.greaterThan(inputReserve, ZERO), `${inputReserve} is not positive.`)
+  invariant(JSBI.greaterThan(outputReserve, ZERO), `${outputReserve} is not positive.`)
+  const inputAmountWithFee = JSBI.multiply(inputAmount, _997)
+  const numerator = JSBI.multiply(inputAmountWithFee, outputReserve)
+  const denominator = JSBI.add(JSBI.multiply(inputReserve, _1000), inputAmountWithFee)
+  return JSBI.divide(numerator, denominator)
 }
 
-function getInputAmount(outputAmount: bigint, inputReserve: bigint, outputReserve: bigint): bigint {
-  invariant(outputAmount > 0, `${outputAmount} is not positive.`)
-  invariant(inputReserve > 0, `${inputReserve} is not positive.`)
-  invariant(outputReserve > 0, `${outputReserve} is not positive.`)
-  const numerator = inputReserve * outputAmount * _1000
-  const denominator = (outputReserve - outputAmount) * _997
-  return numerator / denominator + ONE
+function getInputAmount(outputAmount: JSBI, inputReserve: JSBI, outputReserve: JSBI): JSBI {
+  invariant(JSBI.greaterThan(outputAmount, ZERO), `${outputAmount} is not positive.`)
+  invariant(JSBI.greaterThan(inputReserve, ZERO), `${inputReserve} is not positive.`)
+  invariant(JSBI.greaterThan(outputReserve, ZERO), `${outputReserve} is not positive.`)
+  const numerator = JSBI.multiply(JSBI.multiply(inputReserve, outputAmount), _1000)
+  const denominator = JSBI.multiply(JSBI.subtract(outputReserve, outputAmount), _997)
+  return JSBI.add(JSBI.divide(numerator, denominator), ONE)
 }
 
-function getSlippage(inputAmount: bigint, midPrice: Price, outputAmount: bigint): Percent {
+function getSlippage(inputAmount: JSBI, midPrice: Price, outputAmount: JSBI): Percent {
   const exactQuote = midPrice.price.multiply(midPrice.scalar).multiply(new Fraction(inputAmount))
   const normalizedNumerator = new Fraction(
-    outputAmount * exactQuote.denominator - exactQuote.numerator,
+    JSBI.subtract(JSBI.multiply(outputAmount, exactQuote.denominator), exactQuote.numerator),
     exactQuote.denominator
   )
   const invertedDenominator = exactQuote.invert()
@@ -39,9 +40,11 @@ function getSlippage(inputAmount: bigint, midPrice: Price, outputAmount: bigint)
 
 function getPercentChange(referenceRate: Price, newRate: Price): Percent {
   const normalizedNumerator = new Fraction(
-    newRate.price.numerator * referenceRate.price.denominator -
-      referenceRate.price.numerator * newRate.price.denominator,
-    referenceRate.price.denominator * newRate.price.denominator
+    JSBI.subtract(
+      JSBI.multiply(newRate.price.numerator, referenceRate.price.denominator),
+      JSBI.multiply(referenceRate.price.numerator, newRate.price.denominator)
+    ),
+    JSBI.multiply(referenceRate.price.denominator, newRate.price.denominator)
   )
   const invertedDenominator = referenceRate.price.invert()
   return new Percent(normalizedNumerator.multiply(invertedDenominator))
@@ -49,15 +52,15 @@ function getPercentChange(referenceRate: Price, newRate: Price): Percent {
 
 export class Trade {
   public readonly route: Route
-  public readonly inputAmount: bigint
-  public readonly outputAmount: bigint
+  public readonly inputAmount: JSBI
+  public readonly outputAmount: JSBI
   public readonly tradeType: TradeType
   public readonly executionPrice: Price
   public readonly nextMidPrice: Price
   public readonly slippage: Percent
   public readonly midPricePercentChange: Percent
 
-  static validate(amount: bigint) {
+  static validate(amount: JSBI) {
     validateSolidityTypeInstance(amount, SolidityType.uint256)
   }
 
@@ -65,7 +68,7 @@ export class Trade {
     const amountParsed = parseBigintIsh(amount)
     Trade.validate(amountParsed)
 
-    const amounts: bigint[] = new Array(route.exchanges.length + 1)
+    const amounts: JSBI[] = new Array(route.exchanges.length + 1)
     const nextExchanges: Exchange[] = new Array(route.exchanges.length)
     if (tradeType === TradeType.EXACT_INPUT) {
       amounts[0] = amountParsed
@@ -78,7 +81,10 @@ export class Trade {
         amounts[i + 1] = outputAmount
         const nextExchange = new Exchange(
           [exchange.pair[inputIndex], exchange.pair[outputIndex]],
-          [exchange.balances[inputIndex] + inputAmount, exchange.balances[outputIndex] - outputAmount]
+          [
+            JSBI.add(exchange.balances[inputIndex], inputAmount),
+            JSBI.subtract(exchange.balances[outputIndex], outputAmount)
+          ]
         )
         nextExchanges[i] = nextExchange
       })
@@ -101,7 +107,10 @@ export class Trade {
           amounts[inverseIndex] = inputAmount
           const nextExchange = new Exchange(
             [exchange.pair[inputIndex], exchange.pair[outputIndex]],
-            [exchange.balances[inputIndex] + inputAmount, exchange.balances[outputIndex] - outputAmount]
+            [
+              JSBI.add(exchange.balances[inputIndex], inputAmount),
+              JSBI.subtract(exchange.balances[outputIndex], outputAmount)
+            ]
           )
           nextExchanges[inverseIndex] = nextExchange
         })
