@@ -62,7 +62,7 @@ describe('entities', () => {
         expect(route.output).toEqual(WETH)
       })
 
-      it('Rate via Route.marketRate', () => {
+      it('Price via Route.marketRate', () => {
         expect(route.midPrice.quote(decimalize(1, route.input.decimals)).toString()).toEqual(
           decimalize(1234, route.output.decimals).toString()
         )
@@ -79,6 +79,7 @@ describe('entities', () => {
         expect(route.midPrice.formatSignificant(4)).toEqual('1234')
         expect(route.midPrice.formatSignificant(5)).toEqual('1234')
         expect(route.midPrice.formatSignificant(4, { groupSeparator: ',' })).toEqual('1,234')
+        expect(route.midPrice.formatSignificant(4, undefined, undefined, 2)).toEqual('1234.00')
         expect(route.midPrice.invert().formatSignificant(1)).toEqual('0.0008')
         expect(route.midPrice.invert().formatSignificant(2)).toEqual('0.00081')
         expect(route.midPrice.invert().formatSignificant(3)).toEqual('0.00081')
