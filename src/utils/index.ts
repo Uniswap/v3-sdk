@@ -1,1 +1,1 @@
-export { formatSignificant, formatFixed } from './formatOutputs'
+export * from './formatOutputs'

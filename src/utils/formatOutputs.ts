@@ -4,6 +4,7 @@ import _Big, { RoundingMode } from 'big.js'
 import toFormat from 'toformat'
 
 import { BigintIsh } from '../types'
+import { ONE } from '../constants'
 import { parseBigintIsh } from './parseInputs'
 
 const Decimal = toFormat(_Decimal)
@@ -11,7 +12,7 @@ const Big = toFormat(_Big)
 
 export function formatSignificant(
   numerator: BigintIsh,
-  denominator: BigintIsh,
+  denominator: BigintIsh = ONE,
   significantDigits: number,
   format: object = { groupSeparator: '' },
   roundingMode: number = Decimal.ROUND_HALF_UP,
@@ -34,7 +35,7 @@ export function formatSignificant(
 
 export function formatFixed(
   numerator: BigintIsh,
-  denominator: BigintIsh,
+  denominator: BigintIsh = ONE,
   decimalPlaces: number,
   format: object = { groupSeparator: '' },
   roundingMode: RoundingMode = RoundingMode.RoundHalfUp
