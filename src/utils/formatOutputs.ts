@@ -15,8 +15,7 @@ export function formatSignificant(
   denominator: BigintIsh = ONE,
   significantDigits: number,
   format: object = { groupSeparator: '' },
-  roundingMode: number = Decimal.ROUND_HALF_UP,
-  minimumDecimalPlaces: number = 0
+  roundingMode: number = Decimal.ROUND_HALF_UP
 ): string {
   invariant(Number.isInteger(significantDigits), `${significantDigits} is not an integer.`)
   invariant(significantDigits > 0, `${significantDigits} isn't positive.`)
@@ -28,7 +27,9 @@ export function formatSignificant(
     .div(denominatorParsed.toString())
     .toSignificantDigits(significantDigits)
   return quotient.toFormat(
-    minimumDecimalPlaces > quotient.decimalPlaces() ? minimumDecimalPlaces : quotient.decimalPlaces(),
+    quotient.precision(true) >= significantDigits
+      ? quotient.decimalPlaces()
+      : significantDigits - (quotient.precision(true) - quotient.decimalPlaces()),
     format
   )
 }

@@ -77,12 +77,11 @@ describe('entities', () => {
         expect(route.midPrice.formatSignificant(2)).toEqual('1200')
         expect(route.midPrice.formatSignificant(3)).toEqual('1230')
         expect(route.midPrice.formatSignificant(4)).toEqual('1234')
-        expect(route.midPrice.formatSignificant(5)).toEqual('1234')
-        expect(route.midPrice.formatSignificant(4, { groupSeparator: ',' })).toEqual('1,234')
-        expect(route.midPrice.formatSignificant(4, undefined, undefined, 2)).toEqual('1234.00')
+        expect(route.midPrice.formatSignificant(5)).toEqual('1234.0')
+        expect(route.midPrice.formatSignificant(5, { groupSeparator: ',' })).toEqual('1,234.0')
         expect(route.midPrice.invert().formatSignificant(1)).toEqual('0.0008')
         expect(route.midPrice.invert().formatSignificant(2)).toEqual('0.00081')
-        expect(route.midPrice.invert().formatSignificant(3)).toEqual('0.00081')
+        expect(route.midPrice.invert().formatSignificant(3)).toEqual('0.000810')
         expect(route.midPrice.invert().formatSignificant(4)).toEqual('0.0008104')
         expect(route.midPrice.invert().formatSignificant(4, undefined, 1)).toEqual('0.0008103')
         expect(route.midPrice.invert().formatSignificant(5)).toEqual('0.00081037')
@@ -93,6 +92,8 @@ describe('entities', () => {
         expect(route.midPrice.formatFixed(2, { groupSeparator: ',' })).toEqual('1,234.00')
         expect(route.midPrice.invert().formatFixed(0)).toEqual('0')
         expect(route.midPrice.invert().formatFixed(1)).toEqual('0.0')
+        expect(route.midPrice.invert().formatFixed(2)).toEqual('0.00')
+        expect(route.midPrice.invert().formatFixed(3)).toEqual('0.001')
         expect(route.midPrice.invert().formatFixed(4)).toEqual('0.0008')
         expect(route.midPrice.invert().formatFixed(5)).toEqual('0.00081')
         expect(route.midPrice.invert().formatFixed(6)).toEqual('0.000810')
@@ -123,7 +124,7 @@ describe('entities', () => {
           ).toEqual(inputAmount.toString())
 
           expect(trade.nextMidPrice.formatSignificant(18)).toEqual('1.38958368072925352')
-          expect(trade.nextMidPrice.invert().formatSignificant(18)).toEqual('0.71964')
+          expect(trade.nextMidPrice.invert().formatSignificant(18)).toEqual('0.719640000000000000')
 
           expect(trade.slippage.formatSignificant(18)).toEqual('-16.8751042187760547')
 
@@ -152,7 +153,7 @@ describe('entities', () => {
           ).toEqual(trade.inputAmount.toString())
 
           expect(trade.nextMidPrice.formatSignificant(18)).toEqual('1.38958368072925352')
-          expect(trade.nextMidPrice.invert().formatSignificant(18)).toEqual('0.71964')
+          expect(trade.nextMidPrice.invert().formatSignificant(18)).toEqual('0.719640000000000000')
 
           expect(trade.slippage.formatSignificant(18)).toEqual('-16.8751042187760547')
 
@@ -175,7 +176,7 @@ describe('entities', () => {
             const trade = new Trade(route, '1', TradeType.EXACT_INPUT)
 
             expect(trade.slippage.formatSignificant(18)).toEqual(
-              tokens[1].decimals === 9 ? '-0.300000099400899902' : '-0.3000000000000001'
+              tokens[1].decimals === 9 ? '-0.300000099400899902' : '-0.300000000000000100'
             )
           }
         })
