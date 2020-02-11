@@ -2,15 +2,19 @@ import JSBI from 'jsbi'
 
 // exports for external consumption
 export enum ChainId {
-  RINKEBY = 4
+  MAINNET = 1,
+  ROPSTEN = 3,
+  RINKEBY = 4,
+  GÖRLI = 5,
+  KOVAN = 42
 }
 
-export const WETH = {
-  [ChainId.RINKEBY]: {
-    chainId: ChainId.RINKEBY,
-    address: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
-    decimals: 18
-  }
+export const FACTORY_ADDRESS = {
+  [ChainId.MAINNET]: '',
+  [ChainId.ROPSTEN]: '',
+  [ChainId.RINKEBY]: '0xbe52bB8cCa36fcD6061C307f14bAB48F09A760f9',
+  [ChainId.GÖRLI]: '',
+  [ChainId.KOVAN]: ''
 }
 
 export enum TradeType {
@@ -27,6 +31,6 @@ export const _997 = JSBI.BigInt(997)
 export const _1000 = JSBI.BigInt(1000)
 
 export enum SolidityType {
-  uint8,
-  uint256
+  uint8 = 'uint8',
+  uint256 = 'uint256'
 }
