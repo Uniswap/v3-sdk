@@ -17,6 +17,8 @@ export const FACTORY_ADDRESS = {
   [ChainId.KOVAN]: ''
 }
 
+export const INIT_CODE_HASH = '0xa447d0eea6a2235380af6f64c8be6e6c410241c4ade4dfaa99cebfde475ed036'
+
 export enum TradeType {
   EXACT_INPUT,
   EXACT_OUTPUT

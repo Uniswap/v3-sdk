@@ -877,7 +877,7 @@
     "@ethersproject/logger" ">=5.0.0-beta.129"
     "@ethersproject/strings" ">=5.0.0-beta.130"
 
-"@ethersproject/keccak256@>=5.0.0-beta.127":
+"@ethersproject/keccak256@>=5.0.0-beta.127", "@ethersproject/keccak256@^5.0.0-beta.131":
   version "5.0.0-beta.131"
   resolved "https://registry.yarnpkg.com/@ethersproject/keccak256/-/keccak256-5.0.0-beta.131.tgz#b5778723ee75208065b9b9ad30c71d480f41bb31"
   integrity sha512-KQnqMwGV0IMOjAr/UTFO8DuLrmN1uaMvcV3zh9hiXhh3rCuY+WXdeUh49w1VQ94kBKmaP0qfGb7z4SdhUWUHjw==
@@ -890,10 +890,17 @@
   resolved "https://registry.yarnpkg.com/@ethersproject/logger/-/logger-5.0.0-beta.133.tgz#2d62d495ed413c7045054d4f99a0fb4920079b2e"
   integrity sha512-1ISf7rFKFbMHlEB37JS7Oy3FgFlvzF2Ze2uFZMJHGKp9xgDvFy1VHNMBM1KrJPK4AqCZXww0//e2keLsN3g/Cw==
 
-"@ethersproject/networks@>=5.0.0-beta.129", "@ethersproject/networks@^5.0.0-beta.134":
+"@ethersproject/networks@>=5.0.0-beta.129":
   version "5.0.0-beta.134"
   resolved "https://registry.yarnpkg.com/@ethersproject/networks/-/networks-5.0.0-beta.134.tgz#934cb8d62c0dce123ef436bebc2578692e20c25d"
   integrity sha512-96Gw2z27mFxcSNGD3ZqzFC4ssnrKkYSUHH8rqqyFBfz+WEWrP5Qc2gkBpMJ0QluVNOHr5MhptufvZXAgsGTuAw==
+  dependencies:
+    "@ethersproject/logger" ">=5.0.0-beta.129"
+
+"@ethersproject/networks@^5.0.0-beta.135":
+  version "5.0.0-beta.135"
+  resolved "https://registry.yarnpkg.com/@ethersproject/networks/-/networks-5.0.0-beta.135.tgz#c4a19ea19e01ec84d8b6a4ae75994b7417b694fa"
+  integrity sha512-9wesbAlsewNe0dU8B/lhK449GZml+08Opjf6nFpcV8BwWlYnPLs7EnOsK3GpMM0KDPZlksVYltyq+X1B7YxOcA==
   dependencies:
     "@ethersproject/logger" ">=5.0.0-beta.129"
 
@@ -904,10 +911,10 @@
   dependencies:
     "@ethersproject/logger" ">=5.0.0-beta.129"
 
-"@ethersproject/providers@^5.0.0-beta.151":
-  version "5.0.0-beta.151"
-  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.0.0-beta.151.tgz#fb280b3f1475b9abd9e9e17e3d6db6a6e64c19bd"
-  integrity sha512-qlbxsyAQ4W/QK/fMynwzt/woO8JbZW/37iJpTS+JNK3FrMQoumsyCjhr4N8FREUHOei2vDuGBIsjN6ltbT8qvA==
+"@ethersproject/providers@^5.0.0-beta.153":
+  version "5.0.0-beta.153"
+  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.0.0-beta.153.tgz#a24923146870af50cdcfefbd4eeef77bfdda5507"
+  integrity sha512-FJ/dNM5fj25m1XAEJzdC1B6GM9On3eRn/Vls6cUcSBWTOfKsTRf0uRSkBq1kNbPdx3lF0zQT4xIVmCCklA+DaQ==
   dependencies:
     "@ethersproject/abstract-provider" ">=5.0.0-beta.131"
     "@ethersproject/abstract-signer" ">=5.0.0-beta.132"

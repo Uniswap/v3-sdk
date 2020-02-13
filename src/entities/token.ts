@@ -8,7 +8,7 @@ import { ChainId, SolidityType } from '../constants'
 import ERC20 from '../abis/ERC20.json'
 import { validateAndParseAddress, validateSolidityTypeInstance } from '../utils'
 
-const CACHE: { [chainId: number]: { [address: string]: number } } = {
+let CACHE: { [chainId: number]: { [address: string]: number } } = {
   1: {
     '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': 9 // DGD
   }
@@ -32,7 +32,13 @@ export class Token {
       typeof CACHE?.[chainId]?.[address] === 'number'
         ? CACHE[chainId][address]
         : await new Contract(address, ERC20, provider).decimals().then((decimals: number): number => {
-            CACHE[chainId][address] = decimals
+            CACHE = {
+              ...CACHE,
+              [chainId]: {
+                ...CACHE?.[chainId],
+                [address]: decimals
+              }
+            }
             return decimals
           })
     return new Token(chainId, address, parsedDecimals, symbol, name)
@@ -52,6 +58,12 @@ export class Token {
     const equal = this.chainId === other.chainId && this.address === other.address
     if (equal) invariant(this.decimals === other.decimals, 'DECIMALS')
     return equal
+  }
+
+  public sortsBefore(other: Token): boolean {
+    invariant(this.chainId === other.chainId, 'CHAIN_IDS')
+    invariant(this.address !== other.address, 'ADDRESSES')
+    return this.address.toLowerCase() < other.address.toLowerCase()
   }
 }
 
