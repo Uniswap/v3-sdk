@@ -52,25 +52,16 @@ export class Fraction {
   public toSignificant(
     significantDigits: number,
     format: object = { groupSeparator: '' },
-    rounding: Rounding = Rounding.ROUND_HALF_UP,
-    maximumDecimalPlaces: number = Number.MAX_SAFE_INTEGER // should only be used to properly bound token amounts
+    rounding: Rounding = Rounding.ROUND_HALF_UP
   ): string {
     invariant(Number.isInteger(significantDigits), `${significantDigits} is not a positive integer.`)
     invariant(significantDigits > 0, `${significantDigits} is not positive.`)
-    invariant(Number.isInteger(maximumDecimalPlaces), `${maximumDecimalPlaces} is not an integer.`)
-    invariant(maximumDecimalPlaces >= 0, `maximumDecimalPlaces ${maximumDecimalPlaces} is negative.`)
 
     Decimal.set({ precision: significantDigits + 1, rounding: toSignificantRounding[rounding] })
     const quotient = new Decimal(this.numerator.toString())
       .div(this.denominator.toString())
       .toSignificantDigits(significantDigits)
-    const decimalPlaces =
-      quotient.decimalPlaces() === 0
-        ? 0 // 0 decimal places for integer quotients
-        : quotient.precision(true) >= significantDigits
-        ? quotient.decimalPlaces() // else, the default number of decimal plcaes if there's enough precision already
-        : significantDigits - (quotient.precision(true) - quotient.decimalPlaces()) // else, pad with 0s
-    return quotient.toFormat(Math.min(decimalPlaces, maximumDecimalPlaces), format) // while respecting max
+    return quotient.toFormat(quotient.decimalPlaces(), format)
   }
 
   public toFixed(

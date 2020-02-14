@@ -73,7 +73,7 @@ describe('entities', () => {
         expect(route.midPrice.toSignificant(5, { groupSeparator: ',' })).toEqual('1,234')
         expect(route.midPrice.invert().toSignificant(1)).toEqual('0.0008')
         expect(route.midPrice.invert().toSignificant(2)).toEqual('0.00081')
-        expect(route.midPrice.invert().toSignificant(3)).toEqual('0.000810')
+        expect(route.midPrice.invert().toSignificant(3)).toEqual('0.00081')
         expect(route.midPrice.invert().toSignificant(4)).toEqual('0.0008104')
         expect(route.midPrice.invert().toSignificant(4, undefined, Rounding.ROUND_DOWN)).toEqual('0.0008103')
         expect(route.midPrice.invert().toSignificant(5)).toEqual('0.00081037')
@@ -120,7 +120,7 @@ describe('entities', () => {
           expect(trade.executionPrice.invert().quote(expectedOutputAmount)).toEqual(inputAmount)
 
           expect(trade.nextMidPrice.toSignificant(18)).toEqual('1.38958368072925352')
-          expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.719640000000000000')
+          expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
           expect(trade.slippage.toSignificant(18)).toEqual('-16.8751042187760547')
 
@@ -142,7 +142,7 @@ describe('entities', () => {
           expect(trade.executionPrice.invert().quote(outputAmount)).toEqual(expectedInputAmount)
 
           expect(trade.nextMidPrice.toSignificant(18)).toEqual('1.38958368072925352')
-          expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.719640000000000000')
+          expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
           expect(trade.slippage.toSignificant(18)).toEqual('-16.8751042187760547')
 
@@ -168,7 +168,7 @@ describe('entities', () => {
             const trade = new Trade(route, outputAmount, TradeType.EXACT_INPUT)
 
             expect(trade.slippage.toSignificant(18)).toEqual(
-              tokens[1].decimals === 9 ? '-0.300000099400899902' : '-0.300000000000000100'
+              tokens[1].decimals === 9 ? '-0.300000099400899902' : '-0.3000000000000001'
             )
           }
         })

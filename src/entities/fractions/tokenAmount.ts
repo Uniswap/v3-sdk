@@ -42,7 +42,7 @@ export class TokenAmount extends Fraction {
   }
 
   public toSignificant(significantDigits: number, format?: object, rounding: Rounding = Rounding.ROUND_DOWN): string {
-    return super.toSignificant(significantDigits, format, rounding, this.token.decimals)
+    return super.toSignificant(significantDigits, format, rounding)
   }
 
   public toFixed(
