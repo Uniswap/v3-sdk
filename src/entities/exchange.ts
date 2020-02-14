@@ -76,6 +76,11 @@ export class Exchange {
     return this.tokenAmounts[1].token
   }
 
+  public reserveOf(token: Token): TokenAmount {
+    invariant(token.equals(this.token0) || token.equals(this.token1), 'TOKEN')
+    return token.equals(this.token0) ? this.reserve0 : this.reserve1
+  }
+
   public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Exchange] {
     invariant(inputAmount.token.equals(this.token0) || inputAmount.token.equals(this.token1), 'TOKEN')
     invariant(JSBI.greaterThan(inputAmount.raw, ZERO), 'ZERO')

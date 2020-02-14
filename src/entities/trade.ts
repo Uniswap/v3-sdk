@@ -44,6 +44,9 @@ export class Trade {
 
   constructor(route: Route, amount: TokenAmount, tradeType: TradeType) {
     invariant(amount.token.equals(tradeType === TradeType.EXACT_INPUT ? route.input : route.output), 'TOKEN')
+    const firstExchange = route.exchanges[tradeType === TradeType.EXACT_INPUT ? 0 : route.exchanges.length - 1]
+    // ensure that the amount is strictly less that the exchange's balance
+    invariant(JSBI.lessThan(amount.raw, firstExchange.reserveOf(amount.token).raw), 'RESERVE')
     const amounts: TokenAmount[] = new Array(route.path.length)
     const nextExchanges: Exchange[] = new Array(route.exchanges.length)
     if (tradeType === TradeType.EXACT_INPUT) {
