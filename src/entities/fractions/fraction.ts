@@ -65,10 +65,12 @@ export class Fraction {
       .div(this.denominator.toString())
       .toSignificantDigits(significantDigits)
     const decimalPlaces =
-      quotient.precision(true) >= significantDigits
-        ? quotient.decimalPlaces()
-        : significantDigits - (quotient.precision(true) - quotient.decimalPlaces())
-    return quotient.toFormat(Math.min(decimalPlaces, maximumDecimalPlaces), format)
+      quotient.decimalPlaces() === 0
+        ? 0 // 0 decimal places for integer quotients
+        : quotient.precision(true) >= significantDigits
+        ? quotient.decimalPlaces() // else, the default number of decimal plcaes if there's enough precision already
+        : significantDigits - (quotient.precision(true) - quotient.decimalPlaces()) // else, pad with 0s
+    return quotient.toFormat(Math.min(decimalPlaces, maximumDecimalPlaces), format) // while respecting max
   }
 
   public toFixed(
