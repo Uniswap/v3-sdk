@@ -104,6 +104,7 @@ export class Exchange {
     invariant(JSBI.greaterThan(outputAmount.raw, ZERO), 'ZERO')
     invariant(JSBI.greaterThan(this.reserve0.raw, ZERO), 'ZERO')
     invariant(JSBI.greaterThan(this.reserve1.raw, ZERO), 'ZERO')
+    invariant(JSBI.lessThan(outputAmount.raw, this.reserveOf(outputAmount.token).raw), 'INSUFFICIENT_RESERVE')
 
     const inputReserve = outputAmount.token.equals(this.reserve0.token) ? this.reserve1 : this.reserve0
     const outputReserve = outputAmount.token.equals(this.reserve0.token) ? this.reserve0 : this.reserve1
