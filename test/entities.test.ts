@@ -173,6 +173,12 @@ describe('entities', () => {
           }
         })
       })
+
+      it('TokenAmount', () => {
+        const amount = new TokenAmount(WETH, '1234567000000000000000')
+        expect(amount.toExact()).toEqual('1234.567')
+        expect(amount.toExact({ groupSeparator: ',' })).toEqual('1,234.567')
+      })
     })
   })
 })

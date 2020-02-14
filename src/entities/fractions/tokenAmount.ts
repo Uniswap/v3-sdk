@@ -1,11 +1,15 @@
 import invariant from 'tiny-invariant'
 import JSBI from 'jsbi'
+import _Big from 'big.js'
+import toFormat from 'toformat'
 
 import { BigintIsh, Rounding } from '../../types'
 import { TEN, SolidityType } from '../../constants'
 import { parseBigintIsh, validateSolidityTypeInstance } from '../../utils'
 import { Token } from '../token'
 import { Fraction } from './fraction'
+
+const Big = toFormat(_Big)
 
 export class TokenAmount extends Fraction {
   public readonly token: Token
@@ -48,5 +52,10 @@ export class TokenAmount extends Fraction {
   ): string {
     invariant(decimalPlaces <= this.token.decimals, 'DECIMALS')
     return super.toFixed(decimalPlaces, format, rounding)
+  }
+
+  public toExact(format: object = { groupSeparator: '' }): string {
+    Big.DP = this.token.decimals
+    return new Big(this.numerator.toString()).div(this.denominator.toString()).toFormat(format)
   }
 }
