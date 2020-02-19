@@ -4,14 +4,8 @@ import JSBI from 'jsbi'
 import { getAddress } from '@ethersproject/address'
 
 import { BigintIsh } from './types'
-import { ZERO, SolidityType } from './constants'
+import { ZERO, SolidityType, SOLIDITY_TYPE_MAXIMA } from './constants'
 
-const SOLIDITY_TYPE_MAXIMA = {
-  [SolidityType.uint8]: JSBI.BigInt('0xff'),
-  [SolidityType.uint256]: JSBI.BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
-}
-
-// only works for uint{8,256}
 export function validateSolidityTypeInstance(value: JSBI, solidityType: SolidityType): void {
   invariant(JSBI.greaterThanOrEqual(value, ZERO), `${value} is not a ${solidityType}.`)
   invariant(JSBI.lessThanOrEqual(value, SOLIDITY_TYPE_MAXIMA[solidityType]), `${value} is not a ${solidityType}.`)

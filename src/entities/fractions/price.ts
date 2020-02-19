@@ -11,7 +11,7 @@ import { TokenAmount } from './tokenAmount'
 export class Price extends Fraction {
   public readonly baseToken: Token // input i.e. denominator
   public readonly quoteToken: Token // output i.e. numerator
-  public readonly scalar: Fraction // used to adjust the raw fraction w/r/t the decimals of the {base,quote}Tokens
+  public readonly scalar: Fraction // used to adjust the raw fraction w/r/t the decimals of the {base,quote}Token
 
   static fromRoute(route: Route): Price {
     const prices: Price[] = []
@@ -25,7 +25,7 @@ export class Price extends Fraction {
     return prices.slice(1).reduce((accumulator, currentValue) => accumulator.multiply(currentValue), prices[0])
   }
 
-  // denominator and numerator _must be_ scaled in units of the {base,quote}Tokens
+  // denominator and numerator _must_ be raw, i.e. in the native representation
   constructor(baseToken: Token, quoteToken: Token, denominator: BigintIsh, numerator: BigintIsh) {
     super(numerator, denominator)
 
@@ -37,35 +37,35 @@ export class Price extends Fraction {
     )
   }
 
-  public get raw(): Fraction {
+  get raw(): Fraction {
     return new Fraction(this.numerator, this.denominator)
   }
 
-  public get adjusted(): Fraction {
+  get adjusted(): Fraction {
     return super.multiply(this.scalar)
   }
 
-  public invert(): Price {
+  invert(): Price {
     return new Price(this.quoteToken, this.baseToken, this.numerator, this.denominator)
   }
 
-  public multiply(other: Price): Price {
+  multiply(other: Price): Price {
     invariant(this.quoteToken.equals(other.baseToken), 'BASE')
     const fraction = super.multiply(other)
     return new Price(this.baseToken, other.quoteToken, fraction.denominator, fraction.numerator)
   }
 
   // performs floor division on overflow
-  public quote(tokenAmount: TokenAmount): TokenAmount {
+  quote(tokenAmount: TokenAmount): TokenAmount {
     invariant(tokenAmount.token.equals(this.baseToken), 'TOKEN')
     return new TokenAmount(this.quoteToken, super.multiply(tokenAmount.raw).quotient)
   }
 
-  public toSignificant(significantDigits: number = 6, format?: object, rounding?: Rounding): string {
+  toSignificant(significantDigits: number = 6, format?: object, rounding?: Rounding): string {
     return this.adjusted.toSignificant(significantDigits, format, rounding)
   }
 
-  public toFixed(decimalPlaces: number = 6, format?: object, rounding?: Rounding): string {
+  toFixed(decimalPlaces: number = 4, format?: object, rounding?: Rounding): string {
     return this.adjusted.toFixed(decimalPlaces, format, rounding)
   }
 }

@@ -27,21 +27,21 @@ export class Fraction {
   public readonly numerator: JSBI
   public readonly denominator: JSBI
 
-  public constructor(numerator: BigintIsh, denominator: BigintIsh = ONE) {
+  constructor(numerator: BigintIsh, denominator: BigintIsh = ONE) {
     this.numerator = parseBigintIsh(numerator)
     this.denominator = parseBigintIsh(denominator)
   }
 
   // performs floor division
-  public get quotient(): JSBI {
+  get quotient(): JSBI {
     return JSBI.divide(this.numerator, this.denominator)
   }
 
-  public invert(): Fraction {
+  invert(): Fraction {
     return new Fraction(this.denominator, this.numerator)
   }
 
-  public multiply(other: Fraction | BigintIsh): Fraction {
+  multiply(other: Fraction | BigintIsh): Fraction {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
     return new Fraction(
       JSBI.multiply(this.numerator, otherParsed.numerator),
@@ -49,12 +49,12 @@ export class Fraction {
     )
   }
 
-  public toSignificant(
+  toSignificant(
     significantDigits: number,
     format: object = { groupSeparator: '' },
     rounding: Rounding = Rounding.ROUND_HALF_UP
   ): string {
-    invariant(Number.isInteger(significantDigits), `${significantDigits} is not a positive integer.`)
+    invariant(Number.isInteger(significantDigits), `${significantDigits} is not an integer.`)
     invariant(significantDigits > 0, `${significantDigits} is not positive.`)
 
     Decimal.set({ precision: significantDigits + 1, rounding: toSignificantRounding[rounding] })
@@ -64,7 +64,7 @@ export class Fraction {
     return quotient.toFormat(quotient.decimalPlaces(), format)
   }
 
-  public toFixed(
+  toFixed(
     decimalPlaces: number,
     format: object = { groupSeparator: '' },
     rounding: Rounding = Rounding.ROUND_HALF_UP

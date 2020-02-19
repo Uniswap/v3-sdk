@@ -14,7 +14,7 @@ const Big = toFormat(_Big)
 export class TokenAmount extends Fraction {
   public readonly token: Token
 
-  // amount _must be_ scaled in units of the token
+  // amount _must_ be raw, i.e. in the native representation
   constructor(token: Token, amount: BigintIsh) {
     const parsedAmount = parseBigintIsh(amount)
     validateSolidityTypeInstance(parsedAmount, SolidityType.uint256)
@@ -23,29 +23,25 @@ export class TokenAmount extends Fraction {
     this.token = token
   }
 
-  public get raw(): JSBI {
+  get raw(): JSBI {
     return this.numerator
   }
 
-  public get adjusted(): Fraction {
-    return this
-  }
-
-  public add(other: TokenAmount): TokenAmount {
+  add(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
     return new TokenAmount(this.token, JSBI.add(this.raw, other.raw))
   }
 
-  public subtract(other: TokenAmount): TokenAmount {
+  subtract(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
     return new TokenAmount(this.token, JSBI.subtract(this.raw, other.raw))
   }
 
-  public toSignificant(significantDigits: number, format?: object, rounding: Rounding = Rounding.ROUND_DOWN): string {
+  toSignificant(significantDigits: number = 6, format?: object, rounding: Rounding = Rounding.ROUND_DOWN): string {
     return super.toSignificant(significantDigits, format, rounding)
   }
 
-  public toFixed(
+  toFixed(
     decimalPlaces: number = this.token.decimals,
     format?: object,
     rounding: Rounding = Rounding.ROUND_DOWN
@@ -54,7 +50,7 @@ export class TokenAmount extends Fraction {
     return super.toFixed(decimalPlaces, format, rounding)
   }
 
-  public toExact(format: object = { groupSeparator: '' }): string {
+  toExact(format: object = { groupSeparator: '' }): string {
     Big.DP = this.token.decimals
     return new Big(this.numerator.toString()).div(this.denominator.toString()).toFormat(format)
   }

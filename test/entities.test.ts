@@ -122,9 +122,9 @@ describe('entities', () => {
           expect(trade.nextMidPrice.toSignificant(18)).toEqual('1.38958368072925352')
           expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
-          expect(trade.slippage.toSignificant(18)).toEqual('-16.8751042187760547')
+          expect(trade.slippage.toSignificant(18)).toEqual('16.8751042187760547')
 
-          expect(trade.midPricePercentChange.toSignificant(18)).toEqual('-30.5208159635373242')
+          expect(trade.midPricePercentChange.toSignificant(18)).toEqual('30.5208159635373242')
         })
 
         it('TradeType.EXACT_OUTPUT', () => {
@@ -144,9 +144,9 @@ describe('entities', () => {
           expect(trade.nextMidPrice.toSignificant(18)).toEqual('1.38958368072925352')
           expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
-          expect(trade.slippage.toSignificant(18)).toEqual('-16.8751042187760547')
+          expect(trade.slippage.toSignificant(18)).toEqual('16.8751042187760547')
 
-          expect(trade.midPricePercentChange.toSignificant(18)).toEqual('-30.5208159635373242')
+          expect(trade.midPricePercentChange.toSignificant(18)).toEqual('30.5208159635373242')
         })
 
         it('minimum TradeType.EXACT_INPUT', () => {
@@ -168,7 +168,7 @@ describe('entities', () => {
             const trade = new Trade(route, outputAmount, TradeType.EXACT_INPUT)
 
             expect(trade.slippage.toSignificant(18)).toEqual(
-              tokens[1].decimals === 9 ? '-0.300000099400899902' : '-0.3000000000000001'
+              tokens[1].decimals === 9 ? '0.300000099400899902' : '0.3000000000000001'
             )
           }
         })

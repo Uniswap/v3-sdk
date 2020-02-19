@@ -9,7 +9,7 @@ import ERC20 from '../abis/ERC20.json'
 import { validateAndParseAddress, validateSolidityTypeInstance } from '../utils'
 
 let CACHE: { [chainId: number]: { [address: string]: number } } = {
-  1: {
+  [ChainId.MAINNET]: {
     '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': 9 // DGD
   }
 }
@@ -54,13 +54,17 @@ export class Token {
     if (typeof name === 'string') this.name = name
   }
 
-  public equals(other: Token): boolean {
+  equals(other: Token): boolean {
     const equal = this.chainId === other.chainId && this.address === other.address
-    if (equal) invariant(this.decimals === other.decimals, 'DECIMALS')
+    if (equal) {
+      invariant(this.decimals === other.decimals, 'DECIMALS')
+      if (this.symbol && other.symbol) invariant(this.symbol === other.symbol, 'SYMBOL')
+      if (this.name && other.name) invariant(this.name === other.name, 'NAME')
+    }
     return equal
   }
 
-  public sortsBefore(other: Token): boolean {
+  sortsBefore(other: Token): boolean {
     invariant(this.chainId === other.chainId, 'CHAIN_IDS')
     invariant(this.address !== other.address, 'ADDRESSES')
     return this.address.toLowerCase() < other.address.toLowerCase()

@@ -8,11 +8,11 @@ import { Fraction, TokenAmount } from './fractions'
 import { Price } from './fractions/price'
 import { Percent } from './fractions/percent'
 
-function getSlippage(inputAmount: TokenAmount, midPrice: Price, outputAmount: TokenAmount): Percent {
+function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
-  // calculate (outputAmount - exactQuote) / exactQuote
+  // calculate (exactQuote - outputAmount) / exactQuote
   const exactDifference = new Fraction(
-    JSBI.subtract(JSBI.multiply(outputAmount.raw, exactQuote.denominator), exactQuote.numerator),
+    JSBI.subtract(exactQuote.numerator, JSBI.multiply(outputAmount.raw, exactQuote.denominator)),
     exactQuote.denominator
   )
   const slippage = exactDifference.multiply(exactQuote.invert())
@@ -20,11 +20,11 @@ function getSlippage(inputAmount: TokenAmount, midPrice: Price, outputAmount: To
 }
 
 function getPercentChange(referenceRate: Price, newRate: Price): Percent {
-  // calculate (newRate - referenceRate) / referenceRate
+  // calculate (referenceRate - newRate) / referenceRate
   const difference = new Fraction(
     JSBI.subtract(
-      JSBI.multiply(newRate.adjusted.numerator, referenceRate.adjusted.denominator),
-      JSBI.multiply(referenceRate.adjusted.numerator, newRate.adjusted.denominator)
+      JSBI.multiply(referenceRate.adjusted.numerator, newRate.adjusted.denominator),
+      JSBI.multiply(newRate.adjusted.numerator, referenceRate.adjusted.denominator)
     ),
     JSBI.multiply(referenceRate.adjusted.denominator, newRate.adjusted.denominator)
   )
@@ -73,7 +73,7 @@ export class Trade {
     this.executionPrice = new Price(route.input, route.output, inputAmount.raw, outputAmount.raw)
     const nextMidPrice = Price.fromRoute(new Route(nextExchanges, route.input))
     this.nextMidPrice = nextMidPrice
-    this.slippage = getSlippage(inputAmount, route.midPrice, outputAmount)
+    this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
     this.midPricePercentChange = getPercentChange(route.midPrice, nextMidPrice)
   }
 }
