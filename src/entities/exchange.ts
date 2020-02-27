@@ -6,8 +6,10 @@ import { getNetwork } from '@ethersproject/networks'
 import { getDefaultProvider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
 
-import { FACTORY_ADDRESS, INIT_CODE_HASH, ZERO, ONE, _997, _1000 } from '../constants'
+import { BigintIsh } from '../types'
+import { FACTORY_ADDRESS, INIT_CODE_HASH, ZERO, ONE, FIVE, _997, _1000, MINIMUM_LIQUIDITY } from '../constants'
 import ERC20 from '../abis/ERC20.json'
+import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
 import { Token } from './token'
 import { TokenAmount } from './fractions/tokenAmount'
@@ -15,7 +17,7 @@ import { TokenAmount } from './fractions/tokenAmount'
 let CACHE: { [token0Address: string]: { [token1Address: string]: string } } = {}
 
 export class Exchange {
-  public readonly address: string
+  public readonly liquidityToken: Token
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
   static getAddress(tokenA: Token, tokenB: Token): string {
@@ -55,7 +57,13 @@ export class Exchange {
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
       ? [tokenAmountA, tokenAmountB]
       : [tokenAmountB, tokenAmountA]
-    this.address = Exchange.getAddress(tokenAmounts[0].token, tokenAmounts[1].token)
+    this.liquidityToken = new Token(
+      tokenAmounts[0].token.chainId,
+      Exchange.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
+      18,
+      'UNI-V2',
+      'Uniswap V2'
+    )
     this.tokenAmounts = tokenAmounts as [TokenAmount, TokenAmount]
   }
 
@@ -119,5 +127,66 @@ export class Exchange {
       JSBI.add(JSBI.divide(numerator, denominator), ONE)
     )
     return [inputAmount, new Exchange(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
+  }
+
+  getLiquidityMinted(totalSupply: TokenAmount, tokenAmountA: TokenAmount, tokenAmountB: TokenAmount): TokenAmount {
+    invariant(totalSupply.token.equals(this.liquidityToken), 'LIQUIDITY')
+    const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
+      ? [tokenAmountA, tokenAmountB]
+      : [tokenAmountB, tokenAmountA]
+    invariant(tokenAmounts[0].token.equals(this.token0) && tokenAmounts[1].token.equals(this.token1), 'TOKEN')
+
+    let liquidity: JSBI
+    if (JSBI.equal(totalSupply.raw, ZERO)) {
+      liquidity = JSBI.subtract(sqrt(JSBI.multiply(tokenAmounts[0].raw, tokenAmounts[1].raw)), MINIMUM_LIQUIDITY)
+    } else {
+      const amount0 = JSBI.divide(JSBI.multiply(tokenAmounts[0].raw, totalSupply.raw), this.reserve0.raw)
+      const amount1 = JSBI.divide(JSBI.multiply(tokenAmounts[1].raw, totalSupply.raw), this.reserve1.raw)
+      liquidity = JSBI.lessThanOrEqual(amount0, amount1) ? amount0 : amount1
+    }
+    if (!JSBI.greaterThan(liquidity, ZERO)) {
+      throw new InsufficientInputAmountError()
+    }
+    return new TokenAmount(this.liquidityToken, liquidity)
+  }
+
+  getLiquidityValue(
+    token: Token,
+    totalSupply: TokenAmount,
+    liquidity: TokenAmount,
+    feeOn: boolean = false,
+    kLast?: BigintIsh
+  ): TokenAmount {
+    invariant(token.equals(this.token0) || token.equals(this.token1), 'TOKEN')
+    invariant(totalSupply.token.equals(this.liquidityToken), 'TOTAL_SUPPLY')
+    invariant(liquidity.token.equals(this.liquidityToken), 'LIQUIDITY')
+    invariant(JSBI.lessThanOrEqual(liquidity.raw, totalSupply.raw), 'LIQUIDITY')
+
+    let totalSupplyAdjusted: TokenAmount
+    if (!feeOn) {
+      totalSupplyAdjusted = totalSupply
+    } else {
+      invariant(!!kLast, 'K_LAST')
+      const kLastParsed = parseBigintIsh(kLast as any)
+      if (!JSBI.equal(kLastParsed, ZERO)) {
+        const rootK = sqrt(JSBI.multiply(this.reserve0.raw, this.reserve1.raw))
+        const rootKLast = sqrt(kLastParsed)
+        if (JSBI.greaterThan(rootK, rootKLast)) {
+          const numerator = JSBI.multiply(totalSupply.raw, JSBI.subtract(rootK, rootKLast))
+          const denominator = JSBI.add(JSBI.multiply(rootK, FIVE), rootKLast)
+          const feeLiquidity = JSBI.divide(numerator, denominator)
+          totalSupplyAdjusted = totalSupply.add(new TokenAmount(this.liquidityToken, feeLiquidity))
+        } else {
+          totalSupplyAdjusted = totalSupply
+        }
+      } else {
+        totalSupplyAdjusted = totalSupply
+      }
+    }
+
+    return new TokenAmount(
+      token,
+      JSBI.divide(JSBI.multiply(liquidity.raw, this.reserveOf(token).raw), totalSupplyAdjusted.raw)
+    )
   }
 }
