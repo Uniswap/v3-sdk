@@ -14,6 +14,6 @@ describe('data', () => {
   it('Exchange', async () => {
     const token = new Token(ChainId.RINKEBY, '0xc7AD46e0b8a400Bb3C915120d284AafbA8fc4735', 18) // DAI
     const exchange = await Exchange.fetchData(WETH[ChainId.RINKEBY], token)
-    expect(exchange.liquidityToken.address).toEqual('0xC0568fA2FC63123B7352c506076DFa5623D62Db5')
+    expect(exchange.liquidityToken.address).toEqual('0xF52A46f3Ddc2A35aD1ed7166aC3dd3435DC4AC4A')
   })
 })

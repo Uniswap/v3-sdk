@@ -12,12 +12,12 @@ export enum ChainId {
 export const FACTORY_ADDRESS = {
   [ChainId.MAINNET]: '',
   [ChainId.ROPSTEN]: '',
-  [ChainId.RINKEBY]: '0xbe52bB8cCa36fcD6061C307f14bAB48F09A760f9',
+  [ChainId.RINKEBY]: '0xF231A51299c872040C002f3E1918D806F951Efcb',
   [ChainId.GÖRLI]: '',
   [ChainId.KOVAN]: ''
 }
 
-export const INIT_CODE_HASH = '0xebe7ae2e909b82f0a14f5a09eb291778942ae66818008d407a7b67aa17be7052'
+export const INIT_CODE_HASH = '0x762dbd0ad132fda0dfcfbc963d8f43f78fc3e23b604fc4c34f61c2ca7b3e1b36'
 
 export enum TradeType {
   EXACT_INPUT,
