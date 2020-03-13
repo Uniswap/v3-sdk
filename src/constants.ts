@@ -9,15 +9,9 @@ export enum ChainId {
   KOVAN = 42
 }
 
-export const FACTORY_ADDRESS = {
-  [ChainId.MAINNET]: '',
-  [ChainId.ROPSTEN]: '',
-  [ChainId.RINKEBY]: '0xF231A51299c872040C002f3E1918D806F951Efcb',
-  [ChainId.GÖRLI]: '',
-  [ChainId.KOVAN]: ''
-}
+export const FACTORY_ADDRESS = '0xE9DFfc628C6933f2c74356430099bD7639F25D5C'
 
-export const INIT_CODE_HASH = '0x762dbd0ad132fda0dfcfbc963d8f43f78fc3e23b604fc4c34f61c2ca7b3e1b36'
+export const INIT_CODE_HASH = '0x8548287401d15401e1162bb5bc290f6fba82afcb66944df43c3017817522771b'
 
 export enum TradeType {
   EXACT_INPUT,

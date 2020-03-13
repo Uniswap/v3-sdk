@@ -1,10 +1,10 @@
 import invariant from 'tiny-invariant'
 import JSBI from 'jsbi'
-import { getCreate2Address } from '@ethersproject/address'
-import { keccak256 } from '@ethersproject/keccak256'
 import { getNetwork } from '@ethersproject/networks'
 import { getDefaultProvider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
+import { pack, keccak256 } from '@ethersproject/solidity'
+import { getCreate2Address } from '@ethersproject/address'
 
 import { BigintIsh } from '../types'
 import { FACTORY_ADDRESS, INIT_CODE_HASH, ZERO, ONE, FIVE, _997, _1000, MINIMUM_LIQUIDITY } from '../constants'
@@ -29,8 +29,8 @@ export class Exchange {
         [tokens[0].address]: {
           ...CACHE?.[tokens[0].address],
           [tokens[1].address]: getCreate2Address(
-            FACTORY_ADDRESS[tokens[0].chainId],
-            keccak256(`${tokens[0].address.toLowerCase()}${tokens[1].address.slice(2).toLowerCase()}`),
+            FACTORY_ADDRESS,
+            keccak256(['bytes'], [pack(['address', 'address'], [tokens[0].address, tokens[1].address])]),
             INIT_CODE_HASH
           )
         }
