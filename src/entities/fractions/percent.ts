@@ -1,5 +1,4 @@
-import { Rounding } from '../../types'
-import { _100 } from '../../constants'
+import { Rounding, _100 } from '../../constants'
 import { Fraction } from './fraction'
 
 const _100_PERCENT = new Fraction(_100)

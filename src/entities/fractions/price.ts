@@ -1,8 +1,7 @@
 import invariant from 'tiny-invariant'
 import JSBI from 'jsbi'
 
-import { BigintIsh, Rounding } from '../../types'
-import { TEN } from '../../constants'
+import { BigintIsh, Rounding, TEN } from '../../constants'
 import { Token } from '../token'
 import { Route } from '../route'
 import { Fraction } from './fraction'

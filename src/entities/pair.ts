@@ -6,8 +6,17 @@ import { Contract } from '@ethersproject/contracts'
 import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
 
-import { BigintIsh } from '../types'
-import { FACTORY_ADDRESS, INIT_CODE_HASH, ZERO, ONE, FIVE, _997, _1000, MINIMUM_LIQUIDITY } from '../constants'
+import {
+  BigintIsh,
+  FACTORY_ADDRESS,
+  INIT_CODE_HASH,
+  MINIMUM_LIQUIDITY,
+  ZERO,
+  ONE,
+  FIVE,
+  _997,
+  _1000
+} from '../constants'
 import ERC20 from '../abis/ERC20.json'
 import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
