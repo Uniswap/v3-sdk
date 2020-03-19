@@ -1,29 +1,29 @@
-import { ChainId, Token, TokenAmount, Exchange, InsufficientInputAmountError } from '../src'
+import { ChainId, Token, TokenAmount, Pair, InsufficientInputAmountError } from '../src'
 
 describe('miscellaneous', () => {
   it('getLiquidityMinted:0', async () => {
     const tokenA = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000001', 18)
     const tokenB = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000002', 18)
-    const exchange = new Exchange(new TokenAmount(tokenA, '0'), new TokenAmount(tokenB, '0'))
+    const pair = new Pair(new TokenAmount(tokenA, '0'), new TokenAmount(tokenB, '0'))
 
     expect(() => {
-      exchange.getLiquidityMinted(
-        new TokenAmount(exchange.liquidityToken, '0'),
+      pair.getLiquidityMinted(
+        new TokenAmount(pair.liquidityToken, '0'),
         new TokenAmount(tokenA, '1000'),
         new TokenAmount(tokenB, '1000')
       )
     }).toThrow(InsufficientInputAmountError)
 
     expect(() => {
-      exchange.getLiquidityMinted(
-        new TokenAmount(exchange.liquidityToken, '0'),
+      pair.getLiquidityMinted(
+        new TokenAmount(pair.liquidityToken, '0'),
         new TokenAmount(tokenA, '1000000'),
         new TokenAmount(tokenB, '1')
       )
     }).toThrow(InsufficientInputAmountError)
 
-    const liquidity = exchange.getLiquidityMinted(
-      new TokenAmount(exchange.liquidityToken, '0'),
+    const liquidity = pair.getLiquidityMinted(
+      new TokenAmount(pair.liquidityToken, '0'),
       new TokenAmount(tokenA, '1001'),
       new TokenAmount(tokenB, '1001')
     )
@@ -34,12 +34,12 @@ describe('miscellaneous', () => {
   it('getLiquidityMinted:!0', async () => {
     const tokenA = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000001', 18)
     const tokenB = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000002', 18)
-    const exchange = new Exchange(new TokenAmount(tokenA, '10000'), new TokenAmount(tokenB, '10000'))
+    const pair = new Pair(new TokenAmount(tokenA, '10000'), new TokenAmount(tokenB, '10000'))
 
     expect(
-      exchange
+      pair
         .getLiquidityMinted(
-          new TokenAmount(exchange.liquidityToken, '10000'),
+          new TokenAmount(pair.liquidityToken, '10000'),
           new TokenAmount(tokenA, '2000'),
           new TokenAmount(tokenB, '2000')
         )
@@ -50,13 +50,13 @@ describe('miscellaneous', () => {
   it('getLiquidityValue:!feeOn', async () => {
     const tokenA = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000001', 18)
     const tokenB = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000002', 18)
-    const exchange = new Exchange(new TokenAmount(tokenA, '1000'), new TokenAmount(tokenB, '1000'))
+    const pair = new Pair(new TokenAmount(tokenA, '1000'), new TokenAmount(tokenB, '1000'))
 
     {
-      const liquidityValue = exchange.getLiquidityValue(
+      const liquidityValue = pair.getLiquidityValue(
         tokenA,
-        new TokenAmount(exchange.liquidityToken, '1000'),
-        new TokenAmount(exchange.liquidityToken, '1000'),
+        new TokenAmount(pair.liquidityToken, '1000'),
+        new TokenAmount(pair.liquidityToken, '1000'),
         false
       )
       expect(liquidityValue.token.equals(tokenA)).toBe(true)
@@ -65,10 +65,10 @@ describe('miscellaneous', () => {
 
     // 500
     {
-      const liquidityValue = exchange.getLiquidityValue(
+      const liquidityValue = pair.getLiquidityValue(
         tokenA,
-        new TokenAmount(exchange.liquidityToken, '1000'),
-        new TokenAmount(exchange.liquidityToken, '500'),
+        new TokenAmount(pair.liquidityToken, '1000'),
+        new TokenAmount(pair.liquidityToken, '500'),
         false
       )
       expect(liquidityValue.token.equals(tokenA)).toBe(true)
@@ -77,10 +77,10 @@ describe('miscellaneous', () => {
 
     // tokenB
     {
-      const liquidityValue = exchange.getLiquidityValue(
+      const liquidityValue = pair.getLiquidityValue(
         tokenB,
-        new TokenAmount(exchange.liquidityToken, '1000'),
-        new TokenAmount(exchange.liquidityToken, '1000'),
+        new TokenAmount(pair.liquidityToken, '1000'),
+        new TokenAmount(pair.liquidityToken, '1000'),
         false
       )
       expect(liquidityValue.token.equals(tokenB)).toBe(true)
@@ -91,12 +91,12 @@ describe('miscellaneous', () => {
   it('getLiquidityValue:feeOn', async () => {
     const tokenA = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000001', 18)
     const tokenB = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000002', 18)
-    const exchange = new Exchange(new TokenAmount(tokenA, '1000'), new TokenAmount(tokenB, '1000'))
+    const pair = new Pair(new TokenAmount(tokenA, '1000'), new TokenAmount(tokenB, '1000'))
 
-    const liquidityValue = exchange.getLiquidityValue(
+    const liquidityValue = pair.getLiquidityValue(
       tokenA,
-      new TokenAmount(exchange.liquidityToken, '500'),
-      new TokenAmount(exchange.liquidityToken, '500'),
+      new TokenAmount(pair.liquidityToken, '500'),
+      new TokenAmount(pair.liquidityToken, '500'),
       true,
       '250000' // 500 ** 2
     )

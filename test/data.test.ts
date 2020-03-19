@@ -1,4 +1,4 @@
-import { ChainId, WETH, Token, Exchange } from '../src'
+import { ChainId, WETH, Token, Pair } from '../src'
 
 describe('data', () => {
   it('Token', async () => {
@@ -11,9 +11,9 @@ describe('data', () => {
     expect(token.decimals).toEqual(9)
   })
 
-  it('Exchange', async () => {
+  it('Pair', async () => {
     const token = new Token(ChainId.RINKEBY, '0xc7AD46e0b8a400Bb3C915120d284AafbA8fc4735', 18) // DAI
-    const exchange = await Exchange.fetchData(WETH[ChainId.RINKEBY], token)
-    expect(exchange.liquidityToken.address).toEqual('0x3DDd4674C99979EAd4a3160f12567c90a07f0e94')
+    const pair = await Pair.fetchData(WETH[ChainId.RINKEBY], token)
+    expect(pair.liquidityToken.address).toEqual('0x3DDd4674C99979EAd4a3160f12567c90a07f0e94')
   })
 })

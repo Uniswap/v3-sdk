@@ -15,11 +15,11 @@ export class Price extends Fraction {
 
   static fromRoute(route: Route): Price {
     const prices: Price[] = []
-    for (const [i, exchange] of route.exchanges.entries()) {
+    for (const [i, pair] of route.pairs.entries()) {
       prices.push(
-        route.path[i].equals(exchange.token0)
-          ? new Price(exchange.reserve0.token, exchange.reserve1.token, exchange.reserve0.raw, exchange.reserve1.raw)
-          : new Price(exchange.reserve1.token, exchange.reserve0.token, exchange.reserve1.raw, exchange.reserve0.raw)
+        route.path[i].equals(pair.token0)
+          ? new Price(pair.reserve0.token, pair.reserve1.token, pair.reserve0.raw, pair.reserve1.raw)
+          : new Price(pair.reserve1.token, pair.reserve0.token, pair.reserve1.raw, pair.reserve0.raw)
       )
     }
     return prices.slice(1).reduce((accumulator, currentValue) => accumulator.multiply(currentValue), prices[0])

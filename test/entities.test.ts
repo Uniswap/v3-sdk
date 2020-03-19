@@ -1,4 +1,4 @@
-import { ChainId, WETH as _WETH, TradeType, Rounding, Token, TokenAmount, Exchange, Route, Trade } from '../src'
+import { ChainId, WETH as _WETH, TradeType, Rounding, Token, TokenAmount, Pair, Route, Trade } from '../src'
 
 const ADDRESSES = [
   '0x0000000000000000000000000000000000000001',
@@ -30,18 +30,18 @@ describe('entities', () => {
         })
       })
 
-      let exchanges: Exchange[]
-      it('Exchange', () => {
-        exchanges = [
-          new Exchange(
+      let pairs: Pair[]
+      it('Pair', () => {
+        pairs = [
+          new Pair(
             new TokenAmount(tokens[0], decimalize(1, tokens[0].decimals)),
             new TokenAmount(tokens[1], decimalize(1, tokens[1].decimals))
           ),
-          new Exchange(
+          new Pair(
             new TokenAmount(tokens[1], decimalize(1, tokens[1].decimals)),
             new TokenAmount(tokens[2], decimalize(1, tokens[2].decimals))
           ),
-          new Exchange(
+          new Pair(
             new TokenAmount(tokens[2], decimalize(1, tokens[2].decimals)),
             new TokenAmount(WETH, decimalize(1234, WETH.decimals))
           )
@@ -50,8 +50,8 @@ describe('entities', () => {
 
       let route: Route
       it('Route', () => {
-        route = new Route(exchanges, tokens[0])
-        expect(route.exchanges).toEqual(exchanges)
+        route = new Route(pairs, tokens[0])
+        expect(route.pairs).toEqual(pairs)
         expect(route.path).toEqual(tokens.concat([WETH]))
         expect(route.input).toEqual(tokens[0])
         expect(route.output).toEqual(WETH)
@@ -99,7 +99,7 @@ describe('entities', () => {
         it('TradeType.EXACT_INPUT', () => {
           route = new Route(
             [
-              new Exchange(
+              new Pair(
                 new TokenAmount(tokens[1], decimalize(5, tokens[1].decimals)),
                 new TokenAmount(WETH, decimalize(10, WETH.decimals))
               )
@@ -153,7 +153,7 @@ describe('entities', () => {
           if ([9, 18].includes(tokens[1].decimals)) {
             const route = new Route(
               [
-                new Exchange(
+                new Pair(
                   new TokenAmount(tokens[1], decimalize(1, tokens[1].decimals)),
                   new TokenAmount(
                     WETH,

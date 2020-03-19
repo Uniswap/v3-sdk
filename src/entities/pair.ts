@@ -16,7 +16,7 @@ import { TokenAmount } from './fractions/tokenAmount'
 
 let CACHE: { [token0Address: string]: { [token1Address: string]: string } } = {}
 
-export class Exchange {
+export class Pair {
   public readonly liquidityToken: Token
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
@@ -44,13 +44,13 @@ export class Exchange {
     tokenA: Token,
     tokenB: Token,
     provider = getDefaultProvider(getNetwork(tokenA.chainId))
-  ): Promise<Exchange> {
-    const address = Exchange.getAddress(tokenA, tokenB)
+  ): Promise<Pair> {
+    const address = Pair.getAddress(tokenA, tokenB)
     const balances = await Promise.all([
       new Contract(tokenA.address, ERC20, provider).balanceOf(address),
       new Contract(tokenB.address, ERC20, provider).balanceOf(address)
     ])
-    return new Exchange(new TokenAmount(tokenA, balances[0]), new TokenAmount(tokenB, balances[1]))
+    return new Pair(new TokenAmount(tokenA, balances[0]), new TokenAmount(tokenB, balances[1]))
   }
 
   constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
@@ -59,7 +59,7 @@ export class Exchange {
       : [tokenAmountB, tokenAmountA]
     this.liquidityToken = new Token(
       tokenAmounts[0].token.chainId,
-      Exchange.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
+      Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
       18,
       'UNI-V2',
       'Uniswap V2'
@@ -88,7 +88,7 @@ export class Exchange {
     return token.equals(this.token0) ? this.reserve0 : this.reserve1
   }
 
-  getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Exchange] {
+  getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pair] {
     invariant(inputAmount.token.equals(this.token0) || inputAmount.token.equals(this.token1), 'TOKEN')
     if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO)) {
       throw new InsufficientReservesError()
@@ -105,10 +105,10 @@ export class Exchange {
     if (JSBI.equal(outputAmount.raw, ZERO)) {
       throw new InsufficientInputAmountError()
     }
-    return [outputAmount, new Exchange(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
+    return [outputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
   }
 
-  getInputAmount(outputAmount: TokenAmount): [TokenAmount, Exchange] {
+  getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pair] {
     invariant(outputAmount.token.equals(this.token0) || outputAmount.token.equals(this.token1), 'TOKEN')
     if (
       JSBI.equal(this.reserve0.raw, ZERO) ||
@@ -126,7 +126,7 @@ export class Exchange {
       outputAmount.token.equals(this.token0) ? this.token1 : this.token0,
       JSBI.add(JSBI.divide(numerator, denominator), ONE)
     )
-    return [inputAmount, new Exchange(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
+    return [inputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
   }
 
   getLiquidityMinted(totalSupply: TokenAmount, tokenAmountA: TokenAmount, tokenAmountB: TokenAmount): TokenAmount {

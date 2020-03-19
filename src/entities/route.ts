@@ -1,30 +1,30 @@
 import invariant from 'tiny-invariant'
 
 import { Token } from './token'
-import { Exchange } from './exchange'
+import { Pair } from './pair'
 import { Price } from './fractions/price'
 
 export class Route {
-  public readonly exchanges: Exchange[]
+  public readonly pairs: Pair[]
   public readonly path: Token[]
   public readonly midPrice: Price
 
-  constructor(exchanges: Exchange[], input: Token) {
-    invariant(exchanges.length > 0, 'EXCHANGES')
+  constructor(pairs: Pair[], input: Token) {
+    invariant(pairs.length > 0, 'PAIRS')
     invariant(
-      exchanges.map(exchange => exchange.token0.chainId === exchanges[0].token0.chainId).every(x => x),
+      pairs.map(pair => pair.token0.chainId === pairs[0].token0.chainId).every(x => x),
       'CHAIN_IDS'
     )
     const path = [input]
-    for (const [i, exchange] of exchanges.entries()) {
+    for (const [i, pair] of pairs.entries()) {
       const currentInput = path[i]
-      invariant(currentInput.equals(exchange.token0) || currentInput.equals(exchange.token1), 'PATH')
-      const output = currentInput.equals(exchange.token0) ? exchange.token1 : exchange.token0
+      invariant(currentInput.equals(pair.token0) || currentInput.equals(pair.token1), 'PATH')
+      const output = currentInput.equals(pair.token0) ? pair.token1 : pair.token0
       path.push(output)
     }
     invariant(path.length === new Set(path).size, 'PATH')
 
-    this.exchanges = exchanges
+    this.pairs = pairs
     this.path = path
     this.midPrice = Price.fromRoute(this)
   }

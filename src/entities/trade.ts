@@ -2,7 +2,7 @@ import invariant from 'tiny-invariant'
 import JSBI from 'jsbi'
 
 import { TradeType } from '../constants'
-import { Exchange } from './exchange'
+import { Pair } from './pair'
 import { Route } from './route'
 import { Fraction, TokenAmount } from './fractions'
 import { Price } from './fractions/price'
@@ -45,22 +45,22 @@ export class Trade {
   constructor(route: Route, amount: TokenAmount, tradeType: TradeType) {
     invariant(amount.token.equals(tradeType === TradeType.EXACT_INPUT ? route.input : route.output), 'TOKEN')
     const amounts: TokenAmount[] = new Array(route.path.length)
-    const nextExchanges: Exchange[] = new Array(route.exchanges.length)
+    const nextPairs: Pair[] = new Array(route.pairs.length)
     if (tradeType === TradeType.EXACT_INPUT) {
       amounts[0] = amount
       for (let i = 0; i < route.path.length - 1; i++) {
-        const exchange = route.exchanges[i]
-        const [outputAmount, nextExchange] = exchange.getOutputAmount(amounts[i])
+        const pair = route.pairs[i]
+        const [outputAmount, nextPair] = pair.getOutputAmount(amounts[i])
         amounts[i + 1] = outputAmount
-        nextExchanges[i] = nextExchange
+        nextPairs[i] = nextPair
       }
     } else {
       amounts[amounts.length - 1] = amount
       for (let i = route.path.length - 1; i > 0; i--) {
-        const exchange = route.exchanges[i - 1]
-        const [inputAmount, nextExchange] = exchange.getInputAmount(amounts[i])
+        const pair = route.pairs[i - 1]
+        const [inputAmount, nextPair] = pair.getInputAmount(amounts[i])
         amounts[i - 1] = inputAmount
-        nextExchanges[i - 1] = nextExchange
+        nextPairs[i - 1] = nextPair
       }
     }
 
@@ -71,7 +71,7 @@ export class Trade {
     this.inputAmount = inputAmount
     this.outputAmount = outputAmount
     this.executionPrice = new Price(route.input, route.output, inputAmount.raw, outputAmount.raw)
-    const nextMidPrice = Price.fromRoute(new Route(nextExchanges, route.input))
+    const nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
     this.nextMidPrice = nextMidPrice
     this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
     this.midPricePercentChange = getPercentChange(route.midPrice, nextMidPrice)

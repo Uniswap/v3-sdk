@@ -1,5 +1,5 @@
 export * from './token'
-export * from './exchange'
+export * from './pair'
 export * from './route'
 export * from './trade'
 
