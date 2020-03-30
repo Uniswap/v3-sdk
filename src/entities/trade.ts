@@ -19,19 +19,6 @@ function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: To
   return new Percent(slippage.numerator, slippage.denominator)
 }
 
-function getPercentChange(referenceRate: Price, newRate: Price): Percent {
-  // calculate (referenceRate - newRate) / referenceRate
-  const difference = new Fraction(
-    JSBI.subtract(
-      JSBI.multiply(referenceRate.adjusted.numerator, newRate.adjusted.denominator),
-      JSBI.multiply(newRate.adjusted.numerator, referenceRate.adjusted.denominator)
-    ),
-    JSBI.multiply(referenceRate.adjusted.denominator, newRate.adjusted.denominator)
-  )
-  const percentChange = difference.multiply(referenceRate.adjusted.invert())
-  return new Percent(percentChange.numerator, percentChange.denominator)
-}
-
 export class Trade {
   public readonly route: Route
   public readonly tradeType: TradeType
@@ -40,7 +27,6 @@ export class Trade {
   public readonly executionPrice: Price
   public readonly nextMidPrice: Price
   public readonly slippage: Percent
-  public readonly midPricePercentChange: Percent
 
   constructor(route: Route, amount: TokenAmount, tradeType: TradeType) {
     invariant(amount.token.equals(tradeType === TradeType.EXACT_INPUT ? route.input : route.output), 'TOKEN')
@@ -74,6 +60,5 @@ export class Trade {
     const nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
     this.nextMidPrice = nextMidPrice
     this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
-    this.midPricePercentChange = getPercentChange(route.midPrice, nextMidPrice)
   }
 }
