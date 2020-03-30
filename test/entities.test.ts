@@ -123,8 +123,6 @@ describe('entities', () => {
           expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
           expect(trade.slippage.toSignificant(18)).toEqual('16.8751042187760547')
-
-          expect(trade.midPricePercentChange.toSignificant(18)).toEqual('30.5208159635373242')
         })
 
         it('TradeType.EXACT_OUTPUT', () => {
@@ -145,8 +143,6 @@ describe('entities', () => {
           expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
           expect(trade.slippage.toSignificant(18)).toEqual('16.8751042187760547')
-
-          expect(trade.midPricePercentChange.toSignificant(18)).toEqual('30.5208159635373242')
         })
 
         it('minimum TradeType.EXACT_INPUT', () => {
