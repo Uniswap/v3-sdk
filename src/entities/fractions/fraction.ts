@@ -41,11 +41,41 @@ export class Fraction {
     return new Fraction(this.denominator, this.numerator)
   }
 
+  add(other: Fraction | BigintIsh): Fraction {
+    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    return new Fraction(
+      JSBI.add(
+        JSBI.multiply(this.numerator, otherParsed.denominator),
+        JSBI.multiply(otherParsed.numerator, this.denominator)
+      ),
+      JSBI.multiply(this.denominator, otherParsed.denominator)
+    )
+  }
+
+  subtract(other: Fraction | BigintIsh): Fraction {
+    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    return new Fraction(
+      JSBI.subtract(
+        JSBI.multiply(this.numerator, otherParsed.denominator),
+        JSBI.multiply(otherParsed.numerator, this.denominator)
+      ),
+      JSBI.multiply(this.denominator, otherParsed.denominator)
+    )
+  }
+
   multiply(other: Fraction | BigintIsh): Fraction {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
     return new Fraction(
       JSBI.multiply(this.numerator, otherParsed.numerator),
       JSBI.multiply(this.denominator, otherParsed.denominator)
+    )
+  }
+
+  divide(other: Fraction | BigintIsh): Fraction {
+    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    return new Fraction(
+      JSBI.multiply(this.numerator, otherParsed.denominator),
+      JSBI.multiply(this.denominator, otherParsed.numerator)
     )
   }
 

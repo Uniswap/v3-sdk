@@ -1,21 +1,16 @@
 import invariant from 'tiny-invariant'
-import JSBI from 'jsbi'
 
 import { TradeType } from '../constants'
 import { Pair } from './pair'
 import { Route } from './route'
-import { Fraction, TokenAmount } from './fractions'
+import { TokenAmount } from './fractions'
 import { Price } from './fractions/price'
 import { Percent } from './fractions/percent'
 
 function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
-  // calculate (exactQuote - outputAmount) / exactQuote
-  const exactDifference = new Fraction(
-    JSBI.subtract(exactQuote.numerator, JSBI.multiply(outputAmount.raw, exactQuote.denominator)),
-    exactQuote.denominator
-  )
-  const slippage = exactDifference.multiply(exactQuote.invert())
+  // calculate slippage := (exactQuote - outputAmount) / exactQuote
+  const slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote)
   return new Percent(slippage.numerator, slippage.denominator)
 }
 
