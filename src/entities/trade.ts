@@ -7,7 +7,6 @@ import { TokenAmount } from './fractions'
 import { Price } from './fractions/price'
 import { Percent } from './fractions/percent'
 import { Token } from 'entities/token'
-import JSBI from 'jsbi'
 
 function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
@@ -22,21 +21,19 @@ function naturalTradeComparator(tradeA: Trade, tradeB: Trade): number {
   // trades must start and end in the same token for comparison
   invariant(tradeA.outputAmount.token.equals(tradeB.outputAmount.token), 'TRADE_SORT_OUTPUT_TOKEN')
   invariant(tradeA.inputAmount.token.equals(tradeB.inputAmount.token), 'TRADE_SORT_INPUT_TOKEN')
-  const diffOutputAmount = tradeA.outputAmount.subtract(tradeB.outputAmount)
-  if (JSBI.equal(diffOutputAmount.numerator, JSBI.BigInt(0))) {
-    const diffInputAmount = tradeA.inputAmount.subtract(tradeB.inputAmount)
-    if (JSBI.equal(diffInputAmount.numerator, JSBI.BigInt(0))) {
+  if (tradeA.outputAmount.equalTo(tradeB.outputAmount)) {
+    if (tradeA.inputAmount.equalTo(tradeB.inputAmount)) {
       return 0
     }
     // trade A requires less input than trade B, so A should come first
-    if (JSBI.lessThan(diffInputAmount.numerator, JSBI.BigInt(0))) {
+    if (tradeA.inputAmount.lessThan(tradeB.inputAmount)) {
       return -1
     } else {
       return 1
     }
   } else {
     // tradeA has less output than trade B, so should come second
-    if (JSBI.lessThan(diffOutputAmount.numerator, JSBI.BigInt(0))) {
+    if (tradeA.outputAmount.lessThan(tradeB.outputAmount)) {
       return 1
     } else {
       return -1
@@ -104,7 +101,7 @@ export class Trade {
     pairs: Pair[],
     amountIn: TokenAmount,
     tokenOut: Token,
-    { n, maxHops }: { n: number; maxHops: number } = {
+    { n = 3, maxHops = 3 }: { n?: number; maxHops?: number } = {
       n: 3,
       maxHops: 3
     },

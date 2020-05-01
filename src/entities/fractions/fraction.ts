@@ -63,6 +63,27 @@ export class Fraction {
     )
   }
 
+  lessThan(other: Fraction | BigintIsh): boolean {
+    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    return JSBI.lessThan(
+      JSBI.multiply(this.numerator, otherParsed.denominator),
+      JSBI.multiply(otherParsed.numerator, this.denominator)
+    )
+  }
+
+  equalTo(other: Fraction | BigintIsh): boolean {
+    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    return JSBI.equal(this.numerator, otherParsed.numerator) && JSBI.equal(this.denominator, otherParsed.denominator)
+  }
+
+  greaterThan(other: Fraction | BigintIsh): boolean {
+    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    return JSBI.greaterThan(
+      JSBI.multiply(this.numerator, otherParsed.denominator),
+      JSBI.multiply(otherParsed.numerator, this.denominator)
+    )
+  }
+
   multiply(other: Fraction | BigintIsh): Fraction {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
     return new Fraction(
