@@ -108,6 +108,7 @@ export class Trade {
       n: 3,
       maxHops: 3
     },
+    // these are only used in recursion.
     currentPairs: Pair[] = [],
     originalAmountIn: TokenAmount = amountIn,
     bestTrades: Trade[] = []
