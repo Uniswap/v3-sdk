@@ -6,12 +6,52 @@ import { Route } from './route'
 import { TokenAmount } from './fractions'
 import { Price } from './fractions/price'
 import { Percent } from './fractions/percent'
+import { Token } from 'entities/token'
+import JSBI from 'jsbi'
 
 function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
   // calculate slippage := (exactQuote - outputAmount) / exactQuote
   const slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote)
   return new Percent(slippage.numerator, slippage.denominator)
+}
+
+// comparator function that allows sorting trades by their output amounts, in decreasing order, and then input amounts
+// in decreasing order. i.e. the best trades have the most outputs for the least inputs
+function naturalTradeComparator(tradeA: Trade, tradeB: Trade): number {
+  // trades must start and end in the same token for comparison
+  invariant(tradeA.outputAmount.token.equals(tradeB.outputAmount.token), 'TRADE_SORT_OUTPUT_TOKEN')
+  invariant(tradeA.inputAmount.token.equals(tradeB.inputAmount.token), 'TRADE_SORT_INPUT_TOKEN')
+  const diffOutputAmount = tradeA.outputAmount.subtract(tradeB.outputAmount)
+  if (JSBI.equal(diffOutputAmount.numerator, JSBI.BigInt(0))) {
+    const diffInputAmount = tradeA.inputAmount.subtract(tradeB.inputAmount)
+    if (JSBI.equal(diffInputAmount.numerator, JSBI.BigInt(0))) {
+      return 0
+    }
+    // trade A requires less input than trade B, so A should come first
+    if (JSBI.lessThan(diffInputAmount.numerator, JSBI.BigInt(0))) {
+      return -1
+    } else {
+      return 1
+    }
+  } else {
+    // tradeA has less output than trade B, so should come second
+    if (JSBI.lessThan(diffOutputAmount.numerator, JSBI.BigInt(0))) {
+      return 1
+    } else {
+      return -1
+    }
+  }
+}
+
+// given an array of trades sorted by best rate, add a trade and then remove the worst trade
+function sortedInsert(trades: Trade[], add: Trade, maxSize: number): Trade | null {
+  trades.push(add)
+  trades.sort(naturalTradeComparator)
+  if (trades.length > maxSize) {
+    return trades.pop()!
+  }
+  return null
 }
 
 export class Trade {
@@ -52,8 +92,66 @@ export class Trade {
     this.inputAmount = inputAmount
     this.outputAmount = outputAmount
     this.executionPrice = new Price(route.input, route.output, inputAmount.raw, outputAmount.raw)
-    const nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
-    this.nextMidPrice = nextMidPrice
+    this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
     this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
+  }
+
+  // given a list of pairs, and a fixed amount in, returns the top `n` best trades that can be made for a given input
+  // amount, making at most `maxHops` hops
+  // note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
+  // the amount in among multiple routes.
+  static bestTradeExactIn(
+    pairs: Pair[],
+    amountIn: TokenAmount,
+    tokenOut: Token,
+    { n, maxHops }: { n: number; maxHops: number } = {
+      n: 3,
+      maxHops: 3
+    },
+    currentPairs: Pair[] = [],
+    originalAmountIn: TokenAmount = amountIn
+  ): Trade[] {
+    invariant(pairs.length !== 0, 'PAIRS')
+    invariant(maxHops > 0, 'MAX_HOPS')
+    invariant(originalAmountIn === amountIn || currentPairs.length > 0, 'INVALID_RECURSION')
+
+    const bestTrades: Trade[] = []
+
+    for (let i = 0; i < pairs.length; i++) {
+      const pair = pairs[i]
+      // pair irrelevant
+      if (!pair.token0.equals(amountIn.token) && !pair.token1.equals(amountIn.token)) continue
+
+      const [amountOut] = pair.getOutputAmount(amountIn)
+      // we have arrived at the output token, so this is the final trade of one of the paths
+      if (amountOut.token.equals(tokenOut)) {
+        sortedInsert(
+          bestTrades,
+          new Trade(
+            new Route([...currentPairs, pair], originalAmountIn.token),
+            originalAmountIn,
+            TradeType.EXACT_INPUT
+          ),
+          n
+        )
+      } else if (maxHops > 1) {
+        const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
+
+        // otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
+        Trade.bestTradeExactIn(
+          pairsExcludingThisPair,
+          amountOut,
+          tokenOut,
+          {
+            n,
+            maxHops: maxHops - 1
+          },
+          [...currentPairs, pair],
+          originalAmountIn
+        ).forEach(option => sortedInsert(bestTrades, option, n))
+      }
+    }
+
+    return bestTrades
   }
 }
