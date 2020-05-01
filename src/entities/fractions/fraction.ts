@@ -73,7 +73,10 @@ export class Fraction {
 
   equalTo(other: Fraction | BigintIsh): boolean {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
-    return JSBI.equal(this.numerator, otherParsed.numerator) && JSBI.equal(this.denominator, otherParsed.denominator)
+    return JSBI.equal(
+      JSBI.multiply(this.numerator, otherParsed.denominator),
+      JSBI.multiply(otherParsed.numerator, this.denominator)
+    )
   }
 
   greaterThan(other: Fraction | BigintIsh): boolean {
