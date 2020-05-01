@@ -42,6 +42,8 @@ function naturalTradeComparator(tradeA: Trade, tradeB: Trade): number {
 }
 
 // given an array of trades sorted by best rate, add a trade and then remove the worst trade
+// TODO(moodysalem): because this array is always sorted, we can do a binary search to find where to insert the
+//  additional trade and avoid a pop
 function sortedInsert(trades: Trade[], add: Trade, maxSize: number): Trade | null {
   trades.push(add)
   trades.sort(naturalTradeComparator)
@@ -93,16 +95,16 @@ export class Trade {
     this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
   }
 
-  // given a list of pairs, and a fixed amount in, returns the top `n` best trades that can be made for a given input
-  // amount, making at most `maxHops` hops
+  // given a list of pairs, and a fixed amount in, returns the top `maxNumResults` trades that go from an input token
+  // amount to an output token, making at most `maxHops` hops
   // note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
   // the amount in among multiple routes.
   static bestTradeExactIn(
     pairs: Pair[],
     amountIn: TokenAmount,
     tokenOut: Token,
-    { n = 3, maxHops = 3 }: { n?: number; maxHops?: number } = {
-      n: 3,
+    { maxNumResults = 3, maxHops = 3 }: { maxNumResults?: number; maxHops?: number } = {
+      maxNumResults: 3,
       maxHops: 3
     },
     // these are only used in recursion.
@@ -129,7 +131,7 @@ export class Trade {
             originalAmountIn,
             TradeType.EXACT_INPUT
           ),
-          n
+          maxNumResults
         )
       } else if (maxHops > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
@@ -140,7 +142,7 @@ export class Trade {
           amountOut,
           tokenOut,
           {
-            n,
+            maxNumResults,
             maxHops: maxHops - 1
           },
           [...currentPairs, pair],

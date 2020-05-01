@@ -45,7 +45,7 @@ describe('Trade', () => {
         [pair_0_1, pair_0_2, pair_1_2],
         new TokenAmount(token0, JSBI.BigInt(10)),
         token2,
-        { n: 1 }
+        { maxNumResults: 1 }
       )
 
       expect(result).toHaveLength(1)
