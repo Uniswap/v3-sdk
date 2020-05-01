@@ -109,13 +109,12 @@ export class Trade {
       maxHops: 3
     },
     currentPairs: Pair[] = [],
-    originalAmountIn: TokenAmount = amountIn
+    originalAmountIn: TokenAmount = amountIn,
+    bestTrades: Trade[] = []
   ): Trade[] {
     invariant(pairs.length !== 0, 'PAIRS')
     invariant(maxHops > 0, 'MAX_HOPS')
     invariant(originalAmountIn === amountIn || currentPairs.length > 0, 'INVALID_RECURSION')
-
-    const bestTrades: Trade[] = []
 
     for (let i = 0; i < pairs.length; i++) {
       const pair = pairs[i]
@@ -147,8 +146,9 @@ export class Trade {
             maxHops: maxHops - 1
           },
           [...currentPairs, pair],
-          originalAmountIn
-        ).forEach(option => sortedInsert(bestTrades, option, n))
+          originalAmountIn,
+          bestTrades
+        )
       }
     }
 
