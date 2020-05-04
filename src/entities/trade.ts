@@ -16,7 +16,7 @@ function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: To
 }
 
 // comparator function that allows sorting trades by their output amounts, in decreasing order, and then input amounts
-// in decreasing order. i.e. the best trades have the most outputs for the least inputs
+// in increasing order. i.e. the best trades have the most outputs for the least inputs and are sorted first
 function naturalTradeComparator(tradeA: Trade, tradeB: Trade): number {
   // trades must start and end in the same token for comparison
   invariant(tradeA.outputAmount.token.equals(tradeB.outputAmount.token), 'TRADE_SORT_OUTPUT_TOKEN')
@@ -62,7 +62,7 @@ export class Trade {
   public readonly nextMidPrice: Price
   public readonly slippage: Percent
 
-  constructor(route: Route, amount: TokenAmount, tradeType: TradeType) {
+  public constructor(route: Route, amount: TokenAmount, tradeType: TradeType) {
     invariant(amount.token.equals(tradeType === TradeType.EXACT_INPUT ? route.input : route.output), 'TOKEN')
     const amounts: TokenAmount[] = new Array(route.path.length)
     const nextPairs: Pair[] = new Array(route.pairs.length)
@@ -99,7 +99,7 @@ export class Trade {
   // amount to an output token, making at most `maxHops` hops
   // note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
   // the amount in among multiple routes.
-  static bestTradeExactIn(
+  public static bestTradeExactIn(
     pairs: Pair[],
     amountIn: TokenAmount,
     tokenOut: Token,
@@ -147,6 +147,63 @@ export class Trade {
           },
           [...currentPairs, pair],
           originalAmountIn,
+          bestTrades
+        )
+      }
+    }
+
+    return bestTrades
+  }
+
+  // similar to the above method but instead targets a fixed output amount
+  // given a list of pairs, and a fixed amount out, returns the top `maxNumResults` trades that go from an input token
+  // to an output token amount, making at most `maxHops` hops
+  // note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
+  // the amount in among multiple routes.
+  public static bestTradeExactOut(
+    pairs: Pair[],
+    tokenIn: Token,
+    amountOut: TokenAmount,
+    { maxNumResults = 3, maxHops = 3 }: { maxNumResults?: number; maxHops?: number } = {
+      maxNumResults: 3,
+      maxHops: 3
+    },
+    // these are only used in recursion.
+    currentPairs: Pair[] = [],
+    originalAmountOut: TokenAmount = amountOut,
+    bestTrades: Trade[] = []
+  ): Trade[] {
+    invariant(pairs.length !== 0, 'PAIRS')
+    invariant(maxHops > 0, 'MAX_HOPS')
+    invariant(originalAmountOut === amountOut || currentPairs.length > 0, 'INVALID_RECURSION')
+
+    for (let i = 0; i < pairs.length; i++) {
+      const pair = pairs[i]
+      // pair irrelevant
+      if (!pair.token0.equals(amountOut.token) && !pair.token1.equals(amountOut.token)) continue
+
+      const [amountIn] = pair.getInputAmount(amountOut)
+      // we have arrived at the input token, so this is the first trade of one of the paths
+      if (amountIn.token.equals(tokenIn)) {
+        sortedInsert(
+          bestTrades,
+          new Trade(new Route([pair, ...currentPairs], tokenIn), originalAmountOut, TradeType.EXACT_OUTPUT),
+          maxNumResults
+        )
+      } else if (maxHops > 1) {
+        const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
+
+        // otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
+        Trade.bestTradeExactOut(
+          pairsExcludingThisPair,
+          tokenIn,
+          amountIn,
+          {
+            maxNumResults,
+            maxHops: maxHops - 1
+          },
+          [pair, ...currentPairs],
+          originalAmountOut,
           bestTrades
         )
       }
