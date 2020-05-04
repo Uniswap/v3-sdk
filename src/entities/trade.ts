@@ -7,6 +7,7 @@ import { TokenAmount } from './fractions'
 import { Price } from './fractions/price'
 import { Percent } from './fractions/percent'
 import { Token } from 'entities/token'
+import { sortedInsert } from '../utils'
 
 function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
@@ -39,18 +40,6 @@ function naturalTradeComparator(tradeA: Trade, tradeB: Trade): number {
       return -1
     }
   }
-}
-
-// given an array of trades sorted by best rate, add a trade and then remove the worst trade
-// TODO(moodysalem): because this array is always sorted, we can do a binary search to find where to insert the
-//  additional trade and avoid a pop
-function sortedInsert(trades: Trade[], add: Trade, maxSize: number): Trade | null {
-  trades.push(add)
-  trades.sort(naturalTradeComparator)
-  if (trades.length > maxSize) {
-    return trades.pop()!
-  }
-  return null
 }
 
 export class Trade {
@@ -131,7 +120,8 @@ export class Trade {
             originalAmountIn,
             TradeType.EXACT_INPUT
           ),
-          maxNumResults
+          maxNumResults,
+          naturalTradeComparator
         )
       } else if (maxHops > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
@@ -188,7 +178,8 @@ export class Trade {
         sortedInsert(
           bestTrades,
           new Trade(new Route([pair, ...currentPairs], tokenIn), originalAmountOut, TradeType.EXACT_OUTPUT),
-          maxNumResults
+          maxNumResults,
+          naturalTradeComparator
         )
       } else if (maxHops > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
