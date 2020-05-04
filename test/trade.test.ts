@@ -43,6 +43,18 @@ describe('Trade', () => {
       expect(result[0].route.path).toEqual([token0, token2])
     })
 
+    it('insufficient input for one pair', () => {
+      const result = Trade.bestTradeExactIn(
+        [pair_0_1, pair_0_2, pair_1_2],
+        new TokenAmount(token0, JSBI.BigInt(1)),
+        token2
+      )
+      expect(result).toHaveLength(1)
+      expect(result[0].route.pairs).toHaveLength(1) // 0 -> 2 at 10:11
+      expect(result[0].route.path).toEqual([token0, token2])
+      expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(1)))
+    })
+
     it('respects n', () => {
       const result = Trade.bestTradeExactIn(
         [pair_0_1, pair_0_2, pair_1_2],
@@ -92,6 +104,24 @@ describe('Trade', () => {
       expect(result).toHaveLength(1)
       expect(result[0].route.pairs).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.path).toEqual([token0, token2])
+    })
+
+    it('insufficient liquidity', () => {
+      const result = Trade.bestTradeExactOut(
+        [pair_0_1, pair_0_2, pair_1_2],
+        token0,
+        new TokenAmount(token2, JSBI.BigInt(1200))
+      )
+      expect(result).toHaveLength(0)
+    })
+
+    it('insufficient liquidity in one pair but not the other', () => {
+      const result = Trade.bestTradeExactOut(
+        [pair_0_1, pair_0_2, pair_1_2],
+        token0,
+        new TokenAmount(token2, JSBI.BigInt(1050))
+      )
+      expect(result).toHaveLength(1)
     })
 
     it('respects n', () => {

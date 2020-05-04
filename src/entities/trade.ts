@@ -8,6 +8,7 @@ import { Price } from './fractions/price'
 import { Percent } from './fractions/percent'
 import { Token } from 'entities/token'
 import { sortedInsert } from '../utils'
+import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
 
 function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
@@ -110,9 +111,17 @@ export class Trade {
       // pair irrelevant
       if (!pair.token0.equals(amountIn.token) && !pair.token1.equals(amountIn.token)) continue
 
-      const [amountOut] = pair.getOutputAmount(amountIn)
+      let amountOut: TokenAmount
+      try {
+        ;[amountOut] = pair.getOutputAmount(amountIn)
+      } catch (error) {
+        if (error instanceof InsufficientInputAmountError) {
+          continue
+        }
+        throw error
+      }
       // we have arrived at the output token, so this is the final trade of one of the paths
-      if (amountOut.token.equals(tokenOut)) {
+      if (amountOut!.token.equals(tokenOut)) {
         sortedInsert(
           bestTrades,
           new Trade(
@@ -129,7 +138,7 @@ export class Trade {
         // otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
         Trade.bestTradeExactIn(
           pairsExcludingThisPair,
-          amountOut,
+          amountOut!,
           tokenOut,
           {
             maxNumResults,
@@ -172,9 +181,18 @@ export class Trade {
       // pair irrelevant
       if (!pair.token0.equals(amountOut.token) && !pair.token1.equals(amountOut.token)) continue
 
-      const [amountIn] = pair.getInputAmount(amountOut)
+      let amountIn: TokenAmount
+      try {
+        ;[amountIn] = pair.getInputAmount(amountOut)
+      } catch (error) {
+        // not enough liquidity in this pair
+        if (error instanceof InsufficientReservesError) {
+          continue
+        }
+        throw error
+      }
       // we have arrived at the input token, so this is the first trade of one of the paths
-      if (amountIn.token.equals(tokenIn)) {
+      if (amountIn!.token.equals(tokenIn)) {
         sortedInsert(
           bestTrades,
           new Trade(new Route([pair, ...currentPairs], tokenIn), originalAmountOut, TradeType.EXACT_OUTPUT),
@@ -188,7 +206,7 @@ export class Trade {
         Trade.bestTradeExactOut(
           pairsExcludingThisPair,
           tokenIn,
-          amountIn,
+          amountIn!,
           {
             maxNumResults,
             maxHops: maxHops - 1
