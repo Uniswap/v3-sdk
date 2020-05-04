@@ -51,7 +51,7 @@ export function sqrt(y: JSBI): JSBI {
 // `maxSize` by removing the last item
 export function sortedInsert<T>(items: T[], add: T, maxSize: number, comparator: (a: T, b: T) => number): T | null {
   invariant(maxSize > 0, 'MAX_SIZE_ZERO')
-  // we make this an invariant because the interface cannot return multiple removed items if trades exceeds maxSize
+  // this is an invariant because the interface cannot return multiple removed items if items.length exceeds maxSize
   invariant(items.length <= maxSize, 'ITEMS_SIZE')
 
   // short circuit first item add
