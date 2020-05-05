@@ -21,12 +21,23 @@ describe.only('Fraction', () => {
         new Fraction(JSBI.BigInt(52), JSBI.BigInt(120))
       )
     })
+
+    it('same denom', () => {
+      expect(new Fraction(JSBI.BigInt(1), JSBI.BigInt(5)).add(new Fraction(JSBI.BigInt(2), JSBI.BigInt(5)))).toEqual(
+        new Fraction(JSBI.BigInt(3), JSBI.BigInt(5))
+      )
+    })
   })
   describe('#subtract', () => {
     it('multiples denoms and subtracts nums', () => {
       expect(
         new Fraction(JSBI.BigInt(1), JSBI.BigInt(10)).subtract(new Fraction(JSBI.BigInt(4), JSBI.BigInt(12)))
       ).toEqual(new Fraction(JSBI.BigInt(-28), JSBI.BigInt(120)))
+    })
+    it('same denom', () => {
+      expect(
+        new Fraction(JSBI.BigInt(3), JSBI.BigInt(5)).subtract(new Fraction(JSBI.BigInt(2), JSBI.BigInt(5)))
+      ).toEqual(new Fraction(JSBI.BigInt(1), JSBI.BigInt(5)))
     })
   })
   describe('#lessThan', () => {
