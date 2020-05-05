@@ -43,6 +43,11 @@ function naturalTradeComparator(tradeA: Trade, tradeB: Trade): number {
   }
 }
 
+export interface BestTradeOptions {
+  maxNumResults?: number
+  maxHops?: number
+}
+
 export class Trade {
   public readonly route: Route
   public readonly tradeType: TradeType
@@ -93,10 +98,7 @@ export class Trade {
     pairs: Pair[],
     amountIn: TokenAmount,
     tokenOut: Token,
-    { maxNumResults = 3, maxHops = 3 }: { maxNumResults?: number; maxHops?: number } = {
-      maxNumResults: 3,
-      maxHops: 3
-    },
+    { maxNumResults = 3, maxHops = 3 }: BestTradeOptions = {},
     // these are only used in recursion.
     currentPairs: Pair[] = [],
     originalAmountIn: TokenAmount = amountIn,
@@ -163,10 +165,7 @@ export class Trade {
     pairs: Pair[],
     tokenIn: Token,
     amountOut: TokenAmount,
-    { maxNumResults = 3, maxHops = 3 }: { maxNumResults?: number; maxHops?: number } = {
-      maxNumResults: 3,
-      maxHops: 3
-    },
+    { maxNumResults = 3, maxHops = 3 }: BestTradeOptions = {},
     // these are only used in recursion.
     currentPairs: Pair[] = [],
     originalAmountOut: TokenAmount = amountOut,
