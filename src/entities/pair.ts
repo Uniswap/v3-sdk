@@ -17,7 +17,7 @@ import {
   _997,
   _1000
 } from '../constants'
-import ERC20 from '../abis/ERC20.json'
+import IUniswapV2Pair from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
 import { Token } from './token'
@@ -54,11 +54,10 @@ export class Pair {
     tokenB: Token,
     provider = getDefaultProvider(getNetwork(tokenA.chainId))
   ): Promise<Pair> {
+    invariant(tokenA.chainId === tokenB.chainId, 'CHAIN_ID')
     const address = Pair.getAddress(tokenA, tokenB)
-    const balances = await Promise.all([
-      new Contract(tokenA.address, ERC20, provider).balanceOf(address),
-      new Contract(tokenB.address, ERC20, provider).balanceOf(address)
-    ])
+    const [reserves0, reserves1] = await new Contract(address, IUniswapV2Pair.abi, provider).getReserves()
+    const balances = tokenA.sortsBefore(tokenB) ? [reserves0, reserves1] : [reserves1, reserves0]
     return new Pair(new TokenAmount(tokenA, balances[0]), new TokenAmount(tokenB, balances[1]))
   }
 
