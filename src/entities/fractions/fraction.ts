@@ -43,6 +43,9 @@ export class Fraction {
 
   add(other: Fraction | BigintIsh): Fraction {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    if (JSBI.equal(this.denominator, otherParsed.denominator)) {
+      return new Fraction(JSBI.add(this.numerator, otherParsed.numerator), this.denominator)
+    }
     return new Fraction(
       JSBI.add(
         JSBI.multiply(this.numerator, otherParsed.denominator),
@@ -54,6 +57,9 @@ export class Fraction {
 
   subtract(other: Fraction | BigintIsh): Fraction {
     const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    if (JSBI.equal(this.denominator, otherParsed.denominator)) {
+      return new Fraction(JSBI.subtract(this.numerator, otherParsed.numerator), this.denominator)
+    }
     return new Fraction(
       JSBI.subtract(
         JSBI.multiply(this.numerator, otherParsed.denominator),

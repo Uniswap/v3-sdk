@@ -17,12 +17,18 @@ function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: To
   return new Percent(slippage.numerator, slippage.denominator)
 }
 
+// minimal interface so the input output comparator may be shared across types
+interface InputOutput {
+  readonly inputAmount: TokenAmount
+  readonly outputAmount: TokenAmount
+}
+
 // comparator function that allows sorting trades by their output amounts, in decreasing order, and then input amounts
 // in increasing order. i.e. the best trades have the most outputs for the least inputs and are sorted first
-function naturalTradeComparator(tradeA: Trade, tradeB: Trade): number {
-  // trades must start and end in the same token for comparison
-  invariant(tradeA.outputAmount.token.equals(tradeB.outputAmount.token), 'TRADE_SORT_OUTPUT_TOKEN')
-  invariant(tradeA.inputAmount.token.equals(tradeB.inputAmount.token), 'TRADE_SORT_INPUT_TOKEN')
+export function inputOutputComparator(tradeA: InputOutput, tradeB: InputOutput): number {
+  // must have same input and output token for comparison
+  invariant(tradeA.inputAmount.token.equals(tradeB.inputAmount.token), 'INPUT_TOKEN')
+  invariant(tradeA.outputAmount.token.equals(tradeB.outputAmount.token), 'OUTPUT_TOKEN')
   if (tradeA.outputAmount.equalTo(tradeB.outputAmount)) {
     if (tradeA.inputAmount.equalTo(tradeB.inputAmount)) {
       return 0
@@ -132,7 +138,7 @@ export class Trade {
             TradeType.EXACT_INPUT
           ),
           maxNumResults,
-          naturalTradeComparator
+          inputOutputComparator
         )
       } else if (maxHops > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
@@ -196,7 +202,7 @@ export class Trade {
           bestTrades,
           new Trade(new Route([pair, ...currentPairs], tokenIn), originalAmountOut, TradeType.EXACT_OUTPUT),
           maxNumResults,
-          naturalTradeComparator
+          inputOutputComparator
         )
       } else if (maxHops > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
