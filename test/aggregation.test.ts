@@ -1,7 +1,7 @@
-import { Trade, Aggregation, ChainId, Pair, Token, TokenAmount, Price } from '../src'
+import { Trade, Aggregation, ChainId, Pair, Token, TokenAmount, Price, TradeType } from '../src'
 import JSBI from 'jsbi'
 
-describe.only('Aggregation', () => {
+describe('Aggregation', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2')
@@ -70,5 +70,30 @@ describe.only('Aggregation', () => {
     expect(new Aggregation(trades_0_1).executionPrice).toEqual(
       new Price(token0, token1, JSBI.BigInt(200), JSBI.BigInt(214))
     )
+  })
+
+  describe('#bestAggregationExactIn', () => {
+    it('all aggregations', () => {
+      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2)
+      expect(aggs).toHaveLength(3)
+
+      for (let agg of aggs) {
+        expect(agg.inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
+        expect(agg.outputAmount.token).toEqual(token2)
+        expect(agg.tradeType).toEqual(TradeType.EXACT_INPUT)
+      }
+    })
+
+    it('best agg combines two routes', () => {
+      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2)
+      expect(aggs).toHaveLength(3)
+
+      const best = aggs[0]
+      expect(best.trades).toHaveLength(2)
+      expect(best.trades[0].route.path).toEqual([token0, token1, token2])
+      expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(300)))
+      expect(best.trades[1].route.path).toEqual([token0, token3, token1, token2])
+      expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
+    })
   })
 })
