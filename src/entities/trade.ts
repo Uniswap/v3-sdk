@@ -25,28 +25,46 @@ interface InputOutput {
 
 // comparator function that allows sorting trades by their output amounts, in decreasing order, and then input amounts
 // in increasing order. i.e. the best trades have the most outputs for the least inputs and are sorted first
-export function inputOutputComparator(tradeA: InputOutput, tradeB: InputOutput): number {
+export function inputOutputComparator(a: InputOutput, b: InputOutput): number {
   // must have same input and output token for comparison
-  invariant(tradeA.inputAmount.token.equals(tradeB.inputAmount.token), 'INPUT_TOKEN')
-  invariant(tradeA.outputAmount.token.equals(tradeB.outputAmount.token), 'OUTPUT_TOKEN')
-  if (tradeA.outputAmount.equalTo(tradeB.outputAmount)) {
-    if (tradeA.inputAmount.equalTo(tradeB.inputAmount)) {
+  invariant(a.inputAmount.token.equals(b.inputAmount.token), 'INPUT_TOKEN')
+  invariant(a.outputAmount.token.equals(b.outputAmount.token), 'OUTPUT_TOKEN')
+  if (a.outputAmount.equalTo(b.outputAmount)) {
+    if (a.inputAmount.equalTo(b.inputAmount)) {
       return 0
     }
     // trade A requires less input than trade B, so A should come first
-    if (tradeA.inputAmount.lessThan(tradeB.inputAmount)) {
+    if (a.inputAmount.lessThan(b.inputAmount)) {
       return -1
     } else {
       return 1
     }
   } else {
     // tradeA has less output than trade B, so should come second
-    if (tradeA.outputAmount.lessThan(tradeB.outputAmount)) {
+    if (a.outputAmount.lessThan(b.outputAmount)) {
       return 1
     } else {
       return -1
     }
   }
+}
+
+// extension of the input output comparator that also considers other dimensions of the trade in ranking them
+export function tradeComparator(a: Trade, b: Trade) {
+  const ioComp = inputOutputComparator(a, b)
+  if (ioComp !== 0) {
+    return ioComp
+  }
+
+  // consider lowest slippage next, since these are less likely to fail
+  if (a.slippage.lessThan(b.slippage)) {
+    return -1;
+  } else if (a.slippage.greaterThan(b.slippage)) {
+    return 1;
+  }
+
+  // finally consider the number of hops since each hop costs gas
+  return a.route.path.length - b.route.path.length
 }
 
 export interface BestTradeOptions {
@@ -140,7 +158,7 @@ export class Trade {
             TradeType.EXACT_INPUT
           ),
           maxNumResults,
-          inputOutputComparator
+          tradeComparator
         )
       } else if (maxHops > 1 && pairs.length > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
@@ -204,7 +222,7 @@ export class Trade {
           bestTrades,
           new Trade(new Route([pair, ...currentPairs], tokenIn), originalAmountOut, TradeType.EXACT_OUTPUT),
           maxNumResults,
-          inputOutputComparator
+          tradeComparator
         )
       } else if (maxHops > 1 && pairs.length > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
