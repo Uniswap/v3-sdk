@@ -114,7 +114,7 @@ describe('Aggregation', () => {
       expect(aggs.every(aggs => aggs.trades.every(trade => trade.route.pairs.length === 1))).toEqual(true)
     })
 
-    it.only('respects stepSize', () => {
+    it('respects stepSize', () => {
       const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
         stepSize: new Fraction(JSBI.BigInt(1), JSBI.BigInt(10))
       })
