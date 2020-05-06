@@ -18,7 +18,8 @@
     "lint": "tsdx lint src test",
     "build": "tsdx build",
     "start": "tsdx watch",
-    "test": "tsdx test"
+    "test": "tsdx test",
+    "prepublishOnly": "tsdx build"
   },
   "dependencies": {
     "@ethersproject/address": "^5.0.0-beta.134",
