@@ -125,6 +125,23 @@ describe('Aggregation', () => {
       expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(320))) // mostly direct
       expect(best.trades[1].route.path).toEqual([token0, token1, token2])
       expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80))) // 0 -> 1 -> 2
+
+      // TODO: fix
+      const secondBest = aggs[1]
+      expect(secondBest.trades).toHaveLength(2)
+      expect(secondBest.trades[0].route.path).toEqual([token0, token2])
+      expect(secondBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(320))) // mostly direct
+      expect(secondBest.trades[1].route.path).toEqual([token0, token1, token2])
+      expect(secondBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80))) // 0 -> 1 -> 2
+
+      const thirdBest = aggs[2]
+      expect(thirdBest.trades).toHaveLength(3)
+      expect(thirdBest.trades[0].route.path).toEqual([token0, token2])
+      expect(thirdBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(280)))
+      expect(thirdBest.trades[1].route.path).toEqual([token0, token1, token2])
+      expect(thirdBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(96)))
+      expect(thirdBest.trades[2].route.path).toEqual([token0, token3, token1, token2])
+      expect(thirdBest.trades[2].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(24)))
     })
   })
 })
