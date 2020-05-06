@@ -111,7 +111,7 @@ export class Aggregation {
       if (!pair.token0.equals(amountIn.token) && !pair.token1.equals(amountIn.token)) continue
 
       // if we can only make a single trade, we need to use the full input amount.
-      const firstStepSize = maxNumTrades === 1 ? new Fraction(ONE) : stepSize;
+      const firstStepSize = maxNumTrades === 1 ? new Fraction(ONE) : stepSize
 
       for (let step = firstStepSize; !step.greaterThan(ONE); step = step.add(stepSize)) {
         const stepAmountIn = new TokenAmount(amountIn.token, step.multiply(amountIn.raw).quotient)
