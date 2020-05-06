@@ -50,7 +50,9 @@ export function inputOutputComparator(tradeA: InputOutput, tradeB: InputOutput):
 }
 
 export interface BestTradeOptions {
+  // how many results to return
   maxNumResults?: number
+  // the maximum number of hops a trade should contain
   maxHops?: number
 }
 
@@ -105,12 +107,15 @@ export class Trade {
     amountIn: TokenAmount,
     tokenOut: Token,
     { maxNumResults = 3, maxHops = 3 }: BestTradeOptions = {},
-    // these are only used in recursion.
+    // used in recursion.
     currentPairs: Pair[] = [],
     originalAmountIn: TokenAmount = amountIn,
     bestTrades: Trade[] = []
   ): Trade[] {
-    invariant(pairs.length !== 0, 'PAIRS')
+    if (pairs.length === 0) {
+      return bestTrades
+    }
+
     invariant(maxHops > 0, 'MAX_HOPS')
     invariant(originalAmountIn === amountIn || currentPairs.length > 0, 'INVALID_RECURSION')
 
@@ -172,12 +177,15 @@ export class Trade {
     tokenIn: Token,
     amountOut: TokenAmount,
     { maxNumResults = 3, maxHops = 3 }: BestTradeOptions = {},
-    // these are only used in recursion.
+    // used in recursion.
     currentPairs: Pair[] = [],
     originalAmountOut: TokenAmount = amountOut,
     bestTrades: Trade[] = []
   ): Trade[] {
-    invariant(pairs.length !== 0, 'PAIRS')
+    if (pairs.length === 0) {
+      return bestTrades
+    }
+
     invariant(maxHops > 0, 'MAX_HOPS')
     invariant(originalAmountOut === amountOut || currentPairs.length > 0, 'INVALID_RECURSION')
 
