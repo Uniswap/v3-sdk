@@ -9,6 +9,19 @@ describe.only('Fraction', () => {
       expect(new Fraction(JSBI.BigInt(16), JSBI.BigInt(5)).quotient).toEqual(JSBI.BigInt(3)) // one above
     })
   })
+  describe('#remainder', () => {
+    it('returns fraction after divison', () => {
+      expect(new Fraction(JSBI.BigInt(8), JSBI.BigInt(3)).remainder).toEqual(
+        new Fraction(JSBI.BigInt(2), JSBI.BigInt(3))
+      )
+      expect(new Fraction(JSBI.BigInt(12), JSBI.BigInt(4)).remainder).toEqual(
+        new Fraction(JSBI.BigInt(0), JSBI.BigInt(4))
+      )
+      expect(new Fraction(JSBI.BigInt(16), JSBI.BigInt(5)).remainder).toEqual(
+        new Fraction(JSBI.BigInt(1), JSBI.BigInt(5))
+      )
+    })
+  })
   describe('#invert', () => {
     it('flips num and denom', () => {
       expect(new Fraction(JSBI.BigInt(5), JSBI.BigInt(10)).invert().numerator).toEqual(JSBI.BigInt(10))
