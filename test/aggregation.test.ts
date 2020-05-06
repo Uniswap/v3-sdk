@@ -6,7 +6,7 @@ describe('Aggregation', () => {
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2')
   const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3')
-  const all_tokens = [token0, token1, token2, token3]
+  const allTokens = [token0, token1, token2, token3]
 
   const pair_0_1 = new Pair(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token1, JSBI.BigInt(1000)))
   const pair_0_2 = new Pair(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token2, JSBI.BigInt(1100)))
@@ -14,58 +14,58 @@ describe('Aggregation', () => {
   const pair_1_2 = new Pair(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token2, JSBI.BigInt(1000)))
   const pair_1_3 = new Pair(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token3, JSBI.BigInt(1300)))
   const pair_2_3 = new Pair(new TokenAmount(token2, JSBI.BigInt(900)), new TokenAmount(token3, JSBI.BigInt(1300)))
-  const all_pairs = [pair_0_1, pair_0_2, pair_0_3, pair_1_2, pair_1_3, pair_2_3]
+  const allPairs = [pair_0_1, pair_0_2, pair_0_3, pair_1_2, pair_1_3, pair_2_3]
 
   it('throws on empty trades', () => {
     expect(() => new Aggregation([])).toThrow('TRADES_LENGTH')
   })
 
   it('throws if input tokens do not match', () => {
-    const trades_0_1 = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
+    const trades_0_1 = Trade.bestTradeExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
       maxNumResults: 1
     })
-    const trades_2_1 = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token2, JSBI.BigInt(100)), token1, {
+    const trades_2_1 = Trade.bestTradeExactIn(allPairs, new TokenAmount(token2, JSBI.BigInt(100)), token1, {
       maxNumResults: 1
     })
     expect(() => new Aggregation([...trades_0_1, ...trades_2_1])).toThrow('TRADES_INPUT_TOKEN')
   })
 
   it('throws if output tokens do not match', () => {
-    const trades_0_1 = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
+    const trades_0_1 = Trade.bestTradeExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
       maxNumResults: 1
     })
-    const trades_0_2 = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
+    const trades_0_2 = Trade.bestTradeExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
       maxNumResults: 1
     })
     expect(() => new Aggregation([...trades_0_1, ...trades_0_2])).toThrow('TRADES_OUTPUT_TOKEN')
   })
 
   it('throws if trade type do not match', () => {
-    const trades_0_1_exact_in = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
+    const trades_0_1_exact_in = Trade.bestTradeExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
       maxNumResults: 1
     })
-    const trades_0_1_exact_out = Trade.bestTradeExactOut(all_pairs, token0, new TokenAmount(token1, JSBI.BigInt(100)), {
+    const trades_0_1_exact_out = Trade.bestTradeExactOut(allPairs, token0, new TokenAmount(token1, JSBI.BigInt(100)), {
       maxNumResults: 1
     })
     expect(() => new Aggregation([...trades_0_1_exact_in, ...trades_0_1_exact_out])).toThrow('TRADES_TRADE_TYPE')
   })
 
   it('has input amount from combined inputs', () => {
-    const trades_0_1 = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
+    const trades_0_1 = Trade.bestTradeExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
       maxNumResults: 2
     })
     expect(new Aggregation(trades_0_1).inputAmount).toEqual(trades_0_1[0].inputAmount.add(trades_0_1[1].inputAmount))
   })
 
   it('has output amount from combined outputs', () => {
-    const trades_0_1 = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
+    const trades_0_1 = Trade.bestTradeExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
       maxNumResults: 2
     })
     expect(new Aggregation(trades_0_1).outputAmount).toEqual(trades_0_1[0].outputAmount.add(trades_0_1[1].outputAmount))
   })
 
   it('has the correct price', () => {
-    const trades_0_1 = Trade.bestTradeExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
+    const trades_0_1 = Trade.bestTradeExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token1, {
       maxNumResults: 2
     })
     expect(new Aggregation(trades_0_1).executionPrice).toEqual(
@@ -81,33 +81,33 @@ describe('Aggregation', () => {
     })
     it('throws with 0 maxNumTrades', () => {
       expect(() =>
-        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
+        Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
           maxNumTrades: 0
         })
       ).toThrow('MAX_NUM_TRADES')
     })
     it('throws with 0 maxHops', () => {
       expect(() =>
-        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, { maxHops: 0 })
+        Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, { maxHops: 0 })
       ).toThrow('MAX_HOPS')
     })
     it('throws for step size range', () => {
       expect(() =>
-        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
+        Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
           stepSize: new Fraction(JSBI.BigInt(6), JSBI.BigInt(10))
         })
       ).toThrow('STEP_SIZE')
     })
     it('throws for step size divisibility', () => {
       expect(() =>
-        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
+        Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
           stepSize: new Fraction(JSBI.BigInt(3), JSBI.BigInt(10))
         })
       ).toThrow('STEP_SIZE_EVENLY_DIVISIBLE')
     })
 
     it('all aggregations', () => {
-      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2)
+      const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(100)), token2)
       expect(aggs).toHaveLength(3)
 
       for (let agg of aggs) {
@@ -118,7 +118,7 @@ describe('Aggregation', () => {
     })
 
     it('best agg combines two routes', () => {
-      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2)
+      const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(400)), token2)
       expect(aggs).toHaveLength(3)
 
       const best = aggs[0]
@@ -130,7 +130,7 @@ describe('Aggregation', () => {
     })
 
     it('respects maxTrades', () => {
-      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
+      const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
         maxNumTrades: 1
       })
       expect(aggs).toHaveLength(3)
@@ -138,7 +138,7 @@ describe('Aggregation', () => {
     })
 
     it('respects maxHops', () => {
-      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
+      const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
         maxHops: 1
       })
 
@@ -154,7 +154,7 @@ describe('Aggregation', () => {
     })
 
     it('respects stepSize', () => {
-      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
+      const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
         stepSize: new Fraction(JSBI.BigInt(1), JSBI.BigInt(10))
       })
 
@@ -185,26 +185,18 @@ describe('Aggregation', () => {
     })
 
     describe('beats bestTradeExactIn for all pairs', () => {
-      for (let i = 0; i < all_tokens.length; i++) {
-        for (let j = i + 1; j < all_tokens.length; j++) {
-          const tokenA = all_tokens[i]
-          const tokenB = all_tokens[j]
+      for (let i = 0; i < allTokens.length; i++) {
+        for (let j = i + 1; j < allTokens.length; j++) {
+          const tokenA = allTokens[i]
+          const tokenB = allTokens[j]
           it(`${tokenA.symbol} to ${tokenB.symbol}`, () => {
-            const aggs = Aggregation.bestAggregationExactIn(
-              all_pairs,
-              new TokenAmount(tokenA, JSBI.BigInt(300)),
-              tokenB
-            )
-            const bestTrade = Trade.bestTradeExactIn(all_pairs, new TokenAmount(tokenA, JSBI.BigInt(300)), tokenB)
+            const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(tokenA, JSBI.BigInt(300)), tokenB)
+            const bestTrade = Trade.bestTradeExactIn(allPairs, new TokenAmount(tokenA, JSBI.BigInt(300)), tokenB)
             expect(!aggs[0].executionPrice.greaterThan(bestTrade[0].executionPrice))
           })
           it(`${tokenB.symbol} to ${tokenA.symbol}`, () => {
-            const aggs = Aggregation.bestAggregationExactIn(
-              all_pairs,
-              new TokenAmount(tokenB, JSBI.BigInt(300)),
-              tokenA
-            )
-            const bestTrade = Trade.bestTradeExactIn(all_pairs, new TokenAmount(tokenB, JSBI.BigInt(300)), tokenA)
+            const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(tokenB, JSBI.BigInt(300)), tokenA)
+            const bestTrade = Trade.bestTradeExactIn(allPairs, new TokenAmount(tokenB, JSBI.BigInt(300)), tokenA)
             expect(!aggs[0].executionPrice.greaterThan(bestTrade[0].executionPrice))
           })
         }
