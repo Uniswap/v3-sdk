@@ -3,6 +3,7 @@ import invariant from 'tiny-invariant'
 import { Fraction, Price, TokenAmount } from './fractions'
 import { ONE, TradeType, ZERO } from '../constants'
 import { Pair } from './pair'
+import { Route } from './route'
 import { Token } from './token'
 import JSBI from 'jsbi'
 import { sortedInsert } from '../utils'
@@ -80,7 +81,8 @@ export class Aggregation {
     bestAggregations: Aggregation[] = []
   ): Aggregation[] {
     invariant(pairs.length > 0, 'PAIRS')
-    invariant(maxNumTrades > 0, 'MAX_NUM_TRADES')
+    invariant(maxNumTrades > 0, 'MAX_NUM_TRADES') // 1 is equivalent to bestTradeExactIn
+    invariant(maxHops > 0, 'MAX_HOPS')
     // if step size 1 is desired, use bestTrade
     invariant(stepSize.greaterThan(ZERO) && stepSize.lessThan(ONE), 'STEP_SIZE')
 
@@ -102,25 +104,34 @@ export class Aggregation {
         try {
           ;[stepAmountOut] = pair.getOutputAmount(stepAmountIn)
         } catch (error) {
-          // this amount is too low to get anything
+          // this amount is too low to get anything from the pair, try the next step
           if (error instanceof InsufficientInputAmountError) {
-            console.log('insufficient amount in', stepAmountIn)
             continue
           }
           throw error
         }
 
-        const remainder = amountIn.subtract(stepAmountIn)
-
         // get the best trades starting from this amount for the pair
-        const bestTradesStartingFromPair = Trade.bestTradeExactIn(
-          pairsExcludingCurrent,
-          stepAmountOut,
-          tokenOut,
-          { maxNumResults, maxHops: maxHops - 1 },
-          [pair],
-          stepAmountIn
-        )
+        let bestTradesStartingFromPair: Trade[]
+        if (maxHops > 1) {
+          bestTradesStartingFromPair = Trade.bestTradeExactIn(
+            pairsExcludingCurrent,
+            stepAmountOut,
+            tokenOut,
+            { maxNumResults, maxHops: maxHops - 1 },
+            [pair],
+            stepAmountIn
+          )
+        } else {
+          // this hop terminates in the token out, consider the trade.
+          if (stepAmountOut.token === tokenOut) {
+            bestTradesStartingFromPair = [
+              new Trade(new Route([pair], stepAmountIn.token), stepAmountIn, TradeType.EXACT_INPUT)
+            ]
+          } else {
+            bestTradesStartingFromPair = []
+          }
+        }
 
         if (!step.equalTo(ONE)) {
           // these trades consume stepAmountIn of our input, so we consider them in combination with other aggregations
@@ -128,7 +139,7 @@ export class Aggregation {
             // combine with the best aggregation for the remaining amount
             Aggregation.bestAggregationExactIn(
               pairsExcludingCurrent, // only consider pairs that aren't this one
-              remainder, // remainder of input to be spent
+              amountIn.subtract(stepAmountIn), // remainder of input to be spent
               tokenOut,
               { stepSize, maxNumResults, maxHops, maxNumTrades: maxNumTrades - 1 },
               [...currentTrades, trade],

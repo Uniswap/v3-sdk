@@ -1,4 +1,4 @@
-import { Trade, Aggregation, ChainId, Pair, Token, TokenAmount, Price, TradeType } from '../src'
+import { Trade, Aggregation, ChainId, Pair, Token, TokenAmount, Price, TradeType, Fraction } from '../src'
 import JSBI from 'jsbi'
 
 describe('Aggregation', () => {
@@ -94,6 +94,37 @@ describe('Aggregation', () => {
       expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(300)))
       expect(best.trades[1].route.path).toEqual([token0, token3, token1, token2])
       expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
+    })
+
+    it('respects maxTrades', () => {
+      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
+        maxNumTrades: 1
+      })
+      expect(aggs).toHaveLength(3)
+      expect(aggs.every(aggs => aggs.trades.length === 1)).toEqual(true)
+    })
+
+    it('respects maxHops', () => {
+      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
+        maxHops: 1
+      })
+
+      // only one direct pair
+      expect(aggs).toHaveLength(1)
+      expect(aggs.every(aggs => aggs.trades.every(trade => trade.route.pairs.length === 1))).toEqual(true)
+    })
+
+    it('respects stepSize', () => {
+      const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
+        stepSize: new Fraction(JSBI.BigInt(1), JSBI.BigInt(10))
+      })
+
+      const best = aggs[0]
+      expect(best.trades).toHaveLength(2)
+      expect(best.trades[0].route.path).toEqual([token0, token1, token2])
+      expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(240)))
+      expect(best.trades[1].route.path).toEqual([token0, token3, token1, token2])
+      expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(160)))
     })
   })
 })
