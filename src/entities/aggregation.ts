@@ -19,6 +19,8 @@ interface BestAggregationOptions extends BestTradeOptions {
 // the default value for stepSize
 const DEFAULT_STEP_SIZE = new Fraction(JSBI.BigInt(1), JSBI.BigInt(4))
 
+const ONE_HALF = new Fraction(JSBI.BigInt(1), JSBI.BigInt(2))
+
 // given two aggregations, sorts them by their output amounts in decreasing order and then their input amounts in
 // increasing order, so the best aggregation comes first
 function aggregationComparator(a: Aggregation, b: Aggregation): number {
@@ -85,7 +87,9 @@ export class Aggregation {
     invariant(maxNumTrades > 0, 'MAX_NUM_TRADES') // 1 is equivalent to bestTradeExactIn
     invariant(maxHops > 0, 'MAX_HOPS')
     // if step size 1 is desired, use bestTrade
-    invariant(stepSize.greaterThan(ZERO) && stepSize.lessThan(ONE), 'STEP_SIZE')
+    invariant(stepSize.greaterThan(ZERO) && !stepSize.greaterThan(ONE_HALF), 'STEP_SIZE')
+    // must evenly divide 1
+    invariant(stepSize.invert().remainder.equalTo(ZERO), 'STEP_SIZE_EVENLY_DIVISIBLE')
 
     for (let i = 0; i < pairs.length; i++) {
       const pair = pairs[i]

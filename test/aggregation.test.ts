@@ -73,6 +73,38 @@ describe('Aggregation', () => {
   })
 
   describe('#bestAggregationExactIn', () => {
+    it('throws with 0 pairs', () => {
+      expect(() => Aggregation.bestAggregationExactIn([], new TokenAmount(token0, JSBI.BigInt(100)), token2)).toThrow(
+        'PAIRS'
+      )
+    })
+    it('throws with 0 maxNumTrades', () => {
+      expect(() =>
+        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
+          maxNumTrades: 0
+        })
+      ).toThrow('MAX_NUM_TRADES')
+    })
+    it('throws with 0 maxHops', () => {
+      expect(() =>
+        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, { maxHops: 0 })
+      ).toThrow('MAX_HOPS')
+    })
+    it('throws for step size range', () => {
+      expect(() =>
+        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
+          stepSize: new Fraction(JSBI.BigInt(6), JSBI.BigInt(10))
+        })
+      ).toThrow('STEP_SIZE')
+    })
+    it('throws for step size divisibility', () => {
+      expect(() =>
+        Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2, {
+          stepSize: new Fraction(JSBI.BigInt(3), JSBI.BigInt(10))
+        })
+      ).toThrow('STEP_SIZE_EVENLY_DIVISIBLE')
+    })
+
     it('all aggregations', () => {
       const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(100)), token2)
       expect(aggs).toHaveLength(3)
