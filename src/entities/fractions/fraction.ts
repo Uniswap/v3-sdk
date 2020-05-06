@@ -37,6 +37,11 @@ export class Fraction {
     return JSBI.divide(this.numerator, this.denominator)
   }
 
+  // remainder after floor division
+  get remainder(): Fraction {
+    return this.subtract(this.quotient)
+  }
+
   invert(): Fraction {
     return new Fraction(this.denominator, this.numerator)
   }
