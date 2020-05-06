@@ -14,6 +14,15 @@ describe('Trade', () => {
   const pair_1_3 = new Pair(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token3, JSBI.BigInt(1300)))
 
   describe('#bestTradeExactIn', () => {
+    it('throws with empty pairs', () => {
+      expect(() => Trade.bestTradeExactIn([], new TokenAmount(token0, JSBI.BigInt(100)), token2)).toThrow('PAIRS')
+    })
+    it('throws with max hops of 0', () => {
+      expect(() =>
+        Trade.bestTradeExactIn([pair_0_2], new TokenAmount(token0, JSBI.BigInt(100)), token2, { maxHops: 0 })
+      ).toThrow('MAX_HOPS')
+    })
+
     it('provides best route', () => {
       const result = Trade.bestTradeExactIn(
         [pair_0_1, pair_0_2, pair_1_2],
@@ -77,6 +86,15 @@ describe('Trade', () => {
   })
 
   describe('#bestTradeExactOut', () => {
+    it('throws with empty pairs', () => {
+      expect(() => Trade.bestTradeExactOut([], token0, new TokenAmount(token2, JSBI.BigInt(100)))).toThrow('PAIRS')
+    })
+    it('throws with max hops of 0', () => {
+      expect(() =>
+        Trade.bestTradeExactOut([pair_0_2], token0, new TokenAmount(token2, JSBI.BigInt(100)), { maxHops: 0 })
+      ).toThrow('MAX_HOPS')
+    })
+
     it('provides best route', () => {
       const result = Trade.bestTradeExactOut(
         [pair_0_1, pair_0_2, pair_1_2],

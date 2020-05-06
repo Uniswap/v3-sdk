@@ -112,10 +112,7 @@ export class Trade {
     originalAmountIn: TokenAmount = amountIn,
     bestTrades: Trade[] = []
   ): Trade[] {
-    if (pairs.length === 0) {
-      return bestTrades
-    }
-
+    invariant(pairs.length > 0, 'PAIRS')
     invariant(maxHops > 0, 'MAX_HOPS')
     invariant(originalAmountIn === amountIn || currentPairs.length > 0, 'INVALID_RECURSION')
 
@@ -145,7 +142,7 @@ export class Trade {
           maxNumResults,
           inputOutputComparator
         )
-      } else if (maxHops > 1) {
+      } else if (maxHops > 1 && pairs.length > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
 
         // otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
@@ -182,10 +179,7 @@ export class Trade {
     originalAmountOut: TokenAmount = amountOut,
     bestTrades: Trade[] = []
   ): Trade[] {
-    if (pairs.length === 0) {
-      return bestTrades
-    }
-
+    invariant(pairs.length > 0, 'PAIRS')
     invariant(maxHops > 0, 'MAX_HOPS')
     invariant(originalAmountOut === amountOut || currentPairs.length > 0, 'INVALID_RECURSION')
 
@@ -212,7 +206,7 @@ export class Trade {
           maxNumResults,
           inputOutputComparator
         )
-      } else if (maxHops > 1) {
+      } else if (maxHops > 1 && pairs.length > 1) {
         const pairsExcludingThisPair = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
 
         // otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
