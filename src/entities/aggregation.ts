@@ -25,9 +25,19 @@ const ONE_HALF = new Fraction(JSBI.BigInt(1), JSBI.BigInt(2))
 // increasing order, so the best aggregation comes first
 function aggregationComparator(a: Aggregation, b: Aggregation): number {
   invariant(a.tradeType === b.tradeType, 'TRADE_TYPE')
-  const inputOutputResult = inputOutputComparator(a, b)
+  const ioComp = inputOutputComparator(a, b)
+
+  if (ioComp !== 0) {
+    return ioComp
+  }
+
   // if a has fewer trades than b for the same input/output, it's superior for gas purposes
-  return inputOutputResult === 0 ? a.trades.length - b.trades.length : inputOutputResult
+  const numTradeComp = a.trades.length - b.trades.length
+  if (numTradeComp !== 0) {
+    return numTradeComp
+  }
+
+  return 0
 }
 
 // returns the list of pairs after applying the amounts from the trade
