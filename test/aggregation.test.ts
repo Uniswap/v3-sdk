@@ -90,10 +90,10 @@ describe('Aggregation', () => {
 
       const best = aggs[0]
       expect(best.trades).toHaveLength(2)
-      expect(best.trades[0].route.path).toEqual([token0, token1, token2])
-      expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(300)))
-      expect(best.trades[1].route.path).toEqual([token0, token3, token1, token2])
-      expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
+      expect(best.trades[0].route.path).toEqual([token0, token1, token2]) // indirect via token1
+      expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
+      expect(best.trades[1].route.path).toEqual([token0, token2]) // mostly direct
+      expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(300)))
     })
 
     it('respects maxTrades', () => {
@@ -114,7 +114,7 @@ describe('Aggregation', () => {
       expect(aggs.every(aggs => aggs.trades.every(trade => trade.route.pairs.length === 1))).toEqual(true)
     })
 
-    it('respects stepSize', () => {
+    it.only('respects stepSize', () => {
       const aggs = Aggregation.bestAggregationExactIn(all_pairs, new TokenAmount(token0, JSBI.BigInt(400)), token2, {
         stepSize: new Fraction(JSBI.BigInt(1), JSBI.BigInt(10))
       })
@@ -122,9 +122,9 @@ describe('Aggregation', () => {
       const best = aggs[0]
       expect(best.trades).toHaveLength(2)
       expect(best.trades[0].route.path).toEqual([token0, token1, token2])
-      expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(240)))
-      expect(best.trades[1].route.path).toEqual([token0, token3, token1, token2])
-      expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(160)))
+      expect(best.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80))) // 0 -> 1 -> 2
+      expect(best.trades[1].route.path).toEqual([token0, token2])
+      expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(320))) // mostly direct
     })
   })
 })

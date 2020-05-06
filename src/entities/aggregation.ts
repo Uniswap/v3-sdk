@@ -112,8 +112,13 @@ export class Aggregation {
         }
 
         // get the best trades starting from this amount for the pair
-        let bestTradesStartingFromPair: Trade[]
-        if (maxHops > 1) {
+        let bestTradesStartingFromPair: Trade[] = []
+        if (stepAmountOut.token === tokenOut) {
+          // this hop terminates in the token out, consider the trade.
+          bestTradesStartingFromPair = [
+            new Trade(new Route([pair], stepAmountIn.token), stepAmountIn, TradeType.EXACT_INPUT)
+          ]
+        } else if (maxHops > 1) {
           bestTradesStartingFromPair = Trade.bestTradeExactIn(
             pairsExcludingCurrent,
             stepAmountOut,
@@ -122,15 +127,6 @@ export class Aggregation {
             [pair],
             stepAmountIn
           )
-        } else {
-          // this hop terminates in the token out, consider the trade.
-          if (stepAmountOut.token === tokenOut) {
-            bestTradesStartingFromPair = [
-              new Trade(new Route([pair], stepAmountIn.token), stepAmountIn, TradeType.EXACT_INPUT)
-            ]
-          } else {
-            bestTradesStartingFromPair = []
-          }
         }
 
         if (!step.equalTo(ONE)) {
