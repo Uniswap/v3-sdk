@@ -52,7 +52,8 @@ export class Aggregation {
       trades.every(trade => trade.tradeType === first.tradeType),
       'TRADES_TRADE_TYPE'
     )
-    this.trades = trades
+    // sort them so we have deterministic order
+    this.trades = [...trades].sort(inputOutputComparator)
     this.tradeType = first.tradeType
     this.inputAmount = others.reduce(
       (amount: TokenAmount, current: Trade) => amount.add(current.inputAmount),
