@@ -39,7 +39,7 @@ export class Fraction {
 
   // remainder after floor division
   get remainder(): Fraction {
-    return this.subtract(this.quotient)
+    return new Fraction(JSBI.remainder(this.numerator, this.denominator), this.denominator)
   }
 
   invert(): Fraction {
