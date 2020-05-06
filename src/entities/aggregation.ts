@@ -28,6 +28,20 @@ function aggregationComparator(a: Aggregation, b: Aggregation): number {
   return inputOutputComparator(a, b)
 }
 
+// returns the list of pairs after applying the amounts from the trade
+function pairsAfterTrade(pairs: Pair[], trade: Trade): Pair[] {
+  const copy = [...pairs]
+  let amountIn = trade.inputAmount
+  for (let i = 0; i < trade.route.pairs.length; i++) {
+    const indexOfPair = copy.indexOf(trade.route.pairs[i])
+    invariant(indexOfPair !== -1, 'PAIR_NOT_IN_LIST')
+    let newPair
+    ;[amountIn, newPair] = copy[indexOfPair].getOutputAmount(amountIn)
+    copy[indexOfPair] = newPair
+  }
+  return copy
+}
+
 /**
  * An aggregation is a group of trades that share an input and output token.
  * Aggregations are useful to produce the best route when multiple routes exist between an input and output token.
@@ -94,16 +108,12 @@ export class Aggregation {
     for (let i = 0; i < pairs.length; i++) {
       const pair = pairs[i]
       // pair not relevant
-      if (!pair.token0.equals(amountIn.token) && !pair.token1.equals(amountIn.token)) {
-        continue
-      }
+      if (!pair.token0.equals(amountIn.token) && !pair.token1.equals(amountIn.token)) continue
 
-      const pairsExcludingCurrent = pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length))
+      // if we can only make a single trade, we need to use the full input amount.
+      const firstStepSize = maxNumTrades === 1 ? new Fraction(ONE) : stepSize;
 
-      // if we can only make one trade, only consider the step of size 1
-      const firstStep = maxNumTrades === 1 ? new Fraction(ONE) : stepSize
-
-      for (let step = firstStep; !step.greaterThan(ONE); step = step.add(stepSize)) {
+      for (let step = firstStepSize; !step.greaterThan(ONE); step = step.add(stepSize)) {
         const stepAmountIn = new TokenAmount(amountIn.token, step.multiply(amountIn.raw).quotient)
         let stepAmountOut: TokenAmount
         try {
@@ -116,16 +126,16 @@ export class Aggregation {
           throw error
         }
 
-        // get the best trades starting from this amount for the pair
+        // get the best trades starting from this amount for this pair
         let bestTradesStartingFromPair: Trade[] = []
         if (stepAmountOut.token === tokenOut) {
           // this hop terminates in the token out, consider the trade.
           bestTradesStartingFromPair = [
             new Trade(new Route([pair], stepAmountIn.token), stepAmountIn, TradeType.EXACT_INPUT)
           ]
-        } else if (maxHops > 1) {
+        } else if (maxHops > 1 && pairs.length > 1) {
           bestTradesStartingFromPair = Trade.bestTradeExactIn(
-            pairsExcludingCurrent,
+            pairs.slice(0, i).concat(pairs.slice(i + 1, pairs.length)),
             stepAmountOut,
             tokenOut,
             { maxNumResults, maxHops: maxHops - 1 },
@@ -137,9 +147,10 @@ export class Aggregation {
         if (!step.equalTo(ONE)) {
           // these trades consume stepAmountIn of our input, so we consider them in combination with other aggregations
           bestTradesStartingFromPair.forEach(trade => {
+            const afterPairs = pairsAfterTrade(pairs, trade)
             // combine with the best aggregation for the remaining amount
             Aggregation.bestAggregationExactIn(
-              pairsExcludingCurrent, // only consider pairs that aren't this one
+              afterPairs.slice(0, i).concat(afterPairs.slice(i + 1, afterPairs.length)), // only consider pairs that aren't this one
               amountIn.subtract(stepAmountIn), // remainder of input to be spent
               tokenOut,
               { stepSize, maxNumResults, maxHops, maxNumTrades: maxNumTrades - 1 },

@@ -172,7 +172,7 @@ describe('Aggregation', () => {
       expect(thirdBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(280)))
       expect(thirdBest.trades[1].route.path).toEqual([token0, token1, token2])
       expect(thirdBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(96)))
-      expect(thirdBest.trades[2].route.path).toEqual([token0, token3, token1, token2])
+      expect(thirdBest.trades[2].route.path).toEqual([token0, token3, token2])
       expect(thirdBest.trades[2].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(24)))
     })
   })
