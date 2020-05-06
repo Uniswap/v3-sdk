@@ -6,6 +6,7 @@ describe('Aggregation', () => {
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2')
   const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3')
+  const all_tokens = [token0, token1, token2, token3]
 
   const pair_0_1 = new Pair(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token1, JSBI.BigInt(1000)))
   const pair_0_2 = new Pair(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token2, JSBI.BigInt(1100)))
@@ -141,9 +142,15 @@ describe('Aggregation', () => {
         maxHops: 1
       })
 
-      // only one direct pair
-      expect(aggs).toHaveLength(1)
-      expect(aggs.every(aggs => aggs.trades.every(trade => trade.route.pairs.length === 1))).toEqual(true)
+      // with maxHops of 1, we will get aggregations where we swap the same pair multiple times
+      expect(aggs).toHaveLength(3)
+      expect(
+        aggs.every(aggs =>
+          aggs.trades.every(
+            trade => trade.route.pairs.length === 1 && trade.route.input === token0 && trade.route.output === token2
+          )
+        )
+      ).toEqual(true)
     })
 
     it('respects stepSize', () => {
@@ -158,8 +165,8 @@ describe('Aggregation', () => {
       expect(best.trades[1].route.path).toEqual([token0, token1, token2])
       expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80))) // 0 -> 1 -> 2
 
-      // TODO: fix
       const secondBest = aggs[1]
+      expect(secondBest.executionPrice.equalTo(best.executionPrice)).toBeTruthy()
       expect(secondBest.trades).toHaveLength(2)
       expect(secondBest.trades[0].route.path).toEqual([token0, token2])
       expect(secondBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(320))) // mostly direct
@@ -167,13 +174,41 @@ describe('Aggregation', () => {
       expect(secondBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80))) // 0 -> 1 -> 2
 
       const thirdBest = aggs[2]
+      expect(thirdBest.executionPrice.equalTo(secondBest.executionPrice)).toBeTruthy()
       expect(thirdBest.trades).toHaveLength(3)
       expect(thirdBest.trades[0].route.path).toEqual([token0, token2])
-      expect(thirdBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(280)))
+      expect(thirdBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(288)))
       expect(thirdBest.trades[1].route.path).toEqual([token0, token1, token2])
-      expect(thirdBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(96)))
-      expect(thirdBest.trades[2].route.path).toEqual([token0, token3, token2])
-      expect(thirdBest.trades[2].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(24)))
+      expect(thirdBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80)))
+      expect(thirdBest.trades[2].route.path).toEqual([token0, token2])
+      expect(thirdBest.trades[2].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(32)))
+    })
+
+    describe('beats bestTradeExactIn for all pairs', () => {
+      for (let i = 0; i < all_tokens.length; i++) {
+        for (let j = i + 1; j < all_tokens.length; j++) {
+          const tokenA = all_tokens[i]
+          const tokenB = all_tokens[j]
+          it(`${tokenA.symbol} to ${tokenB.symbol}`, () => {
+            const aggs = Aggregation.bestAggregationExactIn(
+              all_pairs,
+              new TokenAmount(tokenA, JSBI.BigInt(300)),
+              tokenB
+            )
+            const bestTrade = Trade.bestTradeExactIn(all_pairs, new TokenAmount(tokenA, JSBI.BigInt(300)), tokenB)
+            expect(!aggs[0].executionPrice.greaterThan(bestTrade[0].executionPrice))
+          })
+          it(`${tokenB.symbol} to ${tokenA.symbol}`, () => {
+            const aggs = Aggregation.bestAggregationExactIn(
+              all_pairs,
+              new TokenAmount(tokenB, JSBI.BigInt(300)),
+              tokenA
+            )
+            const bestTrade = Trade.bestTradeExactIn(all_pairs, new TokenAmount(tokenB, JSBI.BigInt(300)), tokenA)
+            expect(!aggs[0].executionPrice.greaterThan(bestTrade[0].executionPrice))
+          })
+        }
+      }
     })
   })
 })

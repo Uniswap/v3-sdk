@@ -25,7 +25,9 @@ const ONE_HALF = new Fraction(JSBI.BigInt(1), JSBI.BigInt(2))
 // increasing order, so the best aggregation comes first
 function aggregationComparator(a: Aggregation, b: Aggregation): number {
   invariant(a.tradeType === b.tradeType, 'TRADE_TYPE')
-  return inputOutputComparator(a, b)
+  const inputOutputResult = inputOutputComparator(a, b)
+  // if a has fewer trades than b for the same input/output, it's superior for gas purposes
+  return inputOutputResult === 0 ? a.trades.length - b.trades.length : inputOutputResult
 }
 
 // returns the list of pairs after applying the amounts from the trade
@@ -150,7 +152,7 @@ export class Aggregation {
             const afterPairs = pairsAfterTrade(pairs, trade)
             // combine with the best aggregation for the remaining amount
             Aggregation.bestAggregationExactIn(
-              afterPairs.slice(0, i).concat(afterPairs.slice(i + 1, afterPairs.length)), // only consider pairs that aren't this one
+              afterPairs, // only consider pairs that aren't this one
               amountIn.subtract(stepAmountIn), // remainder of input to be spent
               tokenOut,
               { stepSize, maxNumResults, maxHops, maxNumTrades: maxNumTrades - 1 },
