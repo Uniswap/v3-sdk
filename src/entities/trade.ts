@@ -58,9 +58,9 @@ export function tradeComparator(a: Trade, b: Trade) {
 
   // consider lowest slippage next, since these are less likely to fail
   if (a.slippage.lessThan(b.slippage)) {
-    return -1;
+    return -1
   } else if (a.slippage.greaterThan(b.slippage)) {
-    return 1;
+    return 1
   }
 
   // finally consider the number of hops since each hop costs gas
