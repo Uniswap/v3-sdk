@@ -192,12 +192,16 @@ describe('Aggregation', () => {
           it(`${tokenA.symbol} to ${tokenB.symbol}`, () => {
             const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(tokenA, JSBI.BigInt(300)), tokenB)
             const bestTrade = Trade.bestTradeExactIn(allPairs, new TokenAmount(tokenA, JSBI.BigInt(300)), tokenB)
-            expect(!aggs[0].executionPrice.greaterThan(bestTrade[0].executionPrice))
+            expect(!aggs[0].executionPrice.lessThan(bestTrade[0].executionPrice)).toBeTruthy()
+            expect(!aggs[0].outputAmount.lessThan(bestTrade[0].outputAmount)).toBeTruthy()
+            expect(aggs[0].inputAmount.equalTo(bestTrade[0].inputAmount)).toBeTruthy()
           })
           it(`${tokenB.symbol} to ${tokenA.symbol}`, () => {
             const aggs = Aggregation.bestAggregationExactIn(allPairs, new TokenAmount(tokenB, JSBI.BigInt(300)), tokenA)
             const bestTrade = Trade.bestTradeExactIn(allPairs, new TokenAmount(tokenB, JSBI.BigInt(300)), tokenA)
-            expect(!aggs[0].executionPrice.greaterThan(bestTrade[0].executionPrice))
+            expect(!aggs[0].executionPrice.lessThan(bestTrade[0].executionPrice)).toBeTruthy()
+            expect(!aggs[0].outputAmount.lessThan(bestTrade[0].outputAmount)).toBeTruthy()
+            expect(aggs[0].inputAmount.equalTo(bestTrade[0].inputAmount)).toBeTruthy()
           })
         }
       }
