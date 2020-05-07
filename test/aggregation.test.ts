@@ -166,22 +166,20 @@ describe('Aggregation', () => {
       expect(best.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80))) // 0 -> 1 -> 2
 
       const secondBest = aggs[1]
-      expect(secondBest.executionPrice.equalTo(best.executionPrice)).toBeTruthy()
+      expect(!secondBest.executionPrice.greaterThan(best.executionPrice)).toBeTruthy()
       expect(secondBest.trades).toHaveLength(2)
       expect(secondBest.trades[0].route.path).toEqual([token0, token2])
-      expect(secondBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(320))) // mostly direct
+      expect(secondBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(360)))
       expect(secondBest.trades[1].route.path).toEqual([token0, token1, token2])
-      expect(secondBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80))) // 0 -> 1 -> 2
+      expect(secondBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(40)))
 
       const thirdBest = aggs[2]
-      expect(thirdBest.executionPrice.equalTo(secondBest.executionPrice)).toBeTruthy()
-      expect(thirdBest.trades).toHaveLength(3)
+      expect(!thirdBest.executionPrice.greaterThan(secondBest.executionPrice)).toBeTruthy()
+      expect(thirdBest.trades).toHaveLength(2)
       expect(thirdBest.trades[0].route.path).toEqual([token0, token2])
-      expect(thirdBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(288)))
+      expect(thirdBest.trades[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(280)))
       expect(thirdBest.trades[1].route.path).toEqual([token0, token1, token2])
-      expect(thirdBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(80)))
-      expect(thirdBest.trades[2].route.path).toEqual([token0, token2])
-      expect(thirdBest.trades[2].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(32)))
+      expect(thirdBest.trades[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(120)))
     })
 
     describe('beats bestTradeExactIn for all pairs', () => {

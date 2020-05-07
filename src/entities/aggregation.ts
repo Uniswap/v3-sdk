@@ -102,7 +102,9 @@ export class Aggregation {
     { stepSize = DEFAULT_STEP_SIZE, maxNumResults = 3, maxHops = 3, maxNumTrades = 3 }: BestAggregationOptions = {},
     // used in recursion.
     currentTrades: Trade[] = [],
-    bestAggregations: Aggregation[] = []
+    bestAggregations: Aggregation[] = [],
+    // the first pair to consider the trade starting from
+    startPairIndex = 0
   ): Aggregation[] {
     invariant(pairs.length > 0, 'PAIRS')
     invariant(maxNumTrades > 0, 'MAX_NUM_TRADES') // 1 is equivalent to bestTradeExactIn
@@ -112,7 +114,7 @@ export class Aggregation {
     // must evenly divide 1
     invariant(stepSize.invert().remainder.equalTo(ZERO), 'STEP_SIZE_EVENLY_DIVISIBLE')
 
-    for (let i = 0; i < pairs.length; i++) {
+    for (let i = startPairIndex; i < pairs.length; i++) {
       const pair = pairs[i]
       // pair not relevant
       if (!pair.token0.equals(amountIn.token) && !pair.token1.equals(amountIn.token)) continue
@@ -162,7 +164,8 @@ export class Aggregation {
               tokenOut,
               { stepSize, maxNumResults, maxHops, maxNumTrades: maxNumTrades - 1 },
               [...currentTrades, trade],
-              bestAggregations
+              bestAggregations,
+              startPairIndex + 1
             )
           })
         } else {
