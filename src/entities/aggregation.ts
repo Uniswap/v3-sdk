@@ -32,12 +32,7 @@ function aggregationComparator(a: Aggregation, b: Aggregation): number {
   }
 
   // if a has fewer trades than b for the same input/output, it's superior for gas purposes
-  const numTradeComp = a.trades.length - b.trades.length
-  if (numTradeComp !== 0) {
-    return numTradeComp
-  }
-
-  return 0
+  return a.trades.length - b.trades.length
 }
 
 // returns the list of pairs after applying the amounts from the trade
