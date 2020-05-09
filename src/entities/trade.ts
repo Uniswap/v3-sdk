@@ -8,7 +8,6 @@ import { Price } from './fractions/price'
 import { Percent } from './fractions/percent'
 import { Token } from 'entities/token'
 import { sortedInsert } from '../utils'
-import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
 
 function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
@@ -143,7 +142,8 @@ export class Trade {
       try {
         ;[amountOut] = pair.getOutputAmount(amountIn)
       } catch (error) {
-        if (error instanceof InsufficientInputAmountError) {
+        // input too low
+        if (error.isInsufficientInputAmountError) {
           continue
         }
         throw error
@@ -211,7 +211,7 @@ export class Trade {
         ;[amountIn] = pair.getInputAmount(amountOut)
       } catch (error) {
         // not enough liquidity in this pair
-        if (error instanceof InsufficientReservesError) {
+        if (error.isInsufficientReservesError) {
           continue
         }
         throw error
