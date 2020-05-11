@@ -1,13 +1,13 @@
+import { Token } from 'entities/token'
 import invariant from 'tiny-invariant'
 
-import { TradeType } from '../constants'
+import { ONE, TradeType, ZERO } from '../constants'
+import { sortedInsert } from '../utils'
+import { Fraction, TokenAmount } from './fractions'
+import { Percent } from './fractions/percent'
+import { Price } from './fractions/price'
 import { Pair } from './pair'
 import { Route } from './route'
-import { TokenAmount } from './fractions'
-import { Price } from './fractions/price'
-import { Percent } from './fractions/percent'
-import { Token } from 'entities/token'
-import { sortedInsert } from '../utils'
 
 function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
@@ -113,6 +113,35 @@ export class Trade {
     this.executionPrice = new Price(route.input, route.output, inputAmount.raw, outputAmount.raw)
     this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
     this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
+  }
+
+  // get the minimum amount that must be received from this trade for the given allowed slippage
+  public minimumAmountOut(additionalSlippageTolerance: Percent): TokenAmount {
+    invariant(!additionalSlippageTolerance.lessThan(ZERO), 'ADDITIONAL_SLIPPAGE_TOLERANCE')
+    if (this.tradeType === TradeType.EXACT_OUTPUT) {
+      return this.outputAmount
+    } else {
+      return new TokenAmount(
+        this.outputAmount.token,
+        new Fraction(ONE)
+          .add(additionalSlippageTolerance)
+          .invert()
+          .multiply(this.outputAmount.raw).quotient
+      )
+    }
+  }
+
+  // get the maximum amount in that can be spent via this trade for the given allowed slippage
+  public maximumAmountIn(additionalSlippageTolerance: Percent): TokenAmount {
+    invariant(!additionalSlippageTolerance.lessThan(ZERO), 'ADDITIONAL_SLIPPAGE_TOLERANCE')
+    if (this.tradeType === TradeType.EXACT_INPUT) {
+      return this.inputAmount
+    } else {
+      return new TokenAmount(
+        this.inputAmount.token,
+        new Fraction(ONE).add(additionalSlippageTolerance).multiply(this.inputAmount.raw).quotient
+      )
+    }
   }
 
   // given a list of pairs, and a fixed amount in, returns the top `maxNumResults` trades that go from an input token

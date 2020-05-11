@@ -1,5 +1,5 @@
-import { ChainId, Token, TokenAmount, Pair, Trade } from '../src'
 import JSBI from 'jsbi'
+import { ChainId, Pair, Percent, Route, Token, TokenAmount, Trade, TradeType } from '../src'
 
 describe('Trade', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
@@ -82,6 +82,118 @@ describe('Trade', () => {
         token2
       )
       expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('#maximumAmountIn', () => {
+    describe('tradeType = EXACT_INPUT', () => {
+      const exactIn = new Trade(
+        new Route([pair_0_1, pair_1_2], token0),
+        new TokenAmount(token0, JSBI.BigInt(100)),
+        TradeType.EXACT_INPUT
+      )
+      it('throws if less than 0', () => {
+        expect(() => exactIn.maximumAmountIn(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
+          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+        )
+      })
+      it('returns exact if 0', () => {
+        expect(exactIn.maximumAmountIn(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(exactIn.inputAmount)
+      })
+      it('returns exact if nonzero', () => {
+        expect(exactIn.maximumAmountIn(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token0, JSBI.BigInt(100))
+        )
+        expect(exactIn.maximumAmountIn(new Percent(JSBI.BigInt(5), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token0, JSBI.BigInt(100))
+        )
+        expect(exactIn.maximumAmountIn(new Percent(JSBI.BigInt(200), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token0, JSBI.BigInt(100))
+        )
+      })
+    })
+    describe('tradeType = EXACT_OUTPUT', () => {
+      const exactOut = new Trade(
+        new Route([pair_0_1, pair_1_2], token0),
+        new TokenAmount(token2, JSBI.BigInt(100)),
+        TradeType.EXACT_OUTPUT
+      )
+
+      it('throws if less than 0', () => {
+        expect(() => exactOut.maximumAmountIn(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
+          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+        )
+      })
+      it('returns exact if 0', () => {
+        expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(exactOut.inputAmount)
+      })
+      it('returns slippage amount if nonzero', () => {
+        expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token0, JSBI.BigInt(156))
+        )
+        expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(5), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token0, JSBI.BigInt(163))
+        )
+        expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(200), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token0, JSBI.BigInt(468))
+        )
+      })
+    })
+  })
+
+  describe('#minimumAmountOut', () => {
+    describe('tradeType = EXACT_INPUT', () => {
+      const exactIn = new Trade(
+        new Route([pair_0_1, pair_1_2], token0),
+        new TokenAmount(token0, JSBI.BigInt(100)),
+        TradeType.EXACT_INPUT
+      )
+      it('throws if less than 0', () => {
+        expect(() => exactIn.minimumAmountOut(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
+          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+        )
+      })
+      it('returns exact if 0', () => {
+        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(exactIn.outputAmount)
+      })
+      it('returns exact if nonzero', () => {
+        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token2, JSBI.BigInt(69))
+        )
+        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(5), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token2, JSBI.BigInt(65))
+        )
+        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(200), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token2, JSBI.BigInt(23))
+        )
+      })
+    })
+    describe('tradeType = EXACT_OUTPUT', () => {
+      const exactOut = new Trade(
+        new Route([pair_0_1, pair_1_2], token0),
+        new TokenAmount(token2, JSBI.BigInt(100)),
+        TradeType.EXACT_OUTPUT
+      )
+
+      it('throws if less than 0', () => {
+        expect(() => exactOut.minimumAmountOut(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
+          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+        )
+      })
+      it('returns exact if 0', () => {
+        expect(exactOut.minimumAmountOut(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(exactOut.outputAmount)
+      })
+      it('returns slippage amount if nonzero', () => {
+        expect(exactOut.minimumAmountOut(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token2, JSBI.BigInt(100))
+        )
+        expect(exactOut.minimumAmountOut(new Percent(JSBI.BigInt(5), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token2, JSBI.BigInt(100))
+        )
+        expect(exactOut.minimumAmountOut(new Percent(JSBI.BigInt(200), JSBI.BigInt(100)))).toEqual(
+          new TokenAmount(token2, JSBI.BigInt(100))
+        )
+      })
     })
   })
 
