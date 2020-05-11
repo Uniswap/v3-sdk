@@ -94,7 +94,7 @@ describe('Trade', () => {
       )
       it('throws if less than 0', () => {
         expect(() => exactIn.maximumAmountIn(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
-          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+          'SLIPPAGE_TOLERANCE'
         )
       })
       it('returns exact if 0', () => {
@@ -121,7 +121,7 @@ describe('Trade', () => {
 
       it('throws if less than 0', () => {
         expect(() => exactOut.maximumAmountIn(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
-          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+          'SLIPPAGE_TOLERANCE'
         )
       })
       it('returns exact if 0', () => {
@@ -150,7 +150,7 @@ describe('Trade', () => {
       )
       it('throws if less than 0', () => {
         expect(() => exactIn.minimumAmountOut(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
-          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+          'SLIPPAGE_TOLERANCE'
         )
       })
       it('returns exact if 0', () => {
@@ -177,7 +177,7 @@ describe('Trade', () => {
 
       it('throws if less than 0', () => {
         expect(() => exactOut.minimumAmountOut(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
-          'ADDITIONAL_SLIPPAGE_TOLERANCE'
+          'SLIPPAGE_TOLERANCE'
         )
       })
       it('returns exact if 0', () => {

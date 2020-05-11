@@ -115,31 +115,31 @@ export class Trade {
     this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
   }
 
-  // get the minimum amount that must be received from this trade for the given allowed slippage
-  public minimumAmountOut(additionalSlippageTolerance: Percent): TokenAmount {
-    invariant(!additionalSlippageTolerance.lessThan(ZERO), 'ADDITIONAL_SLIPPAGE_TOLERANCE')
+  // get the minimum amount that must be received from this trade for the given slippage tolerance
+  public minimumAmountOut(slippageTolerance: Percent): TokenAmount {
+    invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
     if (this.tradeType === TradeType.EXACT_OUTPUT) {
       return this.outputAmount
     } else {
       return new TokenAmount(
         this.outputAmount.token,
         new Fraction(ONE)
-          .add(additionalSlippageTolerance)
+          .add(slippageTolerance)
           .invert()
           .multiply(this.outputAmount.raw).quotient
       )
     }
   }
 
-  // get the maximum amount in that can be spent via this trade for the given allowed slippage
-  public maximumAmountIn(additionalSlippageTolerance: Percent): TokenAmount {
-    invariant(!additionalSlippageTolerance.lessThan(ZERO), 'ADDITIONAL_SLIPPAGE_TOLERANCE')
+  // get the maximum amount in that can be spent via this trade for the given slippage tolerance
+  public maximumAmountIn(slippageTolerance: Percent): TokenAmount {
+    invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
     if (this.tradeType === TradeType.EXACT_INPUT) {
       return this.inputAmount
     } else {
       return new TokenAmount(
         this.inputAmount.token,
-        new Fraction(ONE).add(additionalSlippageTolerance).multiply(this.inputAmount.raw).quotient
+        new Fraction(ONE).add(slippageTolerance).multiply(this.inputAmount.raw).quotient
       )
     }
   }
