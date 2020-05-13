@@ -13,6 +13,8 @@ describe('Trade', () => {
   const pair_1_2 = new Pair(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token2, JSBI.BigInt(1000)))
   const pair_1_3 = new Pair(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token3, JSBI.BigInt(1300)))
 
+  const empty_pair_0_1 = new Pair(new TokenAmount(token0, JSBI.BigInt(0)), new TokenAmount(token1, JSBI.BigInt(0)))
+
   describe('#bestTradeExactIn', () => {
     it('throws with empty pairs', () => {
       expect(() => Trade.bestTradeExactIn([], new TokenAmount(token0, JSBI.BigInt(100)), token2)).toThrow('PAIRS')
@@ -38,6 +40,12 @@ describe('Trade', () => {
       expect(result[1].route.path).toEqual([token0, token1, token2])
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(69)))
+    })
+
+    it('doesnt throw for zero liquidity pairs', () => {
+      expect(Trade.bestTradeExactIn([empty_pair_0_1], new TokenAmount(token0, JSBI.BigInt(100)), token1)).toHaveLength(
+        0
+      )
     })
 
     it('respects maxHops', () => {
@@ -222,6 +230,12 @@ describe('Trade', () => {
       expect(result[1].route.path).toEqual([token0, token1, token2])
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(156)))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(100)))
+    })
+
+    it('doesnt throw for zero liquidity pairs', () => {
+      expect(Trade.bestTradeExactOut([empty_pair_0_1], token1, new TokenAmount(token1, JSBI.BigInt(100)))).toHaveLength(
+        0
+      )
     })
 
     it('respects maxHops', () => {
