@@ -9,7 +9,9 @@ import { Price } from './fractions/price'
 import { Pair } from './pair'
 import { Route } from './route'
 
-function getSlippage(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
+// returns the percent difference between the mid price and the execution price
+// we call this price impact in the UI
+function computePriceImpact(midPrice: Price, inputAmount: TokenAmount, outputAmount: TokenAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
   // calculate slippage := (exactQuote - outputAmount) / exactQuote
   const slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote)
@@ -56,9 +58,9 @@ export function tradeComparator(a: Trade, b: Trade) {
   }
 
   // consider lowest slippage next, since these are less likely to fail
-  if (a.slippage.lessThan(b.slippage)) {
+  if (a.priceImpact.lessThan(b.priceImpact)) {
     return -1
-  } else if (a.slippage.greaterThan(b.slippage)) {
+  } else if (a.priceImpact.greaterThan(b.priceImpact)) {
     return 1
   }
 
@@ -78,9 +80,17 @@ export class Trade {
   public readonly tradeType: TradeType
   public readonly inputAmount: TokenAmount
   public readonly outputAmount: TokenAmount
+  // the price expressed in terms of output/input
   public readonly executionPrice: Price
+  // the mid price after the trade executes assuming zero slippage
   public readonly nextMidPrice: Price
-  public readonly slippage: Percent
+  // the percent difference between the mid price before the trade and the price after the trade
+  public readonly priceImpact: Percent
+
+  // this is a misnomer for price impact, but kept for compatibility
+  public get slippage(): Percent {
+    return this.priceImpact
+  }
 
   public constructor(route: Route, amount: TokenAmount, tradeType: TradeType) {
     invariant(amount.token.equals(tradeType === TradeType.EXACT_INPUT ? route.input : route.output), 'TOKEN')
@@ -112,7 +122,7 @@ export class Trade {
     this.outputAmount = outputAmount
     this.executionPrice = new Price(route.input, route.output, inputAmount.raw, outputAmount.raw)
     this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
-    this.slippage = getSlippage(route.midPrice, inputAmount, outputAmount)
+    this.priceImpact = computePriceImpact(route.midPrice, inputAmount, outputAmount)
   }
 
   // get the minimum amount that must be received from this trade for the given slippage tolerance
