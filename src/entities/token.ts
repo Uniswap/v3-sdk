@@ -1,12 +1,12 @@
+import { Currency } from './currency'
 import invariant from 'tiny-invariant'
-import JSBI from 'jsbi'
 import { getNetwork } from '@ethersproject/networks'
 import { getDefaultProvider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
 
-import { ChainId, SolidityType } from '../constants'
+import { ChainId } from '../constants'
 import ERC20 from '../abis/ERC20.json'
-import { validateAndParseAddress, validateSolidityTypeInstance } from '../utils'
+import { validateAndParseAddress } from '../utils'
 
 let CACHE: { [chainId: number]: { [address: string]: number } } = {
   [ChainId.MAINNET]: {
@@ -14,12 +14,12 @@ let CACHE: { [chainId: number]: { [address: string]: number } } = {
   }
 }
 
-export class Token {
+/**
+ * Represents an ERC20 token with a unique address and some metadata.
+ */
+export class Token extends Currency {
   public readonly chainId: ChainId
   public readonly address: string
-  public readonly decimals: number
-  public readonly symbol?: string
-  public readonly name?: string
 
   static async fetchData(
     chainId: ChainId,
@@ -45,29 +45,45 @@ export class Token {
   }
 
   constructor(chainId: ChainId, address: string, decimals: number, symbol?: string, name?: string) {
-    validateSolidityTypeInstance(JSBI.BigInt(decimals), SolidityType.uint8)
-
+    super(decimals, symbol, name)
     this.chainId = chainId
     this.address = validateAndParseAddress(address)
-    this.decimals = decimals
-    if (typeof symbol === 'string') this.symbol = symbol
-    if (typeof name === 'string') this.name = name
   }
 
   equals(other: Token): boolean {
-    const equal = this.chainId === other.chainId && this.address === other.address
-    if (equal) {
+    // short circuit on reference equality
+    if (this === other) {
+      return true
+    }
+    const equivalent = this.chainId === other.chainId && this.address === other.address
+    if (equivalent) {
+      // reference the same token, must have the same decimals/symbol/name
       invariant(this.decimals === other.decimals, 'DECIMALS')
       if (this.symbol && other.symbol) invariant(this.symbol === other.symbol, 'SYMBOL')
       if (this.name && other.name) invariant(this.name === other.name, 'NAME')
     }
-    return equal
+    return equivalent
   }
 
   sortsBefore(other: Token): boolean {
     invariant(this.chainId === other.chainId, 'CHAIN_IDS')
     invariant(this.address !== other.address, 'ADDRESSES')
     return this.address.toLowerCase() < other.address.toLowerCase()
+  }
+}
+
+/**
+ * Compares two currencies for equality
+ */
+export function currencyEquals(currencyA: Currency, currencyB: Currency): boolean {
+  if (currencyA instanceof Token && currencyB instanceof Token) {
+    return currencyA.equals(currencyB)
+  } else if (currencyA instanceof Token) {
+    return false
+  } else if (currencyB instanceof Token) {
+    return false
+  } else {
+    return currencyA === currencyB
   }
 }
 

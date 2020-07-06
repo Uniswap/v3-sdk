@@ -1,3 +1,4 @@
+import invariant from 'tiny-invariant'
 import { ChainId, WETH as _WETH, TradeType, Rounding, Token, TokenAmount, Pair, Route, Trade } from '../src'
 
 const ADDRESSES = [
@@ -58,6 +59,8 @@ describe('entities', () => {
       })
 
       it('Price:Route.midPrice', () => {
+        invariant(route.input instanceof Token)
+        invariant(route.output instanceof Token)
         expect(route.midPrice.quote(new TokenAmount(route.input, decimalize(1, route.input.decimals)))).toEqual(
           new TokenAmount(route.output, decimalize(1234, route.output.decimals))
         )

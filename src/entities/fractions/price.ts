@@ -1,15 +1,18 @@
+import { Token } from '../token'
+import { TokenAmount } from './tokenAmount'
+import { currencyEquals } from '../token'
 import invariant from 'tiny-invariant'
 import JSBI from 'jsbi'
 
 import { BigintIsh, Rounding, TEN } from '../../constants'
-import { Token } from '../token'
+import { Currency } from '../currency'
 import { Route } from '../route'
 import { Fraction } from './fraction'
-import { TokenAmount } from './tokenAmount'
+import { CurrencyAmount } from './currencyAmount'
 
 export class Price extends Fraction {
-  public readonly baseToken: Token // input i.e. denominator
-  public readonly quoteToken: Token // output i.e. numerator
+  public readonly baseCurrency: Currency // input i.e. denominator
+  public readonly quoteCurrency: Currency // output i.e. numerator
   public readonly scalar: Fraction // used to adjust the raw fraction w/r/t the decimals of the {base,quote}Token
 
   static fromRoute(route: Route): Price {
@@ -17,22 +20,22 @@ export class Price extends Fraction {
     for (const [i, pair] of route.pairs.entries()) {
       prices.push(
         route.path[i].equals(pair.token0)
-          ? new Price(pair.reserve0.token, pair.reserve1.token, pair.reserve0.raw, pair.reserve1.raw)
-          : new Price(pair.reserve1.token, pair.reserve0.token, pair.reserve1.raw, pair.reserve0.raw)
+          ? new Price(pair.reserve0.currency, pair.reserve1.currency, pair.reserve0.raw, pair.reserve1.raw)
+          : new Price(pair.reserve1.currency, pair.reserve0.currency, pair.reserve1.raw, pair.reserve0.raw)
       )
     }
     return prices.slice(1).reduce((accumulator, currentValue) => accumulator.multiply(currentValue), prices[0])
   }
 
   // denominator and numerator _must_ be raw, i.e. in the native representation
-  constructor(baseToken: Token, quoteToken: Token, denominator: BigintIsh, numerator: BigintIsh) {
+  constructor(baseCurrency: Currency, quoteCurrency: Currency, denominator: BigintIsh, numerator: BigintIsh) {
     super(numerator, denominator)
 
-    this.baseToken = baseToken
-    this.quoteToken = quoteToken
+    this.baseCurrency = baseCurrency
+    this.quoteCurrency = quoteCurrency
     this.scalar = new Fraction(
-      JSBI.exponentiate(TEN, JSBI.BigInt(baseToken.decimals)),
-      JSBI.exponentiate(TEN, JSBI.BigInt(quoteToken.decimals))
+      JSBI.exponentiate(TEN, JSBI.BigInt(baseCurrency.decimals)),
+      JSBI.exponentiate(TEN, JSBI.BigInt(quoteCurrency.decimals))
     )
   }
 
@@ -45,19 +48,22 @@ export class Price extends Fraction {
   }
 
   invert(): Price {
-    return new Price(this.quoteToken, this.baseToken, this.numerator, this.denominator)
+    return new Price(this.quoteCurrency, this.baseCurrency, this.numerator, this.denominator)
   }
 
   multiply(other: Price): Price {
-    invariant(this.quoteToken.equals(other.baseToken), 'BASE')
+    invariant(currencyEquals(this.quoteCurrency, other.baseCurrency), 'TOKEN')
     const fraction = super.multiply(other)
-    return new Price(this.baseToken, other.quoteToken, fraction.denominator, fraction.numerator)
+    return new Price(this.baseCurrency, other.quoteCurrency, fraction.denominator, fraction.numerator)
   }
 
   // performs floor division on overflow
-  quote(tokenAmount: TokenAmount): TokenAmount {
-    invariant(tokenAmount.token.equals(this.baseToken), 'TOKEN')
-    return new TokenAmount(this.quoteToken, super.multiply(tokenAmount.raw).quotient)
+  quote(currencyAmount: CurrencyAmount): CurrencyAmount {
+    invariant(currencyEquals(currencyAmount.currency, this.baseCurrency), 'TOKEN')
+    if (this.quoteCurrency instanceof Token) {
+      return new TokenAmount(this.quoteCurrency, super.multiply(currencyAmount.raw).quotient)
+    }
+    return CurrencyAmount.ether(super.multiply(currencyAmount.raw).quotient)
   }
 
   toSignificant(significantDigits: number = 6, format?: object, rounding?: Rounding): string {
