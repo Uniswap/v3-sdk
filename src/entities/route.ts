@@ -13,7 +13,7 @@ export class Route {
   public readonly output: Currency
   public readonly midPrice: Price
 
-  constructor(pairs: Pair[], input: Currency, output?: Currency) {
+  public constructor(pairs: Pair[], input: Currency, output?: Currency) {
     invariant(pairs.length > 0, 'PAIRS')
     invariant(
       pairs.every(pair => pair.chainId === pairs[0].chainId),
@@ -46,7 +46,7 @@ export class Route {
     this.output = output ?? path[path.length - 1]
   }
 
-  get chainId(): ChainId {
+  public get chainId(): ChainId {
     return this.pairs[0].chainId
   }
 }

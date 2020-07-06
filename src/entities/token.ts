@@ -1,18 +1,7 @@
 import { Currency } from './currency'
 import invariant from 'tiny-invariant'
-import { getNetwork } from '@ethersproject/networks'
-import { getDefaultProvider } from '@ethersproject/providers'
-import { Contract } from '@ethersproject/contracts'
-
 import { ChainId } from '../constants'
-import ERC20 from '../abis/ERC20.json'
 import { validateAndParseAddress } from '../utils'
-
-let CACHE: { [chainId: number]: { [address: string]: number } } = {
-  [ChainId.MAINNET]: {
-    '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': 9 // DGD
-  }
-}
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.
@@ -21,36 +10,13 @@ export class Token extends Currency {
   public readonly chainId: ChainId
   public readonly address: string
 
-  static async fetchData(
-    chainId: ChainId,
-    address: string,
-    provider = getDefaultProvider(getNetwork(chainId)),
-    symbol?: string,
-    name?: string
-  ): Promise<Token> {
-    const parsedDecimals =
-      typeof CACHE?.[chainId]?.[address] === 'number'
-        ? CACHE[chainId][address]
-        : await new Contract(address, ERC20, provider).decimals().then((decimals: number): number => {
-            CACHE = {
-              ...CACHE,
-              [chainId]: {
-                ...CACHE?.[chainId],
-                [address]: decimals
-              }
-            }
-            return decimals
-          })
-    return new Token(chainId, address, parsedDecimals, symbol, name)
-  }
-
-  constructor(chainId: ChainId, address: string, decimals: number, symbol?: string, name?: string) {
+  public constructor(chainId: ChainId, address: string, decimals: number, symbol?: string, name?: string) {
     super(decimals, symbol, name)
     this.chainId = chainId
     this.address = validateAndParseAddress(address)
   }
 
-  equals(other: Token): boolean {
+  public equals(other: Token): boolean {
     // short circuit on reference equality
     if (this === other) {
       return true
@@ -65,7 +31,7 @@ export class Token extends Currency {
     return equivalent
   }
 
-  sortsBefore(other: Token): boolean {
+  public sortsBefore(other: Token): boolean {
     invariant(this.chainId === other.chainId, 'CHAIN_IDS')
     invariant(this.address !== other.address, 'ADDRESSES')
     return this.address.toLowerCase() < other.address.toLowerCase()

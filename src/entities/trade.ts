@@ -177,7 +177,10 @@ export class Trade {
     this.priceImpact = computePriceImpact(route.midPrice, this.inputAmount, this.outputAmount)
   }
 
-  // get the minimum amount that must be received from this trade for the given slippage tolerance
+  /**
+   * Get the minimum amount that must be received from this trade for the given slippage tolerance
+   * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade
+   */
   public minimumAmountOut(slippageTolerance: Percent): CurrencyAmount {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
     if (this.tradeType === TradeType.EXACT_OUTPUT) {
@@ -193,7 +196,10 @@ export class Trade {
     }
   }
 
-  // get the maximum amount in that can be spent via this trade for the given slippage tolerance
+  /**
+   * Get the maximum amount in that can be spent via this trade for the given slippage tolerance
+   * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade
+   */
   public maximumAmountIn(slippageTolerance: Percent): CurrencyAmount {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
     if (this.tradeType === TradeType.EXACT_INPUT) {
@@ -206,10 +212,20 @@ export class Trade {
     }
   }
 
-  // given a list of pairs, and a fixed amount in, returns the top `maxNumResults` trades that go from an input token
-  // amount to an output token, making at most `maxHops` hops
-  // note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
-  // the amount in among multiple routes.
+  /**
+   * Given a list of pairs, and a fixed amount in, returns the top `maxNumResults` trades that go from an input token
+   * amount to an output token, making at most `maxHops` hops.
+   * Note this does not consider aggregation, as routes are linear. It's possible a better route exists by splitting
+   * the amount in among multiple routes.
+   * @param pairs the pairs to consider in finding the best trade
+   * @param currencyAmountIn exact amount of input currency to spend
+   * @param currencyOut the desired currency out
+   * @param maxNumResults maximum number of results to return
+   * @param maxHops maximum number of hops a returned trade can make, e.g. 1 hop goes through a single pair
+   * @param currentPairs used in recursion; the current list of pairs
+   * @param originalAmountIn used in recursion; the original value of the currencyAmountIn parameter
+   * @param bestTrades used in recursion; the current list of best trades
+   */
   public static bestTradeExactIn(
     pairs: Pair[],
     currencyAmountIn: CurrencyAmount,
@@ -283,11 +299,21 @@ export class Trade {
     return bestTrades
   }
 
-  // similar to the above method but instead targets a fixed output amount
-  // given a list of pairs, and a fixed amount out, returns the top `maxNumResults` trades that go from an input token
-  // to an output token amount, making at most `maxHops` hops
-  // note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
-  // the amount in among multiple routes.
+  /**
+   * similar to the above method but instead targets a fixed output amount
+   * given a list of pairs, and a fixed amount out, returns the top `maxNumResults` trades that go from an input token
+   * to an output token amount, making at most `maxHops` hops
+   * note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
+   * the amount in among multiple routes.
+   * @param pairs the pairs to consider in finding the best trade
+   * @param currencyIn the currency to spend
+   * @param currencyAmountOut the exact amount of currency out
+   * @param maxNumResults maximum number of results to return
+   * @param maxHops maximum number of hops a returned trade can make, e.g. 1 hop goes through a single pair
+   * @param currentPairs used in recursion; the current list of pairs
+   * @param originalAmountOut used in recursion; the original value of the currencyAmountOut parameter
+   * @param bestTrades used in recursion; the current list of best trades
+   */
   public static bestTradeExactOut(
     pairs: Pair[],
     currencyIn: Currency,

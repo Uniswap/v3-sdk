@@ -31,25 +31,29 @@ export class CurrencyAmount extends Fraction {
     this.currency = currency
   }
 
-  get raw(): JSBI {
+  public get raw(): JSBI {
     return this.numerator
   }
 
-  add(other: CurrencyAmount): CurrencyAmount {
+  public add(other: CurrencyAmount): CurrencyAmount {
     invariant(currencyEquals(this.currency, other.currency), 'TOKEN')
     return new CurrencyAmount(this.currency, JSBI.add(this.raw, other.raw))
   }
 
-  subtract(other: CurrencyAmount): CurrencyAmount {
+  public subtract(other: CurrencyAmount): CurrencyAmount {
     invariant(currencyEquals(this.currency, other.currency), 'TOKEN')
     return new CurrencyAmount(this.currency, JSBI.subtract(this.raw, other.raw))
   }
 
-  toSignificant(significantDigits: number = 6, format?: object, rounding: Rounding = Rounding.ROUND_DOWN): string {
+  public toSignificant(
+    significantDigits: number = 6,
+    format?: object,
+    rounding: Rounding = Rounding.ROUND_DOWN
+  ): string {
     return super.toSignificant(significantDigits, format, rounding)
   }
 
-  toFixed(
+  public toFixed(
     decimalPlaces: number = this.currency.decimals,
     format?: object,
     rounding: Rounding = Rounding.ROUND_DOWN
@@ -58,7 +62,7 @@ export class CurrencyAmount extends Fraction {
     return super.toFixed(decimalPlaces, format, rounding)
   }
 
-  toExact(format: object = { groupSeparator: '' }): string {
+  public toExact(format: object = { groupSeparator: '' }): string {
     Big.DP = this.currency.decimals
     return new Big(this.numerator.toString()).div(this.denominator.toString()).toFormat(format)
   }

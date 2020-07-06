@@ -9,17 +9,17 @@ export class TokenAmount extends CurrencyAmount {
   public readonly token: Token
 
   // amount _must_ be raw, i.e. in the native representation
-  constructor(token: Token, amount: BigintIsh) {
+  public constructor(token: Token, amount: BigintIsh) {
     super(token, amount)
     this.token = token
   }
 
-  add(other: TokenAmount): TokenAmount {
+  public add(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
     return new TokenAmount(this.token, JSBI.add(this.raw, other.raw))
   }
 
-  subtract(other: TokenAmount): TokenAmount {
+  public subtract(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
     return new TokenAmount(this.token, JSBI.subtract(this.raw, other.raw))
   }
