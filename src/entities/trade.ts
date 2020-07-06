@@ -12,8 +12,12 @@ import { Pair } from './pair'
 import { Route } from './route'
 import { currencyEquals, Token, WETH } from './token'
 
-// returns the percent difference between the mid price and the execution price
-// we call this price impact in the UI
+/**
+ * Returns the percent difference between the mid price and the execution price, i.e. price impact.
+ * @param midPrice mid price before the trade
+ * @param inputAmount the input amount of the trade
+ * @param outputAmount the output amount of the trade
+ */
 function computePriceImpact(midPrice: Price, inputAmount: CurrencyAmount, outputAmount: CurrencyAmount): Percent {
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
   // calculate slippage := (exactQuote - outputAmount) / exactQuote
@@ -95,22 +99,39 @@ function wrappedCurrency(currency: Currency, chainId: ChainId): Token {
   invariant(false, 'CURRENCY')
 }
 
+/**
+ * Represents a trade executed against a list of pairs.
+ * Does not account for slippage, i.e. trades that front run this trade and move the price.
+ */
 export class Trade {
+  /**
+   * The route of the trade, i.e. which pairs the trade goes through.
+   */
   public readonly route: Route
+  /**
+   * The type of the trade, either exact in or exact out.
+   */
   public readonly tradeType: TradeType
+  /**
+   * The input amount for the trade assuming no slippage.
+   */
   public readonly inputAmount: CurrencyAmount
+  /**
+   * The output amount for the trade assuming no slippage.
+   */
   public readonly outputAmount: CurrencyAmount
-  // the price expressed in terms of output/input
+  /**
+   * The price expressed in terms of output amount/input amount.
+   */
   public readonly executionPrice: Price
-  // the mid price after the trade executes assuming zero slippage
+  /**
+   * The mid price after the trade executes assuming no slippage.
+   */
   public readonly nextMidPrice: Price
-  // the percent difference between the mid price before the trade and the price after the trade
+  /**
+   * The percent difference between the mid price before the trade and the trade execution price.
+   */
   public readonly priceImpact: Percent
-
-  // this is a misnomer for price impact, but kept for compatibility
-  public get slippage(): Percent {
-    return this.priceImpact
-  }
 
   /**
    * Constructs an exact in trade with the given amount in and route
