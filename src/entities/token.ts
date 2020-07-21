@@ -1,7 +1,7 @@
-import { Currency } from './currency'
 import invariant from 'tiny-invariant'
 import { ChainId } from '../constants'
 import { validateAndParseAddress } from '../utils'
+import { Currency } from './currency'
 
 /**
  * Represents an ERC20 token with a unique address and some metadata.
@@ -17,23 +17,15 @@ export class Token extends Currency {
   }
 
   /**
-   * Returns true if the two tokens are equivalent.
+   * Returns true if the two tokens are equivalent, i.e. have the same chainId and address.
    * @param other other token to compare
-   * @throws if the tokens share the address and chain ID but have different metadata
    */
   public equals(other: Token): boolean {
     // short circuit on reference equality
     if (this === other) {
       return true
     }
-    const equivalent = this.chainId === other.chainId && this.address === other.address
-    if (equivalent) {
-      // reference the same token, must have the same decimals/symbol/name
-      invariant(this.decimals === other.decimals, 'DECIMALS')
-      if (this.symbol && other.symbol) invariant(this.symbol === other.symbol, 'SYMBOL')
-      if (this.name && other.name) invariant(this.name === other.name, 'NAME')
-    }
-    return equivalent
+    return this.chainId === other.chainId && this.address === other.address
   }
 
   /**
