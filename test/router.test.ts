@@ -33,6 +33,26 @@ describe('Router', () => {
         expect(result.value).toEqual('0x64')
         checkDeadline(result.args[result.args.length - 1])
       })
+
+      it('deadline specified', () => {
+        const result = Router.swapCallParameters(
+          Trade.exactIn(new Route([pair_weth_0, pair_0_1], ETHER, token1), CurrencyAmount.ether(JSBI.BigInt(100))),
+          {
+            deadline: 50,
+            recipient: '0x0000000000000000000000000000000000000004',
+            allowedSlippage: new Percent('1', '100')
+          }
+        )
+        expect(result.methodName).toEqual('swapExactETHForTokens')
+        expect(result.args).toEqual([
+          '0x51',
+          [WETH[ChainId.MAINNET].address, token0.address, token1.address],
+          '0x0000000000000000000000000000000000000004',
+          '0x32'
+        ])
+        expect(result.value).toEqual('0x64')
+      })
+
       it('token1 to ether', () => {
         const result = Router.swapCallParameters(
           Trade.exactIn(new Route([pair_0_1, pair_weth_0], token1, ETHER), new TokenAmount(token1, JSBI.BigInt(100))),
