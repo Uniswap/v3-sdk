@@ -1,3 +1,4 @@
+import invariant from 'tiny-invariant'
 import { ChainId, WETH as _WETH, TradeType, Rounding, Token, TokenAmount, Pair, Route, Trade } from '../src'
 
 const ADDRESSES = [
@@ -58,6 +59,8 @@ describe('entities', () => {
       })
 
       it('Price:Route.midPrice', () => {
+        invariant(route.input instanceof Token)
+        invariant(route.output instanceof Token)
         expect(route.midPrice.quote(new TokenAmount(route.input, decimalize(1, route.input.decimals)))).toEqual(
           new TokenAmount(route.output, decimalize(1234, route.output.decimals))
         )
@@ -122,7 +125,7 @@ describe('entities', () => {
           expect(trade.nextMidPrice.toSignificant(18)).toEqual('1.38958368072925352')
           expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
-          expect(trade.slippage.toSignificant(18)).toEqual('16.8751042187760547')
+          expect(trade.priceImpact.toSignificant(18)).toEqual('16.8751042187760547')
         })
 
         it('TradeType.EXACT_OUTPUT', () => {
@@ -142,7 +145,7 @@ describe('entities', () => {
           expect(trade.nextMidPrice.toSignificant(18)).toEqual('1.38958368072925352')
           expect(trade.nextMidPrice.invert().toSignificant(18)).toEqual('0.71964')
 
-          expect(trade.slippage.toSignificant(18)).toEqual('16.8751042187760547')
+          expect(trade.priceImpact.toSignificant(18)).toEqual('16.8751042187760547')
         })
 
         it('minimum TradeType.EXACT_INPUT', () => {
@@ -163,7 +166,7 @@ describe('entities', () => {
             const outputAmount = new TokenAmount(tokens[1], '1')
             const trade = new Trade(route, outputAmount, TradeType.EXACT_INPUT)
 
-            expect(trade.slippage.toSignificant(18)).toEqual(
+            expect(trade.priceImpact.toSignificant(18)).toEqual(
               tokens[1].decimals === 9 ? '0.300000099400899902' : '0.3000000000000001'
             )
           }
