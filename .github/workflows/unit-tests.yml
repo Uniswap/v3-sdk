@@ -1,17 +1,12 @@
-name: CI
-env:
-  CI: true
+name: Unit Tests
 
 on:
   pull_request:
-    branches:
-      - v2
   push:
-    branches:
-      - v2
 
 jobs:
-  test:
+  tests:
+    name: Unit tests
     strategy:
       matrix:
         node: ['10.x', '12.x']
@@ -20,24 +15,28 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
-      - run: npm install -g yarn
-
-      - id: yarn-cache
+      - name: Get cache directory
+        id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v1
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v1
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ matrix.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ matrix.os }}-yarn-
 
-      - run: yarn
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-      - run: yarn lint
-      - run: yarn build
-      - run: yarn test
+      - name: Run tests
+        run: yarn test
