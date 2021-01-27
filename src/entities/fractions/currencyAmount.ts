@@ -1,4 +1,3 @@
-import { parseBigintIsh } from '../../utils/parseBigintish'
 import { validateSolidityTypeInstance } from '../../utils/validateSolidityTypeInstance'
 import { currencyEquals } from '../token'
 import { Currency, ETHER } from '../currency'
@@ -24,7 +23,7 @@ export class CurrencyAmount extends Fraction {
 
   // amount _must_ be raw, i.e. in the native representation
   protected constructor(currency: Currency, amount: BigintIsh) {
-    const parsedAmount = parseBigintIsh(amount)
+    const parsedAmount = BigInt(amount)
     validateSolidityTypeInstance(parsedAmount, SolidityType.uint256)
 
     super(parsedAmount, TEN ** BigInt(currency.decimals))

@@ -2,7 +2,6 @@ import invariant from 'tiny-invariant'
 import _Decimal from 'decimal.js-light'
 import _Big, { RoundingMode } from 'big.js'
 import toFormat from 'toformat'
-import { parseBigintIsh } from '../../utils/parseBigintish'
 
 import { BigintIsh, Rounding } from '../../constants'
 import { ONE } from '../../constants'
@@ -27,8 +26,8 @@ export default class Fraction {
   public readonly denominator: bigint
 
   public constructor(numerator: BigintIsh, denominator: BigintIsh = ONE) {
-    this.numerator = parseBigintIsh(numerator)
-    this.denominator = parseBigintIsh(denominator)
+    this.numerator = BigInt(numerator)
+    this.denominator = BigInt(denominator)
   }
 
   // performs floor division
@@ -46,7 +45,7 @@ export default class Fraction {
   }
 
   public add(other: Fraction | BigintIsh): Fraction {
-    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    const otherParsed = other instanceof Fraction ? other : new Fraction(BigInt(other))
     if (this.denominator === otherParsed.denominator) {
       return new Fraction(this.numerator + otherParsed.numerator, this.denominator)
     }
@@ -57,7 +56,7 @@ export default class Fraction {
   }
 
   public subtract(other: Fraction | BigintIsh): Fraction {
-    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    const otherParsed = other instanceof Fraction ? other : new Fraction(BigInt(other))
     if (this.denominator === otherParsed.denominator) {
       return new Fraction(this.numerator - otherParsed.numerator, this.denominator)
     }
@@ -68,27 +67,27 @@ export default class Fraction {
   }
 
   public lessThan(other: Fraction | BigintIsh): boolean {
-    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    const otherParsed = other instanceof Fraction ? other : new Fraction(BigInt(other))
     return this.numerator * otherParsed.denominator < otherParsed.numerator * this.denominator
   }
 
   public equalTo(other: Fraction | BigintIsh): boolean {
-    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    const otherParsed = other instanceof Fraction ? other : new Fraction(BigInt(other))
     return this.numerator * otherParsed.denominator === otherParsed.numerator * this.denominator
   }
 
   public greaterThan(other: Fraction | BigintIsh): boolean {
-    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    const otherParsed = other instanceof Fraction ? other : new Fraction(BigInt(other))
     return this.numerator * otherParsed.denominator > otherParsed.numerator * this.denominator
   }
 
   public multiply(other: Fraction | BigintIsh): Fraction {
-    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    const otherParsed = other instanceof Fraction ? other : new Fraction(BigInt(other))
     return new Fraction(this.numerator * otherParsed.numerator, this.denominator * otherParsed.denominator)
   }
 
   public divide(other: Fraction | BigintIsh): Fraction {
-    const otherParsed = other instanceof Fraction ? other : new Fraction(parseBigintIsh(other))
+    const otherParsed = other instanceof Fraction ? other : new Fraction(BigInt(other))
     return new Fraction(this.numerator * otherParsed.denominator, this.denominator * otherParsed.numerator)
   }
 
