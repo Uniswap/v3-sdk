@@ -1,4 +1,3 @@
-import { SOLIDITY_TYPE_MAXIMA } from '../constants'
 import invariant from 'tiny-invariant'
 
 export const MAX_TICK: number = 887272
@@ -6,6 +5,8 @@ export const MAX_TICK: number = 887272
 function mulShift(val: bigint, mulBy: string): bigint {
   return (val * BigInt(mulBy)) >> BigInt(128)
 }
+
+const MaxUint256 = BigInt(2) ** BigInt(256) - BigInt(1)
 
 export default abstract class TickMath {
   /**
@@ -41,7 +42,7 @@ export default abstract class TickMath {
     if ((absTick & 0x40000) != 0) ratio = mulShift(ratio, '0x2216e584f5fa1ea926041bedfe98')
     if ((absTick & 0x80000) != 0) ratio = mulShift(ratio, '0x48a170391f7dc42444e8fa2')
 
-    if (tick > 0) ratio = SOLIDITY_TYPE_MAXIMA['uint256'] / ratio
+    if (tick > 0) ratio = MaxUint256 / ratio
     return ratio
   }
 

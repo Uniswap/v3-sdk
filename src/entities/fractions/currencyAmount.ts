@@ -1,11 +1,10 @@
-import { validateSolidityTypeInstance } from '../../utils/validateSolidityTypeInstance'
 import { currencyEquals } from '../token'
 import { Currency, ETHER } from '../currency'
 import invariant from 'tiny-invariant'
 import _Big from 'big.js'
 import toFormat from 'toformat'
 
-import { BigintIsh, Rounding, TEN, SolidityType } from '../../constants'
+import { BigintIsh, Rounding, TEN, MaxUint256 } from '../../constants'
 import Fraction from './fraction'
 
 const Big = toFormat(_Big)
@@ -24,7 +23,7 @@ export class CurrencyAmount extends Fraction {
   // amount _must_ be raw, i.e. in the native representation
   protected constructor(currency: Currency, amount: BigintIsh) {
     const parsedAmount = BigInt(amount)
-    validateSolidityTypeInstance(parsedAmount, SolidityType.uint256)
+    invariant(parsedAmount < MaxUint256, 'AMOUNT')
 
     super(parsedAmount, TEN ** BigInt(currency.decimals))
     this.currency = currency

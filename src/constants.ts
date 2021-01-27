@@ -20,6 +20,7 @@ export enum Rounding {
   ROUND_UP
 }
 
+// todo: replace with v3 factory address
 export const FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
 
 // todo: replace with v3 init code hash
@@ -37,12 +38,4 @@ export const _100 = BigInt(100)
 export const _997 = BigInt(997)
 export const _1000 = BigInt(1000)
 
-export enum SolidityType {
-  uint8 = 'uint8',
-  uint256 = 'uint256'
-}
-
-export const SOLIDITY_TYPE_MAXIMA = {
-  [SolidityType.uint8]: BigInt('0xff'),
-  [SolidityType.uint256]: BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
-}
+export const MaxUint256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
