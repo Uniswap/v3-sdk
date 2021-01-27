@@ -1,5 +1,5 @@
 import invariant from 'tiny-invariant'
-import { sortedInsert } from '../utils/sortedInsert'
+import sortedInsert from '../utils/sortedInsert'
 
 import { ChainId, ONE, TradeType, ZERO } from '../constants'
 import { Currency, ETHER } from './currency'
