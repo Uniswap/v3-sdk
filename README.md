@@ -1,4 +1,4 @@
-# Uniswap SDK
+# Uniswap V3 SDK
 
 [![Unit Tests](https://github.com/Uniswap/uniswap-v3-sdk/workflows/Unit%20Tests/badge.svg)](https://github.com/Uniswap/uniswap-v3-sdk/actions?query=workflow%3A%22Unit+Tests%22)
 [![Lint](https://github.com/Uniswap/uniswap-v3-sdk/workflows/Lint/badge.svg)](https://github.com/Uniswap/uniswap-v3-sdk/actions?query=workflow%3ALint)
