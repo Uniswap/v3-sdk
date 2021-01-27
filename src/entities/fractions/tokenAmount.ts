@@ -1,7 +1,6 @@
 import { CurrencyAmount } from './currencyAmount'
 import { Token } from '../token'
 import invariant from 'tiny-invariant'
-import JSBI from 'jsbi'
 
 import { BigintIsh } from '../../constants'
 
@@ -16,11 +15,11 @@ export class TokenAmount extends CurrencyAmount {
 
   public add(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
-    return new TokenAmount(this.token, JSBI.add(this.raw, other.raw))
+    return new TokenAmount(this.token, this.raw + other.raw)
   }
 
   public subtract(other: TokenAmount): TokenAmount {
     invariant(this.token.equals(other.token), 'TOKEN')
-    return new TokenAmount(this.token, JSBI.subtract(this.raw, other.raw))
+    return new TokenAmount(this.token, this.raw - other.raw)
   }
 }

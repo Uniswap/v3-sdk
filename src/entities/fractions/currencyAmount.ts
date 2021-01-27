@@ -3,7 +3,6 @@ import { validateSolidityTypeInstance } from '../../utils/validateSolidityTypeIn
 import { currencyEquals } from '../token'
 import { Currency, ETHER } from '../currency'
 import invariant from 'tiny-invariant'
-import JSBI from 'jsbi'
 import _Big from 'big.js'
 import toFormat from 'toformat'
 
@@ -28,22 +27,22 @@ export class CurrencyAmount extends Fraction {
     const parsedAmount = parseBigintIsh(amount)
     validateSolidityTypeInstance(parsedAmount, SolidityType.uint256)
 
-    super(parsedAmount, JSBI.exponentiate(TEN, JSBI.BigInt(currency.decimals)))
+    super(parsedAmount, TEN ** BigInt(currency.decimals))
     this.currency = currency
   }
 
-  public get raw(): JSBI {
+  public get raw(): bigint {
     return this.numerator
   }
 
   public add(other: CurrencyAmount): CurrencyAmount {
     invariant(currencyEquals(this.currency, other.currency), 'TOKEN')
-    return new CurrencyAmount(this.currency, JSBI.add(this.raw, other.raw))
+    return new CurrencyAmount(this.currency, this.raw + other.raw)
   }
 
   public subtract(other: CurrencyAmount): CurrencyAmount {
     invariant(currencyEquals(this.currency, other.currency), 'TOKEN')
-    return new CurrencyAmount(this.currency, JSBI.subtract(this.raw, other.raw))
+    return new CurrencyAmount(this.currency, this.raw - other.raw)
   }
 
   public toSignificant(

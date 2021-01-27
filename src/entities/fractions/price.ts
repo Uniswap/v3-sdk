@@ -2,7 +2,6 @@ import { Token } from '../token'
 import { TokenAmount } from './tokenAmount'
 import { currencyEquals } from '../token'
 import invariant from 'tiny-invariant'
-import JSBI from 'jsbi'
 
 import { BigintIsh, Rounding, TEN } from '../../constants'
 import { Currency } from '../currency'
@@ -33,10 +32,7 @@ export class Price extends Fraction {
 
     this.baseCurrency = baseCurrency
     this.quoteCurrency = quoteCurrency
-    this.scalar = new Fraction(
-      JSBI.exponentiate(TEN, JSBI.BigInt(baseCurrency.decimals)),
-      JSBI.exponentiate(TEN, JSBI.BigInt(quoteCurrency.decimals))
-    )
+    this.scalar = new Fraction(TEN ** BigInt(baseCurrency.decimals), TEN ** BigInt(quoteCurrency.decimals))
   }
 
   public get raw(): Fraction {

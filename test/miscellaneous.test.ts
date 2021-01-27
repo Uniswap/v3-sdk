@@ -48,7 +48,7 @@ describe('miscellaneous', () => {
     ).toEqual('2000')
   })
 
-  it('getLiquidityValue:!feeOn', async () => {
+  it.skip('getLiquidityValue:!feeOn', async () => {
     const tokenA = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000001', 18)
     const tokenB = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000002', 18)
     const pair = new Pair(new TokenAmount(tokenA, '1000'), new TokenAmount(tokenB, '1000'))
@@ -89,7 +89,7 @@ describe('miscellaneous', () => {
     }
   })
 
-  it('getLiquidityValue:feeOn', async () => {
+  it.skip('getLiquidityValue:feeOn', async () => {
     const tokenA = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000001', 18)
     const tokenB = new Token(ChainId.RINKEBY, '0x0000000000000000000000000000000000000002', 18)
     const pair = new Pair(new TokenAmount(tokenA, '1000'), new TokenAmount(tokenB, '1000'))

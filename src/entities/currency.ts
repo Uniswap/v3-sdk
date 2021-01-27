@@ -1,4 +1,3 @@
-import JSBI from 'jsbi'
 import { validateSolidityTypeInstance } from '../utils/validateSolidityTypeInstance'
 
 import { SolidityType } from '../constants'
@@ -25,7 +24,7 @@ export class Currency {
    * @param name of the currency
    */
   protected constructor(decimals: number, symbol?: string, name?: string) {
-    validateSolidityTypeInstance(JSBI.BigInt(decimals), SolidityType.uint8)
+    validateSolidityTypeInstance(BigInt(decimals), SolidityType.uint8)
 
     this.decimals = decimals
     this.symbol = symbol
