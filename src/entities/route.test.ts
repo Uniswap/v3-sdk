@@ -1,4 +1,9 @@
-import { Token, WETH, ChainId, Pair, TokenAmount, Route, ETHER } from '../src'
+import { ChainId } from '../constants'
+import { ETHER } from './currency'
+import { TokenAmount } from './fractions/tokenAmount'
+import { Pair } from './pair'
+import { Route } from './route'
+import { Token, WETH } from './token'
 
 describe('Route', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')

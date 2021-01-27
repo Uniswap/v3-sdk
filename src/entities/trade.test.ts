@@ -1,16 +1,12 @@
-import {
-  ChainId,
-  ETHER,
-  CurrencyAmount,
-  Pair,
-  Percent,
-  Route,
-  Token,
-  TokenAmount,
-  Trade,
-  TradeType,
-  WETH
-} from '../src'
+import { Percent } from './fractions/percent'
+import { Trade } from './trade'
+import { ChainId, TradeType } from '../constants'
+import { ETHER } from './currency'
+import { TokenAmount } from './fractions/tokenAmount'
+import { CurrencyAmount } from './fractions/currencyAmount'
+import { Pair } from './pair'
+import { Route } from './route'
+import { Token, WETH } from './token'
 
 describe('Trade', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
