@@ -1,4 +1,4 @@
-import TickMath from '../src/utils/tickMath'
+import TickMath from './tickMath'
 
 describe('TickMath', () => {
   describe('#getRatioAtTick', () => {

@@ -22,7 +22,7 @@ const toFixedRounding = {
   [Rounding.ROUND_UP]: RoundingMode.RoundUp
 }
 
-export class Fraction {
+export default class Fraction {
   public readonly numerator: bigint
   public readonly denominator: bigint
 

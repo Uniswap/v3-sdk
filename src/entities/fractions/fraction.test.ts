@@ -1,6 +1,6 @@
-import { Fraction } from '../src'
+import Fraction from './fraction'
 
-describe.only('Fraction', () => {
+describe('Fraction', () => {
   describe('#quotient', () => {
     it('floor division', () => {
       expect(new Fraction(BigInt(8), BigInt(3)).quotient).toEqual(BigInt(2)) // one below

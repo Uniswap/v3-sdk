@@ -7,7 +7,7 @@ import _Big from 'big.js'
 import toFormat from 'toformat'
 
 import { BigintIsh, Rounding, TEN, SolidityType } from '../../constants'
-import { Fraction } from './fraction'
+import Fraction from './fraction'
 
 const Big = toFormat(_Big)
 

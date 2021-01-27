@@ -6,7 +6,7 @@ import invariant from 'tiny-invariant'
 import { BigintIsh, Rounding, TEN } from '../../constants'
 import { Currency } from '../currency'
 import { Route } from '../route'
-import { Fraction } from './fraction'
+import Fraction from './fraction'
 import { CurrencyAmount } from './currencyAmount'
 
 export class Price extends Fraction {

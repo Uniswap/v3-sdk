@@ -1,4 +1,5 @@
-import { ChainId, Token } from '../src'
+import { ChainId } from '../constants'
+import { Token } from './token'
 
 describe('Token', () => {
   const ADDRESS_ONE = '0x0000000000000000000000000000000000000001'
