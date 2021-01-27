@@ -1,6 +1,6 @@
+import { validateAndParseAddress } from '../src/utils/validateAndParseAddress'
 import { TradeType } from './constants'
 import invariant from 'tiny-invariant'
-import { validateAndParseAddress } from './utils'
 import { CurrencyAmount, ETHER, Percent, Trade } from './entities'
 
 /**

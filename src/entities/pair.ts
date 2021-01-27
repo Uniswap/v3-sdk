@@ -1,3 +1,5 @@
+import { parseBigintIsh } from '../utils/parseBigintish'
+import { sqrt } from '../utils/sqrt'
 import { Price } from './fractions/price'
 import { TokenAmount } from './fractions/tokenAmount'
 import invariant from 'tiny-invariant'
@@ -17,7 +19,6 @@ import {
   _1000,
   ChainId
 } from '../constants'
-import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
 import { Token } from './token'
 

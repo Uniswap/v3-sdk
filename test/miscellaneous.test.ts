@@ -1,5 +1,5 @@
+import { sortedInsert } from '../src/utils/sortedInsert'
 import { ChainId, Token, TokenAmount, Pair, InsufficientInputAmountError } from '../src'
-import { sortedInsert } from '../src/utils'
 
 describe('miscellaneous', () => {
   it('getLiquidityMinted:0', async () => {

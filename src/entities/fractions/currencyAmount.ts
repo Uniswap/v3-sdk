@@ -1,3 +1,5 @@
+import { parseBigintIsh } from '../../utils/parseBigintish'
+import { validateSolidityTypeInstance } from '../../utils/validateSolidityTypeInstance'
 import { currencyEquals } from '../token'
 import { Currency, ETHER } from '../currency'
 import invariant from 'tiny-invariant'
@@ -6,7 +8,6 @@ import _Big from 'big.js'
 import toFormat from 'toformat'
 
 import { BigintIsh, Rounding, TEN, SolidityType } from '../../constants'
-import { parseBigintIsh, validateSolidityTypeInstance } from '../../utils'
 import { Fraction } from './fraction'
 
 const Big = toFormat(_Big)
