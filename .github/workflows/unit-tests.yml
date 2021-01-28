@@ -1,8 +1,8 @@
 name: Unit Tests
 
 on:
-  pull_request:
   push:
+  pull_request:
 
 jobs:
   tests:
@@ -10,9 +10,8 @@ jobs:
     strategy:
       matrix:
         node: ['10.x', '12.x']
-        os: [ubuntu-latest, macOS-latest]
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -31,9 +30,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
-          key: ${{ matrix.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ matrix.os }}-yarn-
+            yarn-
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
