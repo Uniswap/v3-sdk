@@ -1,25 +1,10 @@
-import { sqrt } from '../utils/sqrt'
-import { Price } from './fractions/price'
-import { TokenAmount } from './fractions/tokenAmount'
+import { babylonianSqrt, BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
 
-import {
-  BigintIsh,
-  FACTORY_ADDRESS,
-  INIT_CODE_HASH,
-  MINIMUM_LIQUIDITY,
-  ZERO,
-  ONE,
-  _997,
-  _1000,
-  ChainId
-} from '../constants'
+import { FACTORY_ADDRESS, INIT_CODE_HASH, MINIMUM_LIQUIDITY, ZERO, ONE, _997, _1000 } from '../constants'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
-import { Token } from './token'
-
-let POOL_ADDRESS_CACHE: { [token0Address: string]: { [token1Address: string]: string } } = {}
 
 export class Pool {
   public readonly liquidityToken: Token
@@ -28,21 +13,11 @@ export class Pool {
   public static getAddress(tokenA: Token, tokenB: Token): string {
     const tokens = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
 
-    if (POOL_ADDRESS_CACHE?.[tokens[0].address]?.[tokens[1].address] === undefined) {
-      POOL_ADDRESS_CACHE = {
-        ...POOL_ADDRESS_CACHE,
-        [tokens[0].address]: {
-          ...POOL_ADDRESS_CACHE?.[tokens[0].address],
-          [tokens[1].address]: getCreate2Address(
-            FACTORY_ADDRESS,
-            keccak256(['bytes'], [pack(['address', 'address'], [tokens[0].address, tokens[1].address])]),
-            INIT_CODE_HASH
-          )
-        }
-      }
-    }
-
-    return POOL_ADDRESS_CACHE[tokens[0].address][tokens[1].address]
+    return getCreate2Address(
+      FACTORY_ADDRESS,
+      keccak256(['bytes'], [pack(['address', 'address'], [tokens[0].address, tokens[1].address])]),
+      INIT_CODE_HASH
+    )
   }
 
   public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
@@ -172,7 +147,7 @@ export class Pool {
 
     let liquidity: bigint
     if (totalSupply.raw === ZERO) {
-      liquidity = sqrt(tokenAmounts[0].raw * tokenAmounts[1].raw) - MINIMUM_LIQUIDITY
+      liquidity = babylonianSqrt(tokenAmounts[0].raw * tokenAmounts[1].raw) - MINIMUM_LIQUIDITY
     } else {
       const amount0 = (tokenAmounts[0].raw * totalSupply.raw) / this.reserve0.raw
       const amount1 = (tokenAmounts[1].raw * totalSupply.raw) / this.reserve1.raw

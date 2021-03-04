@@ -1,16 +1,23 @@
+import {
+  Currency,
+  CurrencyAmount,
+  currencyEquals,
+  ETHER,
+  Percent,
+  Price,
+  sortedInsert,
+  Token,
+  TokenAmount,
+  WETH,
+  ChainId,
+  TradeType,
+  Fraction
+} from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import sortedInsert from '../utils/sortedInsert'
 
-import { ChainId, ONE, TradeType, ZERO } from '../constants'
-import { Currency, ETHER } from './currency'
-import { CurrencyAmount } from './fractions/currencyAmount'
-import Fraction from './fractions/fraction'
-import { Percent } from './fractions/percent'
-import { Price } from './fractions/price'
-import { TokenAmount } from './fractions/tokenAmount'
+import { ONE, ZERO } from '../constants'
 import { Pool } from './pool'
 import { Route } from './route'
-import { currencyEquals, Token, WETH } from './token'
 
 /**
  * Returns the percent difference between the mid price and the execution price, i.e. price impact.
@@ -127,7 +134,7 @@ export class Trade {
   /**
    * The mid price after the trade executes assuming no slippage.
    */
-  public readonly nextMidPrice: Price
+  // public readonly nextMidPrice: Price
   /**
    * The percent difference between the mid price before the trade and the trade execution price.
    */
@@ -194,8 +201,11 @@ export class Trade {
       this.inputAmount.raw,
       this.outputAmount.raw
     )
-    this.nextMidPrice = Price.fromRoute(new Route(nextPools, route.input))
-    this.priceImpact = computePriceImpact(route.midPrice, this.inputAmount, this.outputAmount)
+    this.priceImpact = computePriceImpact(
+      /*should equal route.midPrice*/ this.executionPrice,
+      this.inputAmount,
+      this.outputAmount
+    )
   }
 
   /**

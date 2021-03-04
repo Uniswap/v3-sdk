@@ -1,8 +1,5 @@
 import { Pool } from './pool'
-import { Token, WETH } from './token'
-import { TokenAmount } from './fractions/tokenAmount'
-import { Price } from './fractions/price'
-import { ChainId } from '../constants'
+import { Token, WETH, TokenAmount, Price, ChainId } from '@uniswap/sdk-core'
 
 describe('Pool', () => {
   const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 18, 'USDC', 'USD Coin')

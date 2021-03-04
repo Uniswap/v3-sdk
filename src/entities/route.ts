@@ -1,17 +1,14 @@
-import { ChainId } from '../constants'
 import invariant from 'tiny-invariant'
 
-import { Currency, ETHER } from './currency'
-import { Token, WETH } from './token'
+import { ChainId, Currency, ETHER, Token, WETH } from '@uniswap/sdk-core'
 import { Pool } from './pool'
-import { Price } from './fractions/price'
 
 export class Route {
   public readonly pools: Pool[]
   public readonly tokenPath: Token[]
   public readonly input: Currency
   public readonly output: Currency
-  public readonly midPrice: Price
+  // public readonly midPrice: Price
 
   public constructor(pools: Pool[], input: Currency, output?: Currency) {
     invariant(pools.length > 0, 'POOLS: none provided')
@@ -46,7 +43,6 @@ export class Route {
 
     this.pools = pools
     this.tokenPath = tokenPath
-    this.midPrice = Price.fromRoute(this)
     this.input = input
     this.output = output ?? tokenPath[tokenPath.length - 1]
   }

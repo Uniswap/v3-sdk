@@ -1,7 +1,6 @@
-import { validateAndParseAddress } from '../src/utils/validateAndParseAddress'
-import { TradeType } from './constants'
+import { CurrencyAmount, ETHER, Percent, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import { CurrencyAmount, ETHER, Percent, Trade } from './entities'
+import { Trade } from './entities/trade'
 
 /**
  * Options for producing the arguments to send call to the router.
@@ -134,6 +133,8 @@ export abstract class Router {
           value = ZERO_HEX
         }
         break
+      default:
+        throw new Error('invalid trade type')
     }
     return {
       methodName,

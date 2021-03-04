@@ -1,5 +1,9 @@
 import invariant from 'tiny-invariant'
-import { ChainId, CurrencyAmount, ETHER, Pool, Percent, Route, Router, Token, TokenAmount, Trade, WETH } from './index'
+import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, WETH } from '@uniswap/sdk-core'
+import { Pool } from './entities/pool'
+import { Route } from './entities/route'
+import { Trade } from './entities/trade'
+import { Router } from './router'
 
 function checkDeadline(deadline: string[] | string): void {
   expect(typeof deadline).toBe('string')
