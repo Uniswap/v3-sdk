@@ -19,20 +19,20 @@ import {
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
 import { Token } from './token'
 
-let PAIR_ADDRESS_CACHE: { [token0Address: string]: { [token1Address: string]: string } } = {}
+let POOL_ADDRESS_CACHE: { [token0Address: string]: { [token1Address: string]: string } } = {}
 
-export class Pair {
+export class Pool {
   public readonly liquidityToken: Token
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
   public static getAddress(tokenA: Token, tokenB: Token): string {
     const tokens = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
 
-    if (PAIR_ADDRESS_CACHE?.[tokens[0].address]?.[tokens[1].address] === undefined) {
-      PAIR_ADDRESS_CACHE = {
-        ...PAIR_ADDRESS_CACHE,
+    if (POOL_ADDRESS_CACHE?.[tokens[0].address]?.[tokens[1].address] === undefined) {
+      POOL_ADDRESS_CACHE = {
+        ...POOL_ADDRESS_CACHE,
         [tokens[0].address]: {
-          ...PAIR_ADDRESS_CACHE?.[tokens[0].address],
+          ...POOL_ADDRESS_CACHE?.[tokens[0].address],
           [tokens[1].address]: getCreate2Address(
             FACTORY_ADDRESS,
             keccak256(['bytes'], [pack(['address', 'address'], [tokens[0].address, tokens[1].address])]),
@@ -42,7 +42,7 @@ export class Pair {
       }
     }
 
-    return PAIR_ADDRESS_CACHE[tokens[0].address][tokens[1].address]
+    return POOL_ADDRESS_CACHE[tokens[0].address][tokens[1].address]
   }
 
   public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
@@ -51,7 +51,7 @@ export class Pair {
       : [tokenAmountB, tokenAmountA]
     this.liquidityToken = new Token(
       tokenAmounts[0].token.chainId,
-      Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
+      Pool.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
       18,
       'UNI-V2',
       'Uniswap V2'
@@ -68,21 +68,21 @@ export class Pair {
   }
 
   /**
-   * Returns the current mid price of the pair in terms of token0, i.e. the ratio of reserve1 to reserve0
+   * Returns the current mid price of the pool in terms of token0, i.e. the ratio of reserve1 to reserve0
    */
   public get token0Price(): Price {
     return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw)
   }
 
   /**
-   * Returns the current mid price of the pair in terms of token1, i.e. the ratio of reserve0 to reserve1
+   * Returns the current mid price of the pool in terms of token1, i.e. the ratio of reserve0 to reserve1
    */
   public get token1Price(): Price {
     return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw)
   }
 
   /**
-   * Return the price of the given token in terms of the other token in the pair.
+   * Return the price of the given token in terms of the other token in the pool.
    * @param token token to return price of
    */
   public priceOf(token: Token): Price {
@@ -91,7 +91,7 @@ export class Pair {
   }
 
   /**
-   * Returns the chain ID of the tokens in the pair.
+   * Returns the chain ID of the tokens in the pool.
    */
   public get chainId(): ChainId {
     return this.token0.chainId
@@ -118,7 +118,7 @@ export class Pair {
     return token.equals(this.token0) ? this.reserve0 : this.reserve1
   }
 
-  public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pair] {
+  public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pool] {
     invariant(this.involvesToken(inputAmount.token), 'TOKEN')
     if (this.reserve0.raw === ZERO || this.reserve1.raw === ZERO) {
       throw new InsufficientReservesError()
@@ -135,10 +135,10 @@ export class Pair {
     if (outputAmount.raw === ZERO) {
       throw new InsufficientInputAmountError()
     }
-    return [outputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
+    return [outputAmount, new Pool(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
   }
 
-  public getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pair] {
+  public getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pool] {
     invariant(this.involvesToken(outputAmount.token), 'TOKEN')
     if (
       this.reserve0.raw === ZERO ||
@@ -156,7 +156,7 @@ export class Pair {
       outputAmount.token.equals(this.token0) ? this.token1 : this.token0,
       numerator / denominator + ONE
     )
-    return [inputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
+    return [inputAmount, new Pool(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))]
   }
 
   public getLiquidityMinted(

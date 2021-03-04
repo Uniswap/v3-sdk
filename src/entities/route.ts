@@ -3,50 +3,55 @@ import invariant from 'tiny-invariant'
 
 import { Currency, ETHER } from './currency'
 import { Token, WETH } from './token'
-import { Pair } from './pair'
+import { Pool } from './pool'
 import { Price } from './fractions/price'
 
 export class Route {
-  public readonly pairs: Pair[]
-  public readonly path: Token[]
+  public readonly pools: Pool[]
+  public readonly tokenPath: Token[]
   public readonly input: Currency
   public readonly output: Currency
   public readonly midPrice: Price
 
-  public constructor(pairs: Pair[], input: Currency, output?: Currency) {
-    invariant(pairs.length > 0, 'PAIRS')
-    invariant(
-      pairs.every(pair => pair.chainId === pairs[0].chainId),
-      'CHAIN_IDS'
-    )
-    invariant(
-      (input instanceof Token && pairs[0].involvesToken(input)) ||
-        (input === ETHER && pairs[0].involvesToken(WETH[pairs[0].chainId])),
-      'INPUT'
-    )
-    invariant(
-      typeof output === 'undefined' ||
-        (output instanceof Token && pairs[pairs.length - 1].involvesToken(output)) ||
-        (output === ETHER && pairs[pairs.length - 1].involvesToken(WETH[pairs[0].chainId])),
-      'OUTPUT'
-    )
+  public constructor(pools: Pool[], input: Currency, output?: Currency) {
+    invariant(pools.length > 0, 'POOLS: none provided')
 
-    const path: Token[] = [input instanceof Token ? input : WETH[pairs[0].chainId]]
-    for (const [i, pair] of pairs.entries()) {
-      const currentInput = path[i]
-      invariant(currentInput.equals(pair.token0) || currentInput.equals(pair.token1), 'PATH')
-      const output = currentInput.equals(pair.token0) ? pair.token1 : pair.token0
-      path.push(output)
+    const allOnSameChain = pools.every(pool => pool.chainId === pools[0].chainId)
+    invariant(allOnSameChain, 'CHAIN_IDS: must be the same for all pools')
+
+    const inputTokenIsInFirstPool = input instanceof Token && pools[0].involvesToken(input)
+    const inputWethIsInFirstPool = input === ETHER && pools[0].involvesToken(WETH[pools[0].chainId])
+    const inputIsValid = inputTokenIsInFirstPool || inputWethIsInFirstPool
+    invariant(inputIsValid, 'INPUT: not in first pool')
+
+    const noOutput = typeof output === 'undefined'
+    const outputTokenIsInLastPool = output instanceof Token && pools[pools.length - 1].involvesToken(output)
+    const outputWethIsInLastPool = output === ETHER && pools[pools.length - 1].involvesToken(WETH[pools[0].chainId])
+    const outputIsValid = noOutput || outputTokenIsInLastPool || outputWethIsInLastPool
+    invariant(outputIsValid, 'OUTPUT: not in last pool')
+
+    /**
+     * Normalizes token0-token1 order and selects the next token/fee step to add to the path
+     * */
+    const tokenPath: Token[] = [input instanceof Token ? input : WETH[pools[0].chainId]]
+    for (const [i, pool] of pools.entries()) {
+      const currentInputToken = tokenPath[i]
+      invariant(
+        currentInputToken.equals(pool.token0) || currentInputToken.equals(pool.token1),
+        'PATH: token is not in the next pool'
+      )
+      const nextToken = currentInputToken.equals(pool.token0) ? pool.token1 : pool.token0
+      tokenPath.push(nextToken)
     }
 
-    this.pairs = pairs
-    this.path = path
+    this.pools = pools
+    this.tokenPath = tokenPath
     this.midPrice = Price.fromRoute(this)
     this.input = input
-    this.output = output ?? path[path.length - 1]
+    this.output = output ?? tokenPath[tokenPath.length - 1]
   }
 
   public get chainId(): ChainId {
-    return this.pairs[0].chainId
+    return this.pools[0].chainId
   }
 }
