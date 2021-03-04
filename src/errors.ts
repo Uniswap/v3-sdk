@@ -2,7 +2,7 @@
 const CAN_SET_PROTOTYPE = 'setPrototypeOf' in Object
 
 /**
- * Indicates that the pair has insufficient reserves for a desired output amount. I.e. the amount of output cannot be
+ * Indicates that the pool has insufficient reserves for a desired output amount. I.e. the amount of output cannot be
  * obtained by sending any amount of input.
  */
 export class InsufficientReservesError extends Error {

@@ -1,5 +1,5 @@
 import invariant from 'tiny-invariant'
-import { ChainId, CurrencyAmount, ETHER, Pair, Percent, Route, Router, Token, TokenAmount, Trade, WETH } from './index'
+import { ChainId, CurrencyAmount, ETHER, Pool, Percent, Route, Router, Token, TokenAmount, Trade, WETH } from './index'
 
 function checkDeadline(deadline: string[] | string): void {
   expect(typeof deadline).toBe('string')
@@ -12,15 +12,15 @@ describe('Router', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
 
-  const pair_0_1 = new Pair(new TokenAmount(token0, BigInt(1000)), new TokenAmount(token1, BigInt(1000)))
+  const pool_0_1 = new Pool(new TokenAmount(token0, BigInt(1000)), new TokenAmount(token1, BigInt(1000)))
 
-  const pair_weth_0 = new Pair(new TokenAmount(WETH[ChainId.MAINNET], '1000'), new TokenAmount(token0, '1000'))
+  const pool_weth_0 = new Pool(new TokenAmount(WETH[ChainId.MAINNET], '1000'), new TokenAmount(token0, '1000'))
 
   describe('#swapCallParameters', () => {
     describe('exact in', () => {
       it('ether to token1', () => {
         const result = Router.swapCallParameters(
-          Trade.exactIn(new Route([pair_weth_0, pair_0_1], ETHER, token1), CurrencyAmount.ether(BigInt(100))),
+          Trade.exactIn(new Route([pool_weth_0, pool_0_1], ETHER, token1), CurrencyAmount.ether(BigInt(100))),
           { ttl: 50, recipient: '0x0000000000000000000000000000000000000004', allowedSlippage: new Percent('1', '100') }
         )
         expect(result.methodName).toEqual('swapExactETHForTokens')
@@ -35,7 +35,7 @@ describe('Router', () => {
 
       it('deadline specified', () => {
         const result = Router.swapCallParameters(
-          Trade.exactIn(new Route([pair_weth_0, pair_0_1], ETHER, token1), CurrencyAmount.ether(BigInt(100))),
+          Trade.exactIn(new Route([pool_weth_0, pool_0_1], ETHER, token1), CurrencyAmount.ether(BigInt(100))),
           {
             deadline: 50,
             recipient: '0x0000000000000000000000000000000000000004',
@@ -54,7 +54,7 @@ describe('Router', () => {
 
       it('token1 to ether', () => {
         const result = Router.swapCallParameters(
-          Trade.exactIn(new Route([pair_0_1, pair_weth_0], token1, ETHER), new TokenAmount(token1, BigInt(100))),
+          Trade.exactIn(new Route([pool_0_1, pool_weth_0], token1, ETHER), new TokenAmount(token1, BigInt(100))),
           { ttl: 50, recipient: '0x0000000000000000000000000000000000000004', allowedSlippage: new Percent('1', '100') }
         )
         expect(result.methodName).toEqual('swapExactTokensForETH')
@@ -69,7 +69,7 @@ describe('Router', () => {
       })
       it('token0 to token1', () => {
         const result = Router.swapCallParameters(
-          Trade.exactIn(new Route([pair_0_1], token0, token1), new TokenAmount(token0, BigInt(100))),
+          Trade.exactIn(new Route([pool_0_1], token0, token1), new TokenAmount(token0, BigInt(100))),
           { ttl: 50, recipient: '0x0000000000000000000000000000000000000004', allowedSlippage: new Percent('1', '100') }
         )
         expect(result.methodName).toEqual('swapExactTokensForTokens')
@@ -86,7 +86,7 @@ describe('Router', () => {
     describe('exact out', () => {
       it('ether to token1', () => {
         const result = Router.swapCallParameters(
-          Trade.exactOut(new Route([pair_weth_0, pair_0_1], ETHER, token1), new TokenAmount(token1, BigInt(100))),
+          Trade.exactOut(new Route([pool_weth_0, pool_0_1], ETHER, token1), new TokenAmount(token1, BigInt(100))),
           { ttl: 50, recipient: '0x0000000000000000000000000000000000000004', allowedSlippage: new Percent('1', '100') }
         )
         expect(result.methodName).toEqual('swapETHForExactTokens')
@@ -100,7 +100,7 @@ describe('Router', () => {
       })
       it('token1 to ether', () => {
         const result = Router.swapCallParameters(
-          Trade.exactOut(new Route([pair_0_1, pair_weth_0], token1, ETHER), CurrencyAmount.ether(BigInt(100))),
+          Trade.exactOut(new Route([pool_0_1, pool_weth_0], token1, ETHER), CurrencyAmount.ether(BigInt(100))),
           { ttl: 50, recipient: '0x0000000000000000000000000000000000000004', allowedSlippage: new Percent('1', '100') }
         )
         expect(result.methodName).toEqual('swapTokensForExactETH')
@@ -115,7 +115,7 @@ describe('Router', () => {
       })
       it('token0 to token1', () => {
         const result = Router.swapCallParameters(
-          Trade.exactOut(new Route([pair_0_1], token0, token1), new TokenAmount(token1, BigInt(100))),
+          Trade.exactOut(new Route([pool_0_1], token0, token1), new TokenAmount(token1, BigInt(100))),
           { ttl: 50, recipient: '0x0000000000000000000000000000000000000004', allowedSlippage: new Percent('1', '100') }
         )
         expect(result.methodName).toEqual('swapTokensForExactTokens')
@@ -133,7 +133,7 @@ describe('Router', () => {
       describe('exact in', () => {
         it('ether to token1', () => {
           const result = Router.swapCallParameters(
-            Trade.exactIn(new Route([pair_weth_0, pair_0_1], ETHER, token1), CurrencyAmount.ether(BigInt(100))),
+            Trade.exactIn(new Route([pool_weth_0, pool_0_1], ETHER, token1), CurrencyAmount.ether(BigInt(100))),
             {
               ttl: 50,
               recipient: '0x0000000000000000000000000000000000000004',
@@ -152,7 +152,7 @@ describe('Router', () => {
         })
         it('token1 to ether', () => {
           const result = Router.swapCallParameters(
-            Trade.exactIn(new Route([pair_0_1, pair_weth_0], token1, ETHER), new TokenAmount(token1, BigInt(100))),
+            Trade.exactIn(new Route([pool_0_1, pool_weth_0], token1, ETHER), new TokenAmount(token1, BigInt(100))),
             {
               ttl: 50,
               recipient: '0x0000000000000000000000000000000000000004',
@@ -172,7 +172,7 @@ describe('Router', () => {
         })
         it('token0 to token1', () => {
           const result = Router.swapCallParameters(
-            Trade.exactIn(new Route([pair_0_1], token0, token1), new TokenAmount(token0, BigInt(100))),
+            Trade.exactIn(new Route([pool_0_1], token0, token1), new TokenAmount(token0, BigInt(100))),
             {
               ttl: 50,
               recipient: '0x0000000000000000000000000000000000000004',
@@ -195,7 +195,7 @@ describe('Router', () => {
         it('ether to token1', () => {
           expect(() =>
             Router.swapCallParameters(
-              Trade.exactOut(new Route([pair_weth_0, pair_0_1], ETHER, token1), new TokenAmount(token1, BigInt(100))),
+              Trade.exactOut(new Route([pool_weth_0, pool_0_1], ETHER, token1), new TokenAmount(token1, BigInt(100))),
               {
                 ttl: 50,
                 recipient: '0x0000000000000000000000000000000000000004',
@@ -208,7 +208,7 @@ describe('Router', () => {
         it('token1 to ether', () => {
           expect(() =>
             Router.swapCallParameters(
-              Trade.exactOut(new Route([pair_0_1, pair_weth_0], token1, ETHER), CurrencyAmount.ether(BigInt(100))),
+              Trade.exactOut(new Route([pool_0_1, pool_weth_0], token1, ETHER), CurrencyAmount.ether(BigInt(100))),
               {
                 ttl: 50,
                 recipient: '0x0000000000000000000000000000000000000004',
@@ -221,7 +221,7 @@ describe('Router', () => {
         it('token0 to token1', () => {
           expect(() =>
             Router.swapCallParameters(
-              Trade.exactOut(new Route([pair_0_1], token0, token1), new TokenAmount(token1, BigInt(100))),
+              Trade.exactOut(new Route([pool_0_1], token0, token1), new TokenAmount(token1, BigInt(100))),
               {
                 ttl: 50,
                 recipient: '0x0000000000000000000000000000000000000004',
