@@ -5,6 +5,7 @@ import { Pool } from './entities/pool'
 import { Route } from './entities/route'
 import { Trade } from './entities/trade'
 import { Router } from './router'
+import { FeeAmount } from './constants'
 
 function checkDeadline(deadline: string[] | string): void {
   expect(typeof deadline).toBe('string')
@@ -17,9 +18,17 @@ describe.skip('Router', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
 
-  const pool_0_1 = new Pool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token1, JSBI.BigInt(1000)))
+  const pool_0_1 = new Pool(
+    new TokenAmount(token0, JSBI.BigInt(1000)),
+    new TokenAmount(token1, JSBI.BigInt(1000)),
+    FeeAmount.MEDIUM
+  )
 
-  const pool_weth_0 = new Pool(new TokenAmount(WETH9[ChainId.MAINNET], '1000'), new TokenAmount(token0, '1000'))
+  const pool_weth_0 = new Pool(
+    new TokenAmount(WETH9[ChainId.MAINNET], '1000'),
+    new TokenAmount(token0, '1000'),
+    FeeAmount.MEDIUM
+  )
 
   describe('#swapCallParameters', () => {
     describe('exact in', () => {

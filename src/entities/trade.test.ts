@@ -3,6 +3,7 @@ import JSBI from 'jsbi'
 import { Trade } from './trade'
 import { Pool } from './pool'
 import { Route } from './route'
+import { FeeAmount } from '../constants'
 
 describe.skip('Trade', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
@@ -10,18 +11,43 @@ describe.skip('Trade', () => {
   const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2')
   const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3')
 
-  const pool_0_1 = new Pool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token1, JSBI.BigInt(1000)))
-  const pool_0_2 = new Pool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token2, JSBI.BigInt(1100)))
-  const pool_0_3 = new Pool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token3, JSBI.BigInt(900)))
-  const pool_1_2 = new Pool(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token2, JSBI.BigInt(1000)))
-  const pool_1_3 = new Pool(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token3, JSBI.BigInt(1300)))
+  const pool_0_1 = new Pool(
+    new TokenAmount(token0, JSBI.BigInt(1000)),
+    new TokenAmount(token1, JSBI.BigInt(1000)),
+    FeeAmount.MEDIUM
+  )
+  const pool_0_2 = new Pool(
+    new TokenAmount(token0, JSBI.BigInt(1000)),
+    new TokenAmount(token2, JSBI.BigInt(1100)),
+    FeeAmount.MEDIUM
+  )
+  const pool_0_3 = new Pool(
+    new TokenAmount(token0, JSBI.BigInt(1000)),
+    new TokenAmount(token3, JSBI.BigInt(900)),
+    FeeAmount.MEDIUM
+  )
+  const pool_1_2 = new Pool(
+    new TokenAmount(token1, JSBI.BigInt(1200)),
+    new TokenAmount(token2, JSBI.BigInt(1000)),
+    FeeAmount.MEDIUM
+  )
+  const pool_1_3 = new Pool(
+    new TokenAmount(token1, JSBI.BigInt(1200)),
+    new TokenAmount(token3, JSBI.BigInt(1300)),
+    FeeAmount.MEDIUM
+  )
 
   const pool_weth_0 = new Pool(
     new TokenAmount(WETH9[ChainId.MAINNET], JSBI.BigInt(1000)),
-    new TokenAmount(token0, JSBI.BigInt(1000))
+    new TokenAmount(token0, JSBI.BigInt(1000)),
+    FeeAmount.MEDIUM
   )
 
-  const empty_pool_0_1 = new Pool(new TokenAmount(token0, JSBI.BigInt(0)), new TokenAmount(token1, JSBI.BigInt(0)))
+  const empty_pool_0_1 = new Pool(
+    new TokenAmount(token0, JSBI.BigInt(0)),
+    new TokenAmount(token1, JSBI.BigInt(0)),
+    FeeAmount.MEDIUM
+  )
 
   it('can be constructed with ETHER as input', () => {
     const trade = new Trade(

@@ -1,4 +1,5 @@
 import { ETHER, Token, TokenAmount, WETH9, ChainId } from '@uniswap/sdk-core'
+import { FeeAmount } from '../constants'
 import { Pool } from './pool'
 import { Route } from './route'
 
@@ -6,9 +7,9 @@ describe.skip('Route', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const weth = WETH9[ChainId.MAINNET]
-  const pool_0_1 = new Pool(new TokenAmount(token0, '100'), new TokenAmount(token1, '200'))
-  const pool_0_weth = new Pool(new TokenAmount(token0, '100'), new TokenAmount(weth, '100'))
-  const pool_1_weth = new Pool(new TokenAmount(token1, '175'), new TokenAmount(weth, '100'))
+  const pool_0_1 = new Pool(new TokenAmount(token0, '100'), new TokenAmount(token1, '200'), FeeAmount.MEDIUM)
+  const pool_0_weth = new Pool(new TokenAmount(token0, '100'), new TokenAmount(weth, '100'), FeeAmount.MEDIUM)
+  const pool_1_weth = new Pool(new TokenAmount(token1, '175'), new TokenAmount(weth, '100'), FeeAmount.MEDIUM)
 
   describe('path', () => {
     it('constructs a path from the tokens', () => {

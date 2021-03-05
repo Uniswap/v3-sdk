@@ -29,16 +29,19 @@ export const computePoolAddress = ({
 
 export class Pool {
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
+  private readonly fee: FeeAmount
 
   public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount): string {
     return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB })
   }
 
-  public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
+  public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount, fee: FeeAmount) {
+    invariant(Number.isInteger(fee), 'Fees can only be integer (uint24) values.')
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
       ? [tokenAmountA, tokenAmountB]
       : [tokenAmountB, tokenAmountA]
     this.tokenAmounts = tokenAmounts as [TokenAmount, TokenAmount]
+    this.fee = fee
   }
 
   /**
@@ -77,6 +80,10 @@ export class Pool {
    */
   public get chainId(): ChainId | number {
     return this.token0.chainId
+  }
+
+  public get feeLevel(): FeeAmount {
+    return this.fee
   }
 
   public get token0(): Token {
