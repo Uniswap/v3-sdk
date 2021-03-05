@@ -13,7 +13,7 @@ function checkDeadline(deadline: string[] | string): void {
   expect(new Date().getTime() / 1000 - parseInt(deadline)).toBeLessThanOrEqual(5)
 }
 
-describe('Router', () => {
+describe.skip('Router', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
 
