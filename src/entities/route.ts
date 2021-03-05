@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 
-import { ChainId, Currency, ETHER, Token, WETH } from '@uniswap/sdk-core'
+import { ChainId, Currency, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
 import { Pool } from './pool'
 
 export class Route {
@@ -17,20 +17,20 @@ export class Route {
     invariant(allOnSameChain, 'CHAIN_IDS: must be the same for all pools')
 
     const inputTokenIsInFirstPool = input instanceof Token && pools[0].involvesToken(input)
-    const inputWethIsInFirstPool = input === ETHER && pools[0].involvesToken(WETH[pools[0].chainId])
+    const inputWethIsInFirstPool = input === ETHER && pools[0].involvesToken(WETH9[pools[0].chainId])
     const inputIsValid = inputTokenIsInFirstPool || inputWethIsInFirstPool
     invariant(inputIsValid, 'INPUT: not in first pool')
 
     const noOutput = typeof output === 'undefined'
     const outputTokenIsInLastPool = output instanceof Token && pools[pools.length - 1].involvesToken(output)
-    const outputWethIsInLastPool = output === ETHER && pools[pools.length - 1].involvesToken(WETH[pools[0].chainId])
+    const outputWethIsInLastPool = output === ETHER && pools[pools.length - 1].involvesToken(WETH9[pools[0].chainId])
     const outputIsValid = noOutput || outputTokenIsInLastPool || outputWethIsInLastPool
     invariant(outputIsValid, 'OUTPUT: not in last pool')
 
     /**
      * Normalizes token0-token1 order and selects the next token/fee step to add to the path
      * */
-    const tokenPath: Token[] = [input instanceof Token ? input : WETH[pools[0].chainId]]
+    const tokenPath: Token[] = [input instanceof Token ? input : WETH9[pools[0].chainId]]
     for (const [i, pool] of pools.entries()) {
       const currentInputToken = tokenPath[i]
       invariant(

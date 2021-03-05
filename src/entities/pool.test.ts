@@ -1,6 +1,6 @@
 import { FeeAmount } from '../constants'
 import { Pool } from './pool'
-import { Token, WETH, TokenAmount, Price, ChainId } from '@uniswap/sdk-core'
+import { Token, WETH9, TokenAmount, Price, ChainId } from '@uniswap/sdk-core'
 
 describe('Pool', () => {
   const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 18, 'USDC', 'USD Coin')
@@ -8,7 +8,7 @@ describe('Pool', () => {
 
   describe('constructor', () => {
     it('cannot be used for tokens on different chains', () => {
-      expect(() => new Pool(new TokenAmount(USDC, '100'), new TokenAmount(WETH[ChainId.RINKEBY], '100'))).toThrow(
+      expect(() => new Pool(new TokenAmount(USDC, '100'), new TokenAmount(WETH9[ChainId.RINKEBY], '100'))).toThrow(
         'CHAIN_IDS'
       )
     })
@@ -83,7 +83,7 @@ describe('Pool', () => {
     })
 
     it('throws if invalid token', () => {
-      expect(() => pool.priceOf(WETH[ChainId.MAINNET])).toThrow('TOKEN')
+      expect(() => pool.priceOf(WETH9[ChainId.MAINNET])).toThrow('TOKEN')
     })
   })
 
@@ -99,7 +99,7 @@ describe('Pool', () => {
 
     it('throws if not in the pool', () => {
       expect(() =>
-        new Pool(new TokenAmount(DAI, '101'), new TokenAmount(USDC, '100')).reserveOf(WETH[ChainId.MAINNET])
+        new Pool(new TokenAmount(DAI, '101'), new TokenAmount(USDC, '100')).reserveOf(WETH9[ChainId.MAINNET])
       ).toThrow('TOKEN')
     })
   })
@@ -114,7 +114,7 @@ describe('Pool', () => {
     expect(new Pool(new TokenAmount(USDC, '100'), new TokenAmount(DAI, '100')).involvesToken(USDC)).toEqual(true)
     expect(new Pool(new TokenAmount(USDC, '100'), new TokenAmount(DAI, '100')).involvesToken(DAI)).toEqual(true)
     expect(
-      new Pool(new TokenAmount(USDC, '100'), new TokenAmount(DAI, '100')).involvesToken(WETH[ChainId.MAINNET])
+      new Pool(new TokenAmount(USDC, '100'), new TokenAmount(DAI, '100')).involvesToken(WETH9[ChainId.MAINNET])
     ).toEqual(false)
   })
 })

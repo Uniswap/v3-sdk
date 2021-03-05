@@ -1524,10 +1524,10 @@
     semver "^7.3.2"
     tsutils "^3.17.1"
 
-"@uniswap/sdk-core@^1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.6.tgz#46ca5df49661600d484480f871d6f38ffffd7e53"
-  integrity sha512-SvdrOL5mIAIsp47ODDcqlo47p6iQsVZQnn4eem9pK8TO29owSGAz5CqzJB5uxRFPcPvIVYgujMPH4RB9ieF8QA==
+"@uniswap/sdk-core@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.7.tgz#f75a9dc2e0ef9b701ba49214cefd6e5c39c74cdc"
+  integrity sha512-/q+SUnVnJBdp09a75q+DxsnuRdnSIqB8Uqz43tFu0xfRII/R40ZXVZXoKe9dJZNzUZnkMuNXm0DS6jf37i9oaw==
   dependencies:
     "@ethersproject/address" "^5.0.2"
     big.js "^5.2.2"
