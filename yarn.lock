@@ -1403,14 +1403,15 @@
     semver "^7.3.2"
     tsutils "^3.17.1"
 
-"@uniswap/sdk-core@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.2.tgz#1d9fcba01e2d2de2079872bd567514917db67100"
-  integrity sha512-m9hJx+9/7Z4aQcb1p3nxIkEP1KCA40ihiEAUeGH74pA+IJfNnsl/9CZuZDxuiToo/9twbzXKPUoKbimmerLAwA==
+"@uniswap/sdk-core@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.4.tgz#8302acb1542d38d790b35d03db846326cb96d8db"
+  integrity sha512-MI7m0IWGFbgQGSxnI5JPULkoVjC8psw0+MuWYm0weEFRvoPN9LuK/xwyHrUvkf8q53PeOKUyyASDkteOblQDiQ==
   dependencies:
     "@ethersproject/address" "^5.0.2"
     big.js "^5.2.2"
     decimal.js-light "^2.5.0"
+    jsbi "^3.1.4"
     tiny-invariant "^1.1.0"
     tiny-warning "^1.0.3"
     toformat "^2.0.0"
@@ -3970,6 +3971,11 @@ js-yaml@^3.13.1:
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
+
+jsbi@^3.1.4:
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/jsbi/-/jsbi-3.1.4.tgz#9654dd02207a66a4911b4e4bb74265bc2cbc9dd0"
+  integrity sha512-52QRRFSsi9impURE8ZUbzAMCLjPm4THO7H2fcuIvaaeFTbSysvkodbQQXIVsNgq/ypDbq6dJiuGKL0vZ/i9hUg==
 
 jsbn@~0.1.0:
   version "0.1.1"

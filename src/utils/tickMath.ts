@@ -1,12 +1,12 @@
+import { MaxUint256 } from '@uniswap/sdk-core'
+import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 
 export const MAX_TICK: number = 887272
 
-function mulShift(val: bigint, mulBy: string): bigint {
-  return (val * BigInt(mulBy)) >> BigInt(128)
+function mulShift(val: JSBI, mulBy: string): JSBI {
+  return JSBI.signedRightShift(JSBI.multiply(val, JSBI.BigInt(mulBy)), JSBI.BigInt(128))
 }
-
-const MaxUint256 = BigInt(2) ** BigInt(256) - BigInt(1)
 
 export default abstract class TickMath {
   /**
@@ -14,14 +14,14 @@ export default abstract class TickMath {
    */
   private constructor() {}
 
-  static getRatioAtTick(tick: number): bigint {
+  static getRatioAtTick(tick: number): JSBI {
     const absTick: number = tick < 0 ? tick * -1 : tick
     invariant(absTick <= MAX_TICK, 'ABS_TICK')
 
-    let ratio: bigint =
+    let ratio: JSBI =
       (absTick & 0x1) != 0
-        ? BigInt('0xfffcb933bd6fad37aa2d162d1a594001')
-        : BigInt('0x100000000000000000000000000000000')
+        ? JSBI.BigInt('0xfffcb933bd6fad37aa2d162d1a594001')
+        : JSBI.BigInt('0x100000000000000000000000000000000')
     if ((absTick & 0x2) != 0) ratio = mulShift(ratio, '0xfff97272373d413259a46990580e213a')
     if ((absTick & 0x4) != 0) ratio = mulShift(ratio, '0xfff2e50f5f656932ef12357cf3c7fdcc')
     if ((absTick & 0x8) != 0) ratio = mulShift(ratio, '0xffe5caca7e10e4e61c3624eaa0941cd0')
@@ -42,11 +42,11 @@ export default abstract class TickMath {
     if ((absTick & 0x40000) != 0) ratio = mulShift(ratio, '0x2216e584f5fa1ea926041bedfe98')
     if ((absTick & 0x80000) != 0) ratio = mulShift(ratio, '0x48a170391f7dc42444e8fa2')
 
-    if (tick > 0) ratio = MaxUint256 / ratio
+    if (tick > 0) ratio = JSBI.divide(MaxUint256, ratio)
     return ratio
   }
 
-  static getTickAtRatio(_: bigint): number {
+  static getTickAtRatio(_: JSBI): number {
     invariant(false, 'not implemented')
   }
 }
