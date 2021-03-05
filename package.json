@@ -16,7 +16,7 @@
     "uniswap",
     "ethereum"
   ],
-  "module": "dist/sdk.esm.js",
+  "module": "dist/v3-sdk.esm.js",
   "scripts": {
     "build": "tsdx build",
     "start": "tsdx watch",
