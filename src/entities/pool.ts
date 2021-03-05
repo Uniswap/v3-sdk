@@ -1,20 +1,23 @@
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import { pack, keccak256 } from '@ethersproject/solidity'
+import { keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
+import { defaultAbiCoder } from '@ethersproject/abi'
 
 import { FACTORY_ADDRESS, INIT_CODE_HASH } from '../constants'
 
 export class Pool {
-  public readonly liquidityToken: Token
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
-  public static getAddress(tokenA: Token, tokenB: Token): string {
-    const tokens = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
+  public static getAddress(tokenA: Token, tokenB: Token, fee: number): string {
+    const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
 
     return getCreate2Address(
       FACTORY_ADDRESS,
-      keccak256(['bytes'], [pack(['address', 'address'], [tokens[0].address, tokens[1].address])]),
+      keccak256(
+        ['bytes'],
+        [defaultAbiCoder.encode(['address', 'address', 'uint24'], [token0.address, token1.address, fee])]
+      ),
       INIT_CODE_HASH
     )
   }
@@ -23,13 +26,6 @@ export class Pool {
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
       ? [tokenAmountA, tokenAmountB]
       : [tokenAmountB, tokenAmountA]
-    this.liquidityToken = new Token(
-      tokenAmounts[0].token.chainId,
-      Pool.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
-      18,
-      'UNI-V2',
-      'Uniswap V2'
-    )
     this.tokenAmounts = tokenAmounts as [TokenAmount, TokenAmount]
   }
 
@@ -118,8 +114,6 @@ export class Pool {
     __?: BigintIsh
   ): TokenAmount {
     invariant(this.involvesToken(token), 'TOKEN')
-    invariant(totalSupply.token.equals(this.liquidityToken), 'TOTAL_SUPPLY')
-    invariant(liquidity.token.equals(this.liquidityToken), 'LIQUIDITY')
     invariant(liquidity.raw <= totalSupply.raw, 'LIQUIDITY')
     invariant(false, 'todo')
   }

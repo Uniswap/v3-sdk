@@ -1,3 +1,4 @@
+import { FeeAmount } from '../constants'
 import { Pool } from './pool'
 import { Token, WETH, TokenAmount, Price, ChainId } from '@uniswap/sdk-core'
 
@@ -14,8 +15,8 @@ describe('Pool', () => {
   })
 
   describe('#getAddress', () => {
-    it('returns the correct address', () => {
-      expect(Pool.getAddress(USDC, DAI)).toEqual('0xAE461cA67B15dc8dc81CE7615e0320dA1A9aB8D5')
+    it('matches an example', () => {
+      expect(Pool.getAddress(USDC, DAI, FeeAmount.LOW)).toEqual('0x84e755dD2f34969933a9F9334C40b15146d52510')
     })
   })
 

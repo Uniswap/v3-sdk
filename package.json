@@ -24,6 +24,7 @@
     "prepublishOnly": "tsdx build"
   },
   "dependencies": {
+    "@ethersproject/abi": "^5.0.12",
     "@ethersproject/solidity": "^5.0.9",
     "@uniswap/sdk-core": "^1.0.4",
     "tiny-invariant": "^1.1.0",
