@@ -1,10 +1,9 @@
 import JSBI from 'jsbi'
 
 // todo: replace with v3 factory address
-export const FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
+export const FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 
-// todo: replace with v3 init code hash
-export const INIT_CODE_HASH = '0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f'
+export const INIT_CODE_HASH = '0xd4f1a40e4bf7e60d35149863dcd741cd4bb1f6b8e723b3140eca4a488aec8a51'
 
 export const MINIMUM_LIQUIDITY = JSBI.BigInt(1000)
 
