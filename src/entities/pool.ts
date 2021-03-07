@@ -1,25 +1,36 @@
+import { defaultAbiCoder } from '@ethersproject/abi'
+import { getCreate2Address } from '@ethersproject/address'
+import { keccak256 } from '@ethersproject/solidity'
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import { keccak256 } from '@ethersproject/solidity'
-import { getCreate2Address } from '@ethersproject/address'
-import { defaultAbiCoder } from '@ethersproject/abi'
+import { FACTORY_ADDRESS, FeeAmount, INIT_CODE_HASH } from '../constants'
 
-import { FACTORY_ADDRESS, INIT_CODE_HASH } from '../constants'
+export const computePoolAddress = ({
+  factoryAddress,
+  token0,
+  token1,
+  fee
+}: {
+  factoryAddress: string
+  token0: Token
+  token1: Token
+  fee: FeeAmount
+}): string =>
+  getCreate2Address(
+    factoryAddress,
+    keccak256(
+      ['bytes'],
+      [defaultAbiCoder.encode(['address', 'address', 'uint24'], [token0.address, token1.address, fee])]
+    ),
+    INIT_CODE_HASH
+  )
 
 export class Pool {
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
-  public static getAddress(tokenA: Token, tokenB: Token, fee: number): string {
+  public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount): string {
     const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
-
-    return getCreate2Address(
-      FACTORY_ADDRESS,
-      keccak256(
-        ['bytes'],
-        [defaultAbiCoder.encode(['address', 'address', 'uint24'], [token0.address, token1.address, fee])]
-      ),
-      INIT_CODE_HASH
-    )
+    return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, token0, token1 })
   }
 
   public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
@@ -82,7 +93,6 @@ export class Pool {
   public get reserve1(): TokenAmount {
     return this.tokenAmounts[1]
   }
-
   public reserveOf(token: Token): TokenAmount {
     invariant(this.involvesToken(token), 'TOKEN')
     return token.equals(this.token0) ? this.reserve0 : this.reserve1
