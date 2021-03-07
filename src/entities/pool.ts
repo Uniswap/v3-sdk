@@ -63,7 +63,7 @@ export class Pool {
   /**
    * Returns the chain ID of the tokens in the pool.
    */
-  public get chainId(): ChainId {
+  public get chainId(): ChainId | number {
     return this.token0.chainId
   }
 

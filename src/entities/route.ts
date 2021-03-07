@@ -13,24 +13,27 @@ export class Route {
   public constructor(pools: Pool[], input: Currency, output?: Currency) {
     invariant(pools.length > 0, 'POOLS: none provided')
 
-    const allOnSameChain = pools.every(pool => pool.chainId === pools[0].chainId)
+    const chainId = pools[0].chainId
+    const allOnSameChain = pools.every(pool => pool.chainId === chainId)
     invariant(allOnSameChain, 'CHAIN_IDS: must be the same for all pools')
 
+    const weth: Token | undefined = WETH9[chainId as ChainId]
+
     const inputTokenIsInFirstPool = input instanceof Token && pools[0].involvesToken(input)
-    const inputWethIsInFirstPool = input === ETHER && pools[0].involvesToken(WETH9[pools[0].chainId])
+    const inputWethIsInFirstPool = input === ETHER && weth && pools[0].involvesToken(weth)
     const inputIsValid = inputTokenIsInFirstPool || inputWethIsInFirstPool
     invariant(inputIsValid, 'INPUT: not in first pool')
 
     const noOutput = typeof output === 'undefined'
     const outputTokenIsInLastPool = output instanceof Token && pools[pools.length - 1].involvesToken(output)
-    const outputWethIsInLastPool = output === ETHER && pools[pools.length - 1].involvesToken(WETH9[pools[0].chainId])
+    const outputWethIsInLastPool = output === ETHER && weth && pools[pools.length - 1].involvesToken(weth)
     const outputIsValid = noOutput || outputTokenIsInLastPool || outputWethIsInLastPool
     invariant(outputIsValid, 'OUTPUT: not in last pool')
 
     /**
      * Normalizes token0-token1 order and selects the next token/fee step to add to the path
      * */
-    const tokenPath: Token[] = [input instanceof Token ? input : WETH9[pools[0].chainId]]
+    const tokenPath: Token[] = [input instanceof Token ? input : weth]
     for (const [i, pool] of pools.entries()) {
       const currentInputToken = tokenPath[i]
       invariant(
@@ -47,7 +50,7 @@ export class Route {
     this.output = output ?? tokenPath[tokenPath.length - 1]
   }
 
-  public get chainId(): ChainId {
+  public get chainId(): ChainId | number {
     return this.pools[0].chainId
   }
 }
