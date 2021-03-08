@@ -2,7 +2,7 @@ import { FeeAmount } from '../constants'
 import { computePoolAddress, Pool } from './pool'
 import { Token, WETH9, TokenAmount, Price, ChainId } from '@uniswap/sdk-core'
 
-fdescribe('computePoolAddress', () => {
+describe('computePoolAddress', () => {
   it('should correctly compute the pool address', () => {
     const token0 = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 18, 'USDC', 'USD Coin')
     const token1 = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
