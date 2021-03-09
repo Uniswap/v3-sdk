@@ -7,16 +7,17 @@ import { FACTORY_ADDRESS, FeeAmount, INIT_CODE_HASH } from '../constants'
 
 export const computePoolAddress = ({
   factoryAddress,
-  token0,
-  token1,
+  tokenA,
+  tokenB,
   fee
 }: {
   factoryAddress: string
-  token0: Token
-  token1: Token
+  tokenA: Token
+  tokenB: Token
   fee: FeeAmount
-}): string =>
-  getCreate2Address(
+}): string => {
+  const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
+  return getCreate2Address(
     factoryAddress,
     keccak256(
       ['bytes'],
@@ -24,13 +25,13 @@ export const computePoolAddress = ({
     ),
     INIT_CODE_HASH
   )
+}
 
 export class Pool {
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
 
   public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount): string {
-    const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
-    return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, token0, token1 })
+    return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB })
   }
 
   public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
