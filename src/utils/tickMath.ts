@@ -1,12 +1,14 @@
 import { MaxUint256 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-
-export const MAX_TICK: number = 887272
+import { ONE, ZERO } from '../constants'
+import mostSignificantBit from './mostSignificantBit'
 
 function mulShift(val: JSBI, mulBy: string): JSBI {
   return JSBI.signedRightShift(JSBI.multiply(val, JSBI.BigInt(mulBy)), JSBI.BigInt(128))
 }
+
+const Q32 = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(32))
 
 export default abstract class TickMath {
   /**
@@ -14,9 +16,15 @@ export default abstract class TickMath {
    */
   private constructor() {}
 
-  static getRatioAtTick(tick: number): JSBI {
+  static MIN_TICK: number = -887272
+  static MAX_TICK: number = -TickMath.MIN_TICK
+
+  static MIN_SQRT_RATIO: JSBI = JSBI.BigInt('4295128739')
+  static MAX_SQRT_RATIO: JSBI = JSBI.BigInt('1461446703485210103287273052203988822378723970342')
+
+  static getSqrtRatioAtTick(tick: number): JSBI {
     const absTick: number = tick < 0 ? tick * -1 : tick
-    invariant(absTick <= MAX_TICK, 'ABS_TICK')
+    invariant(absTick <= TickMath.MAX_TICK, 'ABS_TICK')
 
     let ratio: JSBI =
       (absTick & 0x1) != 0
@@ -43,10 +51,130 @@ export default abstract class TickMath {
     if ((absTick & 0x80000) != 0) ratio = mulShift(ratio, '0x48a170391f7dc42444e8fa2')
 
     if (tick > 0) ratio = JSBI.divide(MaxUint256, ratio)
-    return ratio
+
+    // back to Q96
+    return JSBI.greaterThanOrEqual(JSBI.remainder(ratio, Q32), ZERO)
+      ? JSBI.add(JSBI.divide(ratio, Q32), ONE)
+      : JSBI.divide(ratio, Q32)
   }
 
-  static getTickAtRatio(_: JSBI): number {
-    invariant(false, 'not implemented')
+  static getTickAtSqrtRatio(sqrtRatioX96: JSBI): number {
+    invariant(
+      JSBI.greaterThanOrEqual(sqrtRatioX96, TickMath.MIN_SQRT_RATIO) &&
+        JSBI.lessThan(sqrtRatioX96, TickMath.MAX_SQRT_RATIO),
+      'SQRT_RATIO'
+    )
+
+    const sqrtRatioX128 = JSBI.leftShift(sqrtRatioX96, JSBI.BigInt(32))
+
+    const msb = mostSignificantBit(sqrtRatioX128)
+
+    let r: JSBI
+    if (JSBI.greaterThanOrEqual(JSBI.BigInt(msb), JSBI.BigInt(128))) {
+      r = JSBI.signedRightShift(sqrtRatioX128, JSBI.BigInt(msb - 127))
+    } else {
+      r = JSBI.leftShift(sqrtRatioX128, JSBI.BigInt(127 - msb))
+    }
+
+    const log_2: JSBI = JSBI.leftShift(JSBI.subtract(JSBI.BigInt(msb), JSBI.BigInt(128)), JSBI.BigInt(64))
+
+    invariant(!log_2 && !r, 'TODO')
+    return 1
+    /**
+     *
+
+     int256 log_2 = (int256(msb) - 128) << 64;
+
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(63, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(62, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(61, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(60, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(59, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(58, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(57, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(56, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(55, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(54, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(53, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(52, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(51, f))
+            r := shr(f, r)
+        }
+     assembly {
+            r := shr(127, mul(r, r))
+            let f := shr(128, r)
+            log_2 := or(log_2, shl(50, f))
+        }
+
+     int256 log_sqrt10001 = log_2 * 255738958999603826347141; // 128.128 number
+
+     int24 tickLow = int24((log_sqrt10001 - 3402992956809132418596140100660247210) >> 128);
+     int24 tickHi = int24((log_sqrt10001 + 291339464771989622907027621153398088495) >> 128);
+
+     tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
+     */
   }
 }
