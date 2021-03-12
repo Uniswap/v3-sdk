@@ -14,7 +14,7 @@ describe('computePoolAddress', () => {
       tokenB
     })
 
-    expect(result).toEqual('0x77FcC14c0c1993Ce52F9c444391aF56F2C0800B0')
+    expect(result).toEqual('0xB52088c346dD1107C8ec3360a7E64a988b15D325')
   })
 
   it('should correctly compute the pool address', () => {
@@ -57,7 +57,7 @@ describe('Pool', () => {
 
   describe('#getAddress', () => {
     it('matches an example', () => {
-      expect(Pool.getAddress(USDC, DAI, FeeAmount.LOW)).toEqual('0x84e755dD2f34969933a9F9334C40b15146d52510')
+      expect(Pool.getAddress(USDC, DAI, FeeAmount.LOW)).toEqual('0x462491f91B7889fC968F35fa510E93F7d40d0DCC')
     })
   })
 
