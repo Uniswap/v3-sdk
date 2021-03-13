@@ -1,12 +1,13 @@
+import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
+import { FeeAmount } from './constants'
 import { Pool } from './entities/pool'
 import { Route } from './entities/route'
+import { Tick } from './entities/tick'
+import { TickList } from './entities/tickList'
 import { Trade } from './entities/trade'
 import { Router } from './router'
-import { FeeAmount } from './constants'
-import { Tick } from './entities/tick'
 
 function checkDeadline(deadline: string[] | string): void {
   expect(typeof deadline).toBe('string')
@@ -20,15 +21,12 @@ describe.skip('Router', () => {
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const sqrtPriceX96Default = 20
   const inRangeLiquidityDefault = 0
-  const tickMapDefault = new Map()
-  tickMapDefault.set(
-    -2,
-    new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 })
-  )
-  tickMapDefault.set(
-    2,
-    new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
-  )
+  const tickMapDefault = new TickList({
+    ticks: [
+      new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
+      new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
+    ]
+  })
   const pool_0_1 = new Pool(
     new TokenAmount(token0, JSBI.BigInt(1000)),
     new TokenAmount(token1, JSBI.BigInt(1000)),

@@ -10,7 +10,7 @@ interface TickConstructorArgs {
 }
 
 export class Tick {
-  private readonly index: number
+  private readonly i: number
   private readonly feeGrowthOutside0X128: JSBI
   private readonly feeGrowthOutside1X128: JSBI
   private readonly liquidityGross: JSBI
@@ -24,7 +24,7 @@ export class Tick {
   }: TickConstructorArgs) {
     this.feeGrowthOutside0X128 = JSBI.BigInt(feeGrowthOutside0X128)
     this.feeGrowthOutside1X128 = JSBI.BigInt(feeGrowthOutside1X128)
-    this.index = index
+    this.i = index
     this.liquidityGross = JSBI.BigInt(liquidityGross)
     this.liquidityNet = JSBI.BigInt(liquidityNet)
   }
@@ -38,5 +38,9 @@ export class Tick {
       this.liquidityNet
     )
     return
+  }
+
+  public get index(): number {
+    return this.i
   }
 }

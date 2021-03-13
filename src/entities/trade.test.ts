@@ -1,10 +1,11 @@
 import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, TradeType, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { Trade } from './trade'
+import { FeeAmount } from '../constants'
 import { Pool } from './pool'
 import { Route } from './route'
-import { FeeAmount } from '../constants'
 import { Tick } from './tick'
+import { TickList } from './tickList'
+import { Trade } from './trade'
 
 describe.skip('Trade', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
@@ -13,15 +14,12 @@ describe.skip('Trade', () => {
   const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3')
   const sqrtPriceX96Default = 20
   const inRangeLiquidityDefault = 0
-  const tickMapDefault = new Map()
-  tickMapDefault.set(
-    -2,
-    new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 })
-  )
-  tickMapDefault.set(
-    2,
-    new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
-  )
+  const tickMapDefault = new TickList({
+    ticks: [
+      new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
+      new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
+    ]
+  })
   const pool_0_1 = new Pool(
     new TokenAmount(token0, JSBI.BigInt(1000)),
     new TokenAmount(token1, JSBI.BigInt(1000)),

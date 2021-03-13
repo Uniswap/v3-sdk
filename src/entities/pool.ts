@@ -5,7 +5,7 @@ import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, INIT_CODE_HASH } from '../constants'
-import { Tick } from './tick'
+import { TickList } from './tickList'
 
 export const computePoolAddress = ({
   factoryAddress,
@@ -34,7 +34,7 @@ export class Pool {
   private readonly fee: FeeAmount
   private readonly sqrtPriceX96: JSBI
   private readonly liquidity: JSBI
-  private readonly ticks: Map<number, Tick>
+  private readonly ticks: TickList
 
   public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount): string {
     return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB })
@@ -46,10 +46,10 @@ export class Pool {
     fee: FeeAmount,
     sqrtPriceX96: BigintIsh,
     inRangeLiquidity: BigintIsh,
-    initializedTicks: Map<number, Tick>
+    initializedTicks: TickList
   ) {
     invariant(Number.isInteger(fee), 'Fees can only be integer (uint24) values.')
-    invariant(initializedTicks?.size > 0, 'Must have at least one initialized tick.')
+    invariant(Boolean(initializedTicks?.head), 'Must have at least one initialized tick.')
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
       ? [tokenAmountA, tokenAmountB]
       : [tokenAmountB, tokenAmountA]
@@ -108,8 +108,8 @@ export class Pool {
     return this.liquidity.toString()
   }
 
-  public get tickMap(): IterableIterator<number> {
-    return this.ticks.keys()
+  public get tickList(): TickList {
+    return this.ticks
   }
 
   public get token0(): Token {

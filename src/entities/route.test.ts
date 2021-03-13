@@ -3,6 +3,7 @@ import { FeeAmount } from '../constants'
 import { Pool } from './pool'
 import { Route } from './route'
 import { Tick } from './tick'
+import { TickList } from './tickList'
 
 describe.skip('Route', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
@@ -10,15 +11,12 @@ describe.skip('Route', () => {
   const weth = WETH9[ChainId.MAINNET]
   const sqrtPriceX96Default = 20
   const inRangeLiquidityDefault = 0
-  const tickMapDefault = new Map()
-  tickMapDefault.set(
-    -2,
-    new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 })
-  )
-  tickMapDefault.set(
-    2,
-    new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
-  )
+  const tickMapDefault = new TickList({
+    ticks: [
+      new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
+      new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
+    ]
+  })
   const pool_0_1 = new Pool(
     new TokenAmount(token0, '100'),
     new TokenAmount(token1, '200'),

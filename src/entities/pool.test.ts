@@ -1,7 +1,8 @@
+import { ChainId, Price, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount } from '../constants'
 import { computePoolAddress, Pool } from './pool'
-import { Token, WETH9, TokenAmount, Price, ChainId } from '@uniswap/sdk-core'
 import { Tick } from './tick'
+import { TickList } from './tickList'
 
 describe('computePoolAddress', () => {
   const factoryAddress = '0x1111111111111111111111111111111111111111'
@@ -49,7 +50,7 @@ describe.skip('Pool', () => {
   let DAI100: TokenAmount
   let USDC: Token
   let USDC100: TokenAmount
-  let tickMapDefault: Map<number, Tick>
+  let tickMapDefault: TickList
   let pool: Pool
   const sqrtPriceX96Default = 20
   const inRangeLiquidityDefault = 0
@@ -58,15 +59,12 @@ describe.skip('Pool', () => {
     DAI = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
     DAI100 = new TokenAmount(DAI, '100')
     USDC100 = new TokenAmount(USDC, '100')
-    tickMapDefault = new Map()
-    tickMapDefault.set(
-      -2,
-      new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 })
-    )
-    tickMapDefault.set(
-      2,
-      new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
-    )
+    tickMapDefault = new TickList({
+      ticks: [
+        new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
+        new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
+      ]
+    })
   })
   describe('constructor', () => {
     it('cannot be used for tokens on different chains', () => {
@@ -90,7 +88,7 @@ describe.skip('Pool', () => {
           FeeAmount.MEDIUM,
           sqrtPriceX96Default,
           inRangeLiquidityDefault,
-          new Map()
+          new TickList({ ticks: [] })
         )
       }).toThrow()
     })
