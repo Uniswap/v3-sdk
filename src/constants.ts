@@ -20,3 +20,6 @@ export const TICK_SPACINGS: { [amount in FeeAmount]: number } = {
   [FeeAmount.MEDIUM]: 60,
   [FeeAmount.HIGH]: 200
 }
+
+export const MAX_TICK = 887272
+export const MIN_TICK = -1 * MAX_TICK

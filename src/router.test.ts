@@ -1,8 +1,11 @@
+import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
+import { FeeAmount } from './constants'
 import { Pool } from './entities/pool'
 import { Route } from './entities/route'
+import { Tick } from './entities/tick'
+import { TickList } from './entities/tickList'
 import { Trade } from './entities/trade'
 import { Router } from './router'
 
@@ -16,10 +19,31 @@ function checkDeadline(deadline: string[] | string): void {
 describe.skip('Router', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
+  const sqrtPriceX96Default = 20
+  const inRangeLiquidityDefault = 0
+  const tickMapDefault = new TickList({
+    ticks: [
+      new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
+      new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
+    ]
+  })
+  const pool_0_1 = new Pool(
+    new TokenAmount(token0, JSBI.BigInt(1000)),
+    new TokenAmount(token1, JSBI.BigInt(1000)),
+    FeeAmount.MEDIUM,
+    sqrtPriceX96Default,
+    inRangeLiquidityDefault,
+    tickMapDefault
+  )
 
-  const pool_0_1 = new Pool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token1, JSBI.BigInt(1000)))
-
-  const pool_weth_0 = new Pool(new TokenAmount(WETH9[ChainId.MAINNET], '1000'), new TokenAmount(token0, '1000'))
+  const pool_weth_0 = new Pool(
+    new TokenAmount(WETH9[ChainId.MAINNET], '1000'),
+    new TokenAmount(token0, '1000'),
+    FeeAmount.MEDIUM,
+    sqrtPriceX96Default,
+    inRangeLiquidityDefault,
+    tickMapDefault
+  )
 
   describe('#swapCallParameters', () => {
     describe('exact in', () => {

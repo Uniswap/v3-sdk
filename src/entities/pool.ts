@@ -2,8 +2,10 @@ import { defaultAbiCoder } from '@ethersproject/abi'
 import { getCreate2Address } from '@ethersproject/address'
 import { keccak256 } from '@ethersproject/solidity'
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
+import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, INIT_CODE_HASH } from '../constants'
+import { TickList } from './tickList'
 
 export const computePoolAddress = ({
   factoryAddress,
@@ -29,16 +31,33 @@ export const computePoolAddress = ({
 
 export class Pool {
   private readonly tokenAmounts: [TokenAmount, TokenAmount]
+  private readonly fee: FeeAmount
+  private readonly sqrtPriceX96: JSBI
+  private readonly liquidity: JSBI
+  private readonly ticks: TickList
 
   public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount): string {
     return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB })
   }
 
-  public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
+  public constructor(
+    tokenAmountA: TokenAmount,
+    tokenAmountB: TokenAmount,
+    fee: FeeAmount,
+    sqrtPriceX96: BigintIsh,
+    inRangeLiquidity: BigintIsh,
+    initializedTicks: TickList
+  ) {
+    invariant(Number.isInteger(fee), 'Fees can only be integer (uint24) values.')
+    invariant(Boolean(initializedTicks?.head), 'Must have at least one initialized tick.')
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
       ? [tokenAmountA, tokenAmountB]
       : [tokenAmountB, tokenAmountA]
     this.tokenAmounts = tokenAmounts as [TokenAmount, TokenAmount]
+    this.fee = fee
+    this.sqrtPriceX96 = JSBI.BigInt(sqrtPriceX96)
+    this.ticks = initializedTicks
+    this.liquidity = JSBI.BigInt(inRangeLiquidity)
   }
 
   /**
@@ -53,6 +72,7 @@ export class Pool {
    * Returns the current mid price of the pool in terms of token0, i.e. the ratio of reserve1 to reserve0
    */
   public get token0Price(): Price {
+    invariant(this.sqrtPriceX96, 'todo')
     return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw)
   }
 
@@ -60,6 +80,7 @@ export class Pool {
    * Returns the current mid price of the pool in terms of token1, i.e. the ratio of reserve0 to reserve1
    */
   public get token1Price(): Price {
+    invariant(this.sqrtPriceX96, 'todo')
     return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw)
   }
 
@@ -77,6 +98,18 @@ export class Pool {
    */
   public get chainId(): ChainId | number {
     return this.token0.chainId
+  }
+
+  public get feeLevel(): FeeAmount {
+    return this.fee
+  }
+
+  public get inRangeLiquidity(): BigintIsh {
+    return this.liquidity.toString()
+  }
+
+  public get tickList(): TickList {
+    return this.ticks
   }
 
   public get token0(): Token {

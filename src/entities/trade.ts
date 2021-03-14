@@ -1,20 +1,19 @@
 import {
+  ChainId,
   Currency,
   CurrencyAmount,
   currencyEquals,
   ETHER,
+  Fraction,
   Percent,
   Price,
   sortedInsert,
   Token,
   TokenAmount,
-  WETH9,
-  ChainId,
   TradeType,
-  Fraction
+  WETH9
 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-
 import { ONE, ZERO } from '../constants'
 import { Pool } from './pool'
 import { Route } from './route'
