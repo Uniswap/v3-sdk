@@ -35,7 +35,6 @@ describe.skip('Router', () => {
     inRangeLiquidityDefault,
     tickMapDefault
   )
-
   const pool_weth_0 = new Pool(
     new TokenAmount(WETH9[ChainId.MAINNET], '1000'),
     new TokenAmount(token0, '1000'),
@@ -44,7 +43,6 @@ describe.skip('Router', () => {
     inRangeLiquidityDefault,
     tickMapDefault
   )
-
   describe('#swapCallParameters', () => {
     describe('exact in', () => {
       it('ether to token1', () => {
@@ -61,7 +59,6 @@ describe.skip('Router', () => {
         expect(result.value).toEqual('0x64')
         checkDeadline(result.args[result.args.length - 1])
       })
-
       it('deadline specified', () => {
         const result = Router.swapCallParameters(
           Trade.exactIn(new Route([pool_weth_0, pool_0_1], ETHER, token1), CurrencyAmount.ether(JSBI.BigInt(100))),
@@ -80,7 +77,6 @@ describe.skip('Router', () => {
         ])
         expect(result.value).toEqual('0x64')
       })
-
       it('token1 to ether', () => {
         const result = Router.swapCallParameters(
           Trade.exactIn(new Route([pool_0_1, pool_weth_0], token1, ETHER), new TokenAmount(token1, JSBI.BigInt(100))),

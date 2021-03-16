@@ -41,7 +41,6 @@ describe.skip('Route', () => {
     inRangeLiquidityDefault,
     tickMapDefault
   )
-
   describe('path', () => {
     it('constructs a path from the tokens', () => {
       const route = new Route([pool_0_1], token0)
@@ -58,21 +57,18 @@ describe.skip('Route', () => {
       expect(() => new Route([pool_0_1], token0, weth)).toThrow()
     })
   })
-
   it('can have a token as both input and output', () => {
     const route = new Route([pool_0_weth, pool_0_1, pool_1_weth], weth)
     expect(route.pools).toEqual([pool_0_weth, pool_0_1, pool_1_weth])
     expect(route.input).toEqual(weth)
     expect(route.output).toEqual(weth)
   })
-
   it('supports ether input', () => {
     const route = new Route([pool_0_weth], ETHER)
     expect(route.pools).toEqual([pool_0_weth])
     expect(route.input).toEqual(ETHER)
     expect(route.output).toEqual(token0)
   })
-
   it('supports ether output', () => {
     const route = new Route([pool_0_weth], token0, ETHER)
     expect(route.pools).toEqual([pool_0_weth])

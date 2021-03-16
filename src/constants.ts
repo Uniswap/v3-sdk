@@ -6,6 +6,7 @@ export const FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 export const INIT_CODE_HASH = '0x56cf930c850ce212aa057e794ef994327f2cb22ca6f87b126cc538e797b9541c'
 
 // exports for internal consumption
+export const NEGATIVE_ONE = JSBI.BigInt(-1)
 export const ZERO = JSBI.BigInt(0)
 export const ONE = JSBI.BigInt(1)
 
@@ -21,5 +22,8 @@ export const TICK_SPACINGS: { [amount in FeeAmount]: number } = {
   [FeeAmount.HIGH]: 200
 }
 
-export const MAX_TICK = 887272
-export const MIN_TICK = -1 * MAX_TICK
+export const MIN_TICK = -887272
+export const MAX_TICK = -MIN_TICK
+
+export const getMinTick = (tickSpacing: number) => Math.ceil(MIN_TICK / tickSpacing) * tickSpacing
+export const getMaxTick = (tickSpacing: number) => Math.floor(MAX_TICK / tickSpacing) * tickSpacing

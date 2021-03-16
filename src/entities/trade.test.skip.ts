@@ -60,7 +60,6 @@ describe.skip('Trade', () => {
     inRangeLiquidityDefault,
     tickMapDefault
   )
-
   const pool_weth_0 = new Pool(
     new TokenAmount(WETH9[ChainId.MAINNET], JSBI.BigInt(1000)),
     new TokenAmount(token0, JSBI.BigInt(1000)),
@@ -69,7 +68,6 @@ describe.skip('Trade', () => {
     inRangeLiquidityDefault,
     tickMapDefault
   )
-
   const empty_pool_0_1 = new Pool(
     new TokenAmount(token0, JSBI.BigInt(0)),
     new TokenAmount(token1, JSBI.BigInt(0)),
@@ -78,7 +76,6 @@ describe.skip('Trade', () => {
     inRangeLiquidityDefault,
     tickMapDefault
   )
-
   it('can be constructed with ETHER as input', () => {
     const trade = new Trade(
       new Route([pool_weth_0], ETHER),
@@ -97,7 +94,6 @@ describe.skip('Trade', () => {
     expect(trade.inputAmount.currency).toEqual(ETHER)
     expect(trade.outputAmount.currency).toEqual(token0)
   })
-
   it('can be constructed with ETHER as output', () => {
     const trade = new Trade(
       new Route([pool_weth_0], token0, ETHER),
@@ -116,7 +112,6 @@ describe.skip('Trade', () => {
     expect(trade.inputAmount.currency).toEqual(token0)
     expect(trade.outputAmount.currency).toEqual(ETHER)
   })
-
   describe('#bestTradeExactIn', () => {
     it('throws with empty pools', () => {
       expect(() => Trade.bestTradeExactIn([], new TokenAmount(token0, JSBI.BigInt(100)), token2)).toThrow('POOLS')
@@ -126,7 +121,6 @@ describe.skip('Trade', () => {
         Trade.bestTradeExactIn([pool_0_2], new TokenAmount(token0, JSBI.BigInt(100)), token2, { maxHops: 0 })
       ).toThrow('MAX_HOPS')
     })
-
     it('provides best route', () => {
       const result = Trade.bestTradeExactIn(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -143,13 +137,11 @@ describe.skip('Trade', () => {
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(69)))
     })
-
     it('doesnt throw for zero liquidity pools', () => {
       expect(Trade.bestTradeExactIn([empty_pool_0_1], new TokenAmount(token0, JSBI.BigInt(100)), token1)).toHaveLength(
         0
       )
     })
-
     it('respects maxHops', () => {
       const result = Trade.bestTradeExactIn(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -161,7 +153,6 @@ describe.skip('Trade', () => {
       expect(result[0].route.pools).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.tokenPath).toEqual([token0, token2])
     })
-
     it('insufficient input for one pool', () => {
       const result = Trade.bestTradeExactIn(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -173,7 +164,6 @@ describe.skip('Trade', () => {
       expect(result[0].route.tokenPath).toEqual([token0, token2])
       expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(1)))
     })
-
     it('respects n', () => {
       const result = Trade.bestTradeExactIn(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -181,10 +171,8 @@ describe.skip('Trade', () => {
         token2,
         { maxNumResults: 1 }
       )
-
       expect(result).toHaveLength(1)
     })
-
     it('no path', () => {
       const result = Trade.bestTradeExactIn(
         [pool_0_1, pool_0_3, pool_1_3],
@@ -193,7 +181,6 @@ describe.skip('Trade', () => {
       )
       expect(result).toHaveLength(0)
     })
-
     it('works for ETHER currency input', () => {
       const result = Trade.bestTradeExactIn(
         [pool_weth_0, pool_0_1, pool_0_3, pool_1_3],
@@ -223,7 +210,6 @@ describe.skip('Trade', () => {
       expect(result[1].outputAmount.currency).toEqual(ETHER)
     })
   })
-
   describe('#maximumAmountIn', () => {
     describe('tradeType = EXACT_INPUT', () => {
       const exactIn = new Trade(
@@ -257,7 +243,6 @@ describe.skip('Trade', () => {
         new TokenAmount(token2, JSBI.BigInt(100)),
         TradeType.EXACT_OUTPUT
       )
-
       it('throws if less than 0', () => {
         expect(() => exactOut.maximumAmountIn(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
           'SLIPPAGE_TOLERANCE'
@@ -279,7 +264,6 @@ describe.skip('Trade', () => {
       })
     })
   })
-
   describe('#minimumAmountOut', () => {
     describe('tradeType = EXACT_INPUT', () => {
       const exactIn = new Trade(
@@ -313,7 +297,6 @@ describe.skip('Trade', () => {
         new TokenAmount(token2, JSBI.BigInt(100)),
         TradeType.EXACT_OUTPUT
       )
-
       it('throws if less than 0', () => {
         expect(() => exactOut.minimumAmountOut(new Percent(JSBI.BigInt(-1), JSBI.BigInt(100)))).toThrow(
           'SLIPPAGE_TOLERANCE'
@@ -335,7 +318,6 @@ describe.skip('Trade', () => {
       })
     })
   })
-
   describe('#bestTradeExactOut', () => {
     it('throws with empty pools', () => {
       expect(() => Trade.bestTradeExactOut([], token0, new TokenAmount(token2, JSBI.BigInt(100)))).toThrow('POOLS')
@@ -345,7 +327,6 @@ describe.skip('Trade', () => {
         Trade.bestTradeExactOut([pool_0_2], token0, new TokenAmount(token2, JSBI.BigInt(100)), { maxHops: 0 })
       ).toThrow('MAX_HOPS')
     })
-
     it('provides best route', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -362,13 +343,11 @@ describe.skip('Trade', () => {
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(156)))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(100)))
     })
-
     it('doesnt throw for zero liquidity pools', () => {
       expect(Trade.bestTradeExactOut([empty_pool_0_1], token1, new TokenAmount(token1, JSBI.BigInt(100)))).toHaveLength(
         0
       )
     })
-
     it('respects maxHops', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -380,7 +359,6 @@ describe.skip('Trade', () => {
       expect(result[0].route.pools).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.tokenPath).toEqual([token0, token2])
     })
-
     it('insufficient liquidity', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -389,7 +367,6 @@ describe.skip('Trade', () => {
       )
       expect(result).toHaveLength(0)
     })
-
     it('insufficient liquidity in one pool but not the other', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -398,7 +375,6 @@ describe.skip('Trade', () => {
       )
       expect(result).toHaveLength(1)
     })
-
     it('respects n', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
@@ -406,10 +382,8 @@ describe.skip('Trade', () => {
         new TokenAmount(token2, JSBI.BigInt(10)),
         { maxNumResults: 1 }
       )
-
       expect(result).toHaveLength(1)
     })
-
     it('no path', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_3, pool_1_3],
@@ -418,7 +392,6 @@ describe.skip('Trade', () => {
       )
       expect(result).toHaveLength(0)
     })
-
     it('works for ETHER currency input', () => {
       const result = Trade.bestTradeExactOut(
         [pool_weth_0, pool_0_1, pool_0_3, pool_1_3],
