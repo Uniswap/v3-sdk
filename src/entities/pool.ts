@@ -4,14 +4,14 @@ import { keccak256 } from '@ethersproject/solidity'
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { FACTORY_ADDRESS, FeeAmount, INIT_CODE_HASH } from '../constants'
+import { FACTORY_ADDRESS, FeeAmount, INIT_CODE_HASH, Q96_BIG_INT } from '../constants'
 import { TickList } from './tickList'
 
 export const computePoolAddress = ({
   factoryAddress,
   tokenA,
   tokenB,
-  fee
+  fee,
 }: {
   factoryAddress: string
   tokenA: Token
@@ -142,12 +142,47 @@ export class Pool {
     throw new Error('todo')
   }
 
-  public getLiquidityMinted(
-    _totalSupply: TokenAmount,
-    _tokenAmountA: TokenAmount,
-    _tokenAmountB: TokenAmount
-  ): TokenAmount {
-    throw new Error('todo')
+  private getLiquidityForAmount0(_sqrtRatioAX96: JSBI, _sqrtRatioBX96: JSBI, _amount0: TokenAmount): JSBI {
+    if (JSBI.greaterThan(_sqrtRatioAX96, _sqrtRatioBX96)) {
+      ;[_sqrtRatioAX96, _sqrtRatioBX96] = [_sqrtRatioBX96, _sqrtRatioAX96]
+    }
+    const intermediate = JSBI.divide(JSBI.multiply(_sqrtRatioAX96, _sqrtRatioBX96), Q96_BIG_INT)
+    return JSBI.divide(JSBI.multiply(_amount0.raw, intermediate), JSBI.subtract(_sqrtRatioBX96, _sqrtRatioAX96))
+  }
+
+  private getLiquidityForAmount1(_sqrtRatioAX96: JSBI, _sqrtRatioBX96: JSBI, _amount1: TokenAmount): JSBI {
+    if (JSBI.greaterThan(_sqrtRatioAX96, _sqrtRatioBX96)) {
+      ;[_sqrtRatioAX96, _sqrtRatioBX96] = [_sqrtRatioBX96, _sqrtRatioAX96]
+    }
+    return JSBI.divide(JSBI.multiply(_amount1.raw, Q96_BIG_INT), JSBI.subtract(_sqrtRatioBX96, _sqrtRatioAX96))
+  }
+
+  /**
+   * Computes the maximum amount of liquidity received for a given amount of token0, token1,
+   * and the prices at the tick boundaries.
+   * @param _sqrtRatioAX96 price at lower boundary
+   * @param _sqrtRatioBX96 price at upper boundary
+   * @param _amount0 token0 amount
+   * @param _amount1 token1 amount
+   */
+  public getLiquidityForAmounts(
+    _sqrtRatioAX96: JSBI,
+    _sqrtRatioBX96: JSBI,
+    _amount0: TokenAmount,
+    _amount1: TokenAmount
+  ): JSBI {
+    if (JSBI.greaterThan(_sqrtRatioAX96, _sqrtRatioBX96)) {
+      ;[_sqrtRatioAX96, _sqrtRatioBX96] = [_sqrtRatioBX96, _sqrtRatioAX96]
+    }
+    if (JSBI.lessThan(this.sqrtPriceX96, _sqrtRatioAX96)) {
+      return this.getLiquidityForAmount0(this.sqrtPriceX96, _sqrtRatioBX96, _amount0)
+    } else if (JSBI.lessThan(this.sqrtPriceX96, _sqrtRatioAX96)) {
+      const liquidity0 = this.getLiquidityForAmount0(this.sqrtPriceX96, _sqrtRatioBX96, _amount0)
+      const liquidity1 = this.getLiquidityForAmount1(_sqrtRatioAX96, this.sqrtPriceX96, _amount1)
+      return JSBI.lessThan(liquidity0, liquidity1) ? liquidity0 : liquidity1
+    } else {
+      return this.getLiquidityForAmount1(_sqrtRatioAX96, _sqrtRatioBX96, _amount1)
+    }
   }
 
   public getLiquidityValue(
