@@ -175,7 +175,7 @@ export class Pool {
       ;[_sqrtRatioAX96, _sqrtRatioBX96] = [_sqrtRatioBX96, _sqrtRatioAX96]
     }
     if (JSBI.lessThan(this.sqrtPriceX96, _sqrtRatioAX96)) {
-      return this.getLiquidityForAmount0(this.sqrtPriceX96, _sqrtRatioBX96, _amount0)
+      return this.getLiquidityForAmount0(_sqrtRatioAX96, _sqrtRatioBX96, _amount0)
     } else if (JSBI.lessThan(this.sqrtPriceX96, _sqrtRatioAX96)) {
       const liquidity0 = this.getLiquidityForAmount0(this.sqrtPriceX96, _sqrtRatioBX96, _amount0)
       const liquidity1 = this.getLiquidityForAmount1(_sqrtRatioAX96, this.sqrtPriceX96, _amount1)
