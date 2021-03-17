@@ -11,7 +11,7 @@ export const computePoolAddress = ({
   factoryAddress,
   tokenA,
   tokenB,
-  fee,
+  fee
 }: {
   factoryAddress: string
   tokenA: Token
