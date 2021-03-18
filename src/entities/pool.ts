@@ -11,7 +11,7 @@ export const computePoolAddress = ({
   factoryAddress,
   tokenA,
   tokenB,
-  fee
+  fee,
 }: {
   factoryAddress: string
   tokenA: Token
@@ -176,7 +176,7 @@ export class Pool {
     }
     if (JSBI.lessThan(this.sqrtPriceX96, _sqrtRatioAX96)) {
       return this.getLiquidityForAmount0(_sqrtRatioAX96, _sqrtRatioBX96, _amount0)
-    } else if (JSBI.lessThan(this.sqrtPriceX96, _sqrtRatioAX96)) {
+    } else if (JSBI.lessThan(this.sqrtPriceX96, _sqrtRatioBX96)) {
       const liquidity0 = this.getLiquidityForAmount0(this.sqrtPriceX96, _sqrtRatioBX96, _amount0)
       const liquidity1 = this.getLiquidityForAmount1(_sqrtRatioAX96, this.sqrtPriceX96, _amount1)
       return JSBI.lessThan(liquidity0, liquidity1) ? liquidity0 : liquidity1

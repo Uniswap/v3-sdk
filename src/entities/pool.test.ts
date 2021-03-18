@@ -3,6 +3,8 @@ import { FeeAmount } from '../constants'
 import { computePoolAddress, Pool } from './pool'
 import { Tick } from './tick'
 import { TickList } from './tickList'
+import { encodePriceSqrt } from '../utils/encodePriceSqrt'
+import JSBI from 'jsbi'
 
 describe('computePoolAddress', () => {
   const factoryAddress = '0x1111111111111111111111111111111111111111'
@@ -45,9 +47,10 @@ describe('computePoolAddress', () => {
   })
 })
 
-describe.skip('Pool', () => {
+describe('Pool', () => {
   let DAI: Token
   let DAI100: TokenAmount
+  let DAI200: TokenAmount
   let USDC: Token
   let USDC100: TokenAmount
   let tickMapDefault: TickList
@@ -59,6 +62,7 @@ describe.skip('Pool', () => {
     DAI = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
     DAI100 = new TokenAmount(DAI, '100')
     USDC100 = new TokenAmount(USDC, '100')
+    DAI200 = new TokenAmount(DAI, '200')
     tickMapDefault = new TickList({
       ticks: [
         new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
@@ -94,7 +98,7 @@ describe.skip('Pool', () => {
     })
   })
 
-  describe('#getAddress', () => {
+  describe.skip('#getAddress', () => {
     it('matches an example', () => {
       const result = Pool.getAddress(USDC, DAI, FeeAmount.LOW)
       expect(result).toEqual('0x84e755dD2f34969933a9F9334C40b15146d52510')
@@ -214,7 +218,7 @@ describe.skip('Pool', () => {
     })
   })
 
-  describe('#priceOf', () => {
+  describe.skip('#priceOf', () => {
     const pool = new Pool(
       new TokenAmount(USDC, '101'),
       DAI100,
@@ -279,11 +283,43 @@ describe.skip('Pool', () => {
       expect(pool.chainId).toEqual(ChainId.MAINNET)
     })
   })
-  describe('#involvesToken', () => {
+  describe.skip('#involvesToken', () => {
     pool = new Pool(USDC100, DAI100, FeeAmount.LOW, sqrtPriceX96Default, inRangeLiquidityDefault, tickMapDefault)
     expect(pool.involvesToken(USDC)).toEqual(true)
     expect(pool.involvesToken(DAI)).toEqual(true)
-    pool = new Pool(USDC100, DAI100, FeeAmount.LOW, sqrtPriceX96Default, inRangeLiquidityDefault, tickMapDefault)
     expect(pool.involvesToken(WETH9[ChainId.MAINNET])).toEqual(false)
+  })
+
+  describe('#getLiquidityForAmounts', () => {
+    it('amounts for price inside', () => {
+      pool = new Pool(USDC100, DAI100, FeeAmount.LOW, encodePriceSqrt(1, 1), inRangeLiquidityDefault, tickMapDefault)
+      const sqrtPriceAX96 = encodePriceSqrt(100, 110)
+      const sqrtPriceBX96 = encodePriceSqrt(110, 100)
+      const liquidity = pool.getLiquidityForAmounts(sqrtPriceAX96, sqrtPriceBX96, USDC100, DAI200)
+      expect(liquidity).toEqual(JSBI.BigInt(2148))
+    })
+
+    it('amounts for price below', () => {
+      pool = new Pool(USDC100, DAI100, FeeAmount.LOW, encodePriceSqrt(99, 110), inRangeLiquidityDefault, tickMapDefault)
+      const sqrtPriceAX96 = encodePriceSqrt(100, 110)
+      const sqrtPriceBX96 = encodePriceSqrt(110, 100)
+      const liquidity = pool.getLiquidityForAmounts(sqrtPriceAX96, sqrtPriceBX96, USDC100, DAI200)
+      expect(liquidity).toEqual(JSBI.BigInt(1048))
+    })
+
+    it('amounts for price above', () => {
+      pool = new Pool(
+        USDC100,
+        DAI100,
+        FeeAmount.LOW,
+        encodePriceSqrt(111, 100),
+        inRangeLiquidityDefault,
+        tickMapDefault
+      )
+      const sqrtPriceAX96 = encodePriceSqrt(100, 110)
+      const sqrtPriceBX96 = encodePriceSqrt(110, 100)
+      const liquidity = pool.getLiquidityForAmounts(sqrtPriceAX96, sqrtPriceBX96, USDC100, DAI200)
+      expect(liquidity).toEqual(JSBI.BigInt(2097))
+    })
   })
 })
