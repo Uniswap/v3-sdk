@@ -10,7 +10,7 @@ const POWERS_OF_2 = [128, 64, 32, 16, 8, 4, 2, 1].map((pow: number): [number, JS
 ])
 
 export default function mostSignificantBit(x: JSBI): number {
-  invariant(JSBI.greaterThan(x, ZERO))
+  invariant(JSBI.greaterThan(x, ZERO), 'ZERO')
 
   let msb: number = 0
   for (const [power, min] of POWERS_OF_2) {
