@@ -21,7 +21,7 @@ describe('TickMath', () => {
       expect(TickMath.getSqrtRatioAtTick(TickMath.MAX_TICK)).toEqual(TickMath.MAX_SQRT_RATIO)
     })
   })
-  describe.skip('#getTickAtSqrtRatio', () => {
+  describe('#getTickAtSqrtRatio', () => {
     it('returns the correct value for sqrt ratio at min tick', () => {
       expect(TickMath.getTickAtSqrtRatio(TickMath.MIN_SQRT_RATIO)).toEqual(TickMath.MIN_TICK)
     })

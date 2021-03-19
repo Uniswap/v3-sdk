@@ -76,105 +76,34 @@ export default abstract class TickMath {
       r = JSBI.leftShift(sqrtRatioX128, JSBI.BigInt(127 - msb))
     }
 
-    const log_2: JSBI = JSBI.leftShift(JSBI.subtract(JSBI.BigInt(msb), JSBI.BigInt(128)), JSBI.BigInt(64))
+    let log_2: JSBI = JSBI.leftShift(JSBI.subtract(JSBI.BigInt(msb), JSBI.BigInt(128)), JSBI.BigInt(64))
 
-    invariant(!log_2 && !r, 'TODO')
-    return 1
-    /**
-     *
+    for (let i = 0; i < 14; i++) {
+      r = JSBI.signedRightShift(JSBI.multiply(r, r), JSBI.BigInt(127))
+      const f = JSBI.signedRightShift(r, JSBI.BigInt(128))
+      log_2 = JSBI.bitwiseOr(log_2, JSBI.leftShift(f, JSBI.BigInt(63 - i)))
+      r = JSBI.signedRightShift(r, f)
+    }
 
-     int256 log_2 = (int256(msb) - 128) << 64;
+    const log_sqrt10001 = JSBI.multiply(log_2, JSBI.BigInt('255738958999603826347141'))
 
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(63, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(62, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(61, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(60, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(59, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(58, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(57, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(56, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(55, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(54, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(53, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(52, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(51, f))
-            r := shr(f, r)
-        }
-     assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(50, f))
-        }
+    const tickLow = JSBI.toNumber(
+      JSBI.signedRightShift(
+        JSBI.subtract(log_sqrt10001, JSBI.BigInt('3402992956809132418596140100660247210')),
+        JSBI.BigInt(128)
+      )
+    )
+    const tickHigh = JSBI.toNumber(
+      JSBI.signedRightShift(
+        JSBI.add(log_sqrt10001, JSBI.BigInt('291339464771989622907027621153398088495')),
+        JSBI.BigInt(128)
+      )
+    )
 
-     int256 log_sqrt10001 = log_2 * 255738958999603826347141; // 128.128 number
-
-     int24 tickLow = int24((log_sqrt10001 - 3402992956809132418596140100660247210) >> 128);
-     int24 tickHi = int24((log_sqrt10001 + 291339464771989622907027621153398088495) >> 128);
-
-     tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
-     */
+    return tickLow === tickHigh
+      ? tickLow
+      : JSBI.lessThanOrEqual(TickMath.getSqrtRatioAtTick(tickHigh), sqrtRatioX96)
+      ? tickHigh
+      : tickLow
   }
 }
