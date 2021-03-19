@@ -1,7 +1,4 @@
 import JSBI from 'jsbi'
-import bn from 'bignumber.js'
-
-bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 })
 
 // todo: replace with v3 factory address
 export const FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
@@ -13,7 +10,7 @@ export const ZERO = JSBI.BigInt(0)
 export const ONE = JSBI.BigInt(1)
 
 // used in liquiditiy amount math
-export const Q96_BIG_INT = JSBI.BigInt(new bn(2).pow(96))
+export const Q96_BIG_INT = JSBI.BigInt(2 ** 96)
 
 export enum FeeAmount {
   LOW = 500,
