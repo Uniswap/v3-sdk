@@ -1,3 +1,9 @@
+# Work in progress
+
+This SDK is still an early work in progress, 
+not yet ready for use. The npm package is still private.
+Feedback is welcome.
+
 # Uniswap V3 SDK
 
 [![Unit Tests](https://github.com/Uniswap/uniswap-v3-sdk/workflows/Unit%20Tests/badge.svg)](https://github.com/Uniswap/uniswap-v3-sdk/actions?query=workflow%3A%22Unit+Tests%22)
