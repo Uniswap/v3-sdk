@@ -1,6 +1,6 @@
 # Work in progress
 
-This SDK is still an early work in progress, 
+This SDK is still an early work in progress,
 not yet ready for use. The npm package is still private.
 Feedback is welcome.
 
