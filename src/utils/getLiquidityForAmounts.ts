@@ -1,6 +1,6 @@
 import { TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { Q96 } from '../constants'
+import { Q96 } from '../internalConstants'
 
 export function getLiquidityForAmount0(_sqrtRatioAX96: JSBI, _sqrtRatioBX96: JSBI, _amount0: TokenAmount): JSBI {
   if (JSBI.greaterThan(_sqrtRatioAX96, _sqrtRatioBX96)) {

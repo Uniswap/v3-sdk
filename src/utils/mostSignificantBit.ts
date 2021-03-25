@@ -1,6 +1,6 @@
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { ZERO } from '../constants'
+import { ZERO } from '../internalConstants'
 
 const TWO = JSBI.BigInt(2)
 

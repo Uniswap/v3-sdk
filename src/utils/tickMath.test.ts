@@ -1,5 +1,5 @@
 import JSBI from 'jsbi'
-import { ONE } from '../constants'
+import { ONE } from '../internalConstants'
 import { TickMath } from './tickMath'
 
 describe('TickMath', () => {

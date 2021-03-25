@@ -13,4 +13,3 @@ export {
   MIN_TICK,
   MAX_TICK
 } from './constants'
-export { SQUARED_PRICE_DENOMINATOR } from './constants'

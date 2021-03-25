@@ -2,7 +2,7 @@ import { Price, Token } from '@uniswap/sdk-core'
 import Decimal from 'decimal.js-light'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { SQUARED_PRICE_DENOMINATOR } from '../constants'
+import { Q192 } from '../internalConstants'
 import { TickMath } from './tickMath'
 
 /**
@@ -18,8 +18,8 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
   const ratioX192 = JSBI.multiply(sqrtRatioX96, sqrtRatioX96)
 
   return baseToken.sortsBefore(quoteToken)
-    ? new Price(baseToken, quoteToken, SQUARED_PRICE_DENOMINATOR, ratioX192)
-    : new Price(baseToken, quoteToken, ratioX192, SQUARED_PRICE_DENOMINATOR)
+    ? new Price(baseToken, quoteToken, Q192, ratioX192)
+    : new Price(baseToken, quoteToken, ratioX192, Q192)
 }
 
 /**

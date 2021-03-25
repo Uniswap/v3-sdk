@@ -14,7 +14,7 @@ import {
   WETH9
 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import { ONE, ZERO } from '../constants'
+import { ONE, ZERO } from '../internalConstants'
 import { Pool } from './pool'
 import { Route } from './route'
 

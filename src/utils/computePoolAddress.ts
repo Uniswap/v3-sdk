@@ -4,7 +4,7 @@ import { keccak256 } from '@ethersproject/solidity'
 import { Token } from '@uniswap/sdk-core'
 import { FeeAmount, POOL_INIT_CODE_HASH } from '../constants'
 
-export const computePoolAddress = ({
+export function computePoolAddress({
   factoryAddress,
   tokenA,
   tokenB,
@@ -14,7 +14,7 @@ export const computePoolAddress = ({
   tokenA: Token
   tokenB: Token
   fee: FeeAmount
-}): string => {
+}): string {
   const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
   return getCreate2Address(
     factoryAddress,

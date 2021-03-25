@@ -1,7 +1,8 @@
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { FACTORY_ADDRESS, FeeAmount, SQUARED_PRICE_DENOMINATOR } from '../constants'
+import { FACTORY_ADDRESS, FeeAmount } from '../constants'
+import { Q192, ZERO } from '../internalConstants'
 import { computePoolAddress } from '../utils/computePoolAddress'
 import { getLiquidityForAmounts } from '../utils/getLiquidityForAmounts'
 import { TickList } from './tickList'
@@ -21,21 +22,33 @@ export class Pool {
     return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB })
   }
 
+  /**
+   * Construct a pool
+   * @param tokenA one of the tokens in the pool
+   * @param tokenB the other token in the pool
+   * @param fee the fee in hundredths of a bips of the input amount of every swap that is collected by the pool
+   * @param sqrtRatioX96 the sqrt of the current ratio of amounts of token1 to token0
+   * @param liquidity the current value of in range liquidity
+   * @param ticks the current state of the pool ticks
+   */
   public constructor(
     tokenA: Token,
     tokenB: Token,
     fee: FeeAmount,
-    sqrtPriceX96: BigintIsh,
-    inRangeLiquidity: BigintIsh,
-    initializedTicks: TickList
+    sqrtRatioX96: BigintIsh,
+    liquidity: BigintIsh,
+    ticks: TickList
   ) {
     invariant(Number.isInteger(fee), 'Fees can only be integer (uint24) values.')
-    invariant(Boolean(initializedTicks?.head), 'Must have at least one initialized tick.')
+    invariant(
+      Boolean(ticks?.head || JSBI.equal(JSBI.BigInt(liquidity), ZERO)),
+      'Must have at least one initialized tick.'
+    )
     ;[this.token0, this.token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
     this.fee = fee
-    this.sqrtRatioX96 = JSBI.BigInt(sqrtPriceX96)
-    this.ticks = initializedTicks
-    this.liquidity = JSBI.BigInt(inRangeLiquidity)
+    this.sqrtRatioX96 = JSBI.BigInt(sqrtRatioX96)
+    this.ticks = ticks
+    this.liquidity = JSBI.BigInt(liquidity)
   }
 
   /**
@@ -55,14 +68,14 @@ export class Pool {
       (this._token0Price = new Price(
         this.token0,
         this.token1,
-        JSBI.multiply(this.sqrtRatioX96, this.sqrtRatioX96),
-        SQUARED_PRICE_DENOMINATOR
+        Q192,
+        JSBI.multiply(this.sqrtRatioX96, this.sqrtRatioX96)
       ))
     )
   }
 
   /**
-   * Returns the current mid price of the pool in terms of token1, i.e. the ratio of reserve0 to reserve1
+   * Returns the current mid price of the pool in terms of token1, i.e. the ratio of token0 over token1
    */
   public get token1Price(): Price {
     return (
@@ -70,8 +83,8 @@ export class Pool {
       (this._token1Price = new Price(
         this.token1,
         this.token0,
-        SQUARED_PRICE_DENOMINATOR,
-        JSBI.multiply(this.sqrtRatioX96, this.sqrtRatioX96)
+        JSBI.multiply(this.sqrtRatioX96, this.sqrtRatioX96),
+        Q192
       ))
     )
   }
