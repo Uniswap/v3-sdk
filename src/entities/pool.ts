@@ -1,49 +1,26 @@
-import { defaultAbiCoder } from '@ethersproject/abi'
-import { getCreate2Address } from '@ethersproject/address'
-import { keccak256 } from '@ethersproject/solidity'
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { FACTORY_ADDRESS, FeeAmount, INIT_CODE_HASH } from '../constants'
+import { FACTORY_ADDRESS, FeeAmount } from '../constants'
+import { computePoolAddress } from '../utils/computePoolAddress'
 import { getLiquidityForAmounts } from '../utils/getLiquidityForAmounts'
 import { TickList } from './tickList'
 
-export const computePoolAddress = ({
-  factoryAddress,
-  tokenA,
-  tokenB,
-  fee
-}: {
-  factoryAddress: string
-  tokenA: Token
-  tokenB: Token
-  fee: FeeAmount
-}): string => {
-  const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
-  return getCreate2Address(
-    factoryAddress,
-    keccak256(
-      ['bytes'],
-      [defaultAbiCoder.encode(['address', 'address', 'uint24'], [token0.address, token1.address, fee])]
-    ),
-    INIT_CODE_HASH
-  )
-}
-
 export class Pool {
-  private readonly tokenAmounts: [TokenAmount, TokenAmount]
-  private readonly fee: FeeAmount
-  private readonly sqrtPriceX96: JSBI
-  private readonly liquidity: JSBI
-  private readonly ticks: TickList
+  public readonly token0: Token
+  public readonly token1: Token
+  public readonly fee: FeeAmount
+  public readonly sqrtPriceX96: JSBI
+  public readonly liquidity: JSBI
+  public readonly ticks: TickList
 
   public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount): string {
     return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB })
   }
 
   public constructor(
-    tokenAmountA: TokenAmount,
-    tokenAmountB: TokenAmount,
+    tokenA: Token,
+    tokenB: Token,
     fee: FeeAmount,
     sqrtPriceX96: BigintIsh,
     inRangeLiquidity: BigintIsh,
@@ -51,10 +28,7 @@ export class Pool {
   ) {
     invariant(Number.isInteger(fee), 'Fees can only be integer (uint24) values.')
     invariant(Boolean(initializedTicks?.head), 'Must have at least one initialized tick.')
-    const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
-      ? [tokenAmountA, tokenAmountB]
-      : [tokenAmountB, tokenAmountA]
-    this.tokenAmounts = tokenAmounts as [TokenAmount, TokenAmount]
+    ;[this.token0, this.token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
     this.fee = fee
     this.sqrtPriceX96 = JSBI.BigInt(sqrtPriceX96)
     this.ticks = initializedTicks
@@ -73,16 +47,14 @@ export class Pool {
    * Returns the current mid price of the pool in terms of token0, i.e. the ratio of reserve1 to reserve0
    */
   public get token0Price(): Price {
-    invariant(this.sqrtPriceX96, 'todo')
-    return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw)
+    throw new Error('todo')
   }
 
   /**
    * Returns the current mid price of the pool in terms of token1, i.e. the ratio of reserve0 to reserve1
    */
   public get token1Price(): Price {
-    invariant(this.sqrtPriceX96, 'todo')
-    return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw)
+    throw new Error('todo')
   }
 
   /**
@@ -111,26 +83,6 @@ export class Pool {
 
   public get tickList(): TickList {
     return this.ticks
-  }
-
-  public get token0(): Token {
-    return this.tokenAmounts[0].token
-  }
-
-  public get token1(): Token {
-    return this.tokenAmounts[1].token
-  }
-
-  public get reserve0(): TokenAmount {
-    return this.tokenAmounts[0]
-  }
-
-  public get reserve1(): TokenAmount {
-    return this.tokenAmounts[1]
-  }
-  public reserveOf(token: Token): TokenAmount {
-    invariant(this.involvesToken(token), 'TOKEN')
-    return token.equals(this.token0) ? this.reserve0 : this.reserve1
   }
 
   public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pool] {
@@ -169,6 +121,6 @@ export class Pool {
   ): TokenAmount {
     invariant(this.involvesToken(token), 'TOKEN')
     invariant(liquidity.raw <= totalSupply.raw, 'LIQUIDITY')
-    invariant(false, 'todo')
+    throw new Error('todo')
   }
 }

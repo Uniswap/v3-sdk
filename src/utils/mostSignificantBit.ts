@@ -9,7 +9,7 @@ const POWERS_OF_2 = [128, 64, 32, 16, 8, 4, 2, 1].map((pow: number): [number, JS
   JSBI.exponentiate(TWO, JSBI.BigInt(pow))
 ])
 
-export default function mostSignificantBit(x: JSBI): number {
+export function mostSignificantBit(x: JSBI): number {
   invariant(JSBI.greaterThan(x, ZERO), 'ZERO')
 
   let msb: number = 0

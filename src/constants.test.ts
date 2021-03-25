@@ -1,4 +1,4 @@
-import { INIT_CODE_HASH } from './constants'
+import { POOL_INIT_CODE_HASH } from './constants'
 
 import { bytecode } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
 import { keccak256 } from '@ethersproject/solidity'
@@ -10,7 +10,7 @@ const COMPUTED_INIT_CODE_HASH = keccak256(['bytes'], [bytecode])
 describe('constants', () => {
   describe('INIT_CODE_HASH', () => {
     it('matches computed bytecode hash', () => {
-      expect(COMPUTED_INIT_CODE_HASH).toEqual(INIT_CODE_HASH)
+      expect(COMPUTED_INIT_CODE_HASH).toEqual(POOL_INIT_CODE_HASH)
     })
   })
 })

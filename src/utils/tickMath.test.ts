@@ -1,6 +1,6 @@
 import JSBI from 'jsbi'
 import { ONE } from '../constants'
-import TickMath from './tickMath'
+import { TickMath } from './tickMath'
 
 describe('TickMath', () => {
   describe('#MIN_TICK', () => {

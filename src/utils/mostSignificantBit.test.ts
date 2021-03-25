@@ -1,5 +1,5 @@
 import JSBI from 'jsbi'
-import mostSignificantBit from './mostSignificantBit'
+import { mostSignificantBit } from './mostSignificantBit'
 
 describe('mostSignificantBit', () => {
   it('throws for zero', () => {

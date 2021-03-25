@@ -3,7 +3,7 @@ import JSBI from 'jsbi'
 import { BigintIsh } from '@uniswap/sdk-core'
 
 // returns the sqrt price as a 64x96
-export function encodePriceSqrt(reserve0: BigintIsh, reserve1: BigintIsh): JSBI {
+export function encodeSqrtRatioX96(reserve0: BigintIsh, reserve1: BigintIsh): JSBI {
   const ratio = new Decimal(reserve0.toString()).dividedBy(reserve1.toString()).sqrt()
 
   // hacky way to avoid exponential notation without modifying a global configuration

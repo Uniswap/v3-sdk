@@ -2,7 +2,7 @@ import { Price, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import Decimal from 'decimal.js-light'
 import invariant from 'tiny-invariant'
-import TickMath from './tickMath'
+import { TickMath } from './tickMath'
 
 const SQUARED_PRICE_DENOMINATOR = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(192))
 
