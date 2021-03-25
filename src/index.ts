@@ -1,6 +1,7 @@
-export * from './errors'
 export * from './entities'
-export * from './router'
 export * from './utils'
-export * from './nonfungiblePositionManager'
+
 export * from './constants'
+export * from './errors'
+export * from './nonfungiblePositionManager'
+export * from './swapRouter'

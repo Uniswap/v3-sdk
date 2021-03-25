@@ -105,18 +105,6 @@ export class Pool {
     return this.token0.chainId
   }
 
-  public get feeLevel(): FeeAmount {
-    return this.fee
-  }
-
-  public get inRangeLiquidity(): BigintIsh {
-    return this.liquidity.toString()
-  }
-
-  public get tickList(): TickList {
-    return this.ticks
-  }
-
   public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pool] {
     invariant(this.involvesToken(inputAmount.token), 'TOKEN')
     throw new Error('todo')
