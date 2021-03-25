@@ -1,10 +1,9 @@
 import { Price, Token } from '@uniswap/sdk-core'
-import JSBI from 'jsbi'
 import Decimal from 'decimal.js-light'
+import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
+import { SQUARED_PRICE_DENOMINATOR } from '../constants'
 import { TickMath } from './tickMath'
-
-const SQUARED_PRICE_DENOMINATOR = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(192))
 
 /**
  * Returns a price object corresponding to the input tick and the base/quote token

@@ -29,3 +29,5 @@ export const TICK_SPACINGS: { [amount in FeeAmount]: number } = {
 
 export const MAX_TICK = 887272
 export const MIN_TICK = -1 * MAX_TICK
+
+export const SQUARED_PRICE_DENOMINATOR = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(192))

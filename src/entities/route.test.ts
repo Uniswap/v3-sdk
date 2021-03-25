@@ -1,4 +1,4 @@
-import { ChainId, ETHER, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount } from '../constants'
 import { Pool } from './pool'
 import { Route } from './route'
@@ -18,24 +18,24 @@ describe.skip('Route', () => {
     ]
   })
   const pool_0_1 = new Pool(
-    new TokenAmount(token0, '100'),
-    new TokenAmount(token1, '200'),
+    token0,
+    token1,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
     tickMapDefault
   )
   const pool_0_weth = new Pool(
-    new TokenAmount(token0, '100'),
-    new TokenAmount(weth, '100'),
+    token0,
+    weth,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
     tickMapDefault
   )
   const pool_1_weth = new Pool(
-    new TokenAmount(token1, '175'),
-    new TokenAmount(weth, '100'),
+    token1,
+    weth,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
