@@ -14,6 +14,7 @@ import {
   ZERO,
   ONE
 } from '../constants'
+import { getLiquidityForAmounts } from '../utils/getLiquidityForAmounts'
 
 export const computePoolAddress = ({
   factoryAddress,
@@ -190,12 +191,21 @@ export class Pool {
     throw new Error('todo')
   }
 
-  public getLiquidityMinted(
-    _totalSupply: TokenAmount,
-    _tokenAmountA: TokenAmount,
-    _tokenAmountB: TokenAmount
-  ): TokenAmount {
-    throw new Error('todo')
+  /**
+   * Computes the maximum amount of liquidity received for a given amount of token0, token1,
+   * and the prices at the tick boundaries.
+   * @param sqrtRatioAX96 price at lower boundary
+   * @param sqrtRatioBX96 price at upper boundary
+   * @param amount0 token0 amount
+   * @param amount1 token1 amount
+   */
+  public getLiquidityForAmounts(
+    sqrtRatioAX96: JSBI,
+    sqrtRatioBX96: JSBI,
+    amount0: TokenAmount,
+    amount1: TokenAmount
+  ): JSBI {
+    return getLiquidityForAmounts(this.sqrtPriceX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1)
   }
 
   public getLiquidityValue(

@@ -211,63 +211,6 @@ describe('Pool', () => {
   //   })
   // })
 
-  // describe('#priceOf', () => {
-  //   const pool = new Pool(
-  //     new TokenAmount(USDC, '101'),
-  //     DAI100,
-  //     FeeAmount.LOW,
-  //     sqrtPriceX96Default,
-  //     inRangeLiquidityDefault,
-  //     tickMapDefault
-  //   )
-  //   it('returns price of token in terms of other token', () => {
-  //     expect(pool.priceOf(DAI)).toEqual(pool.token0Price)
-  //     expect(pool.priceOf(USDC)).toEqual(pool.token1Price)
-  //   })
-
-  //   it('throws if invalid token', () => {
-  //     expect(() => pool.priceOf(WETH9[ChainId.MAINNET])).toThrow('TOKEN')
-  //   })
-  // })
-
-  // describe('#reserveOf', () => {
-  //   it('returns reserves of the given token', () => {
-  //     expect(
-  //       new Pool(
-  //         USDC100,
-  //         new TokenAmount(DAI, '101'),
-  //         FeeAmount.LOW,
-  //         sqrtPriceX96Default,
-  //         inRangeLiquidityDefault,
-  //         tickMapDefault
-  //       ).reserveOf(USDC)
-  //     ).toEqual(USDC100)
-  //     expect(
-  //       new Pool(
-  //         new TokenAmount(DAI, '101'),
-  //         USDC100,
-  //         FeeAmount.LOW,
-  //         sqrtPriceX96Default,
-  //         inRangeLiquidityDefault,
-  //         tickMapDefault
-  //       ).reserveOf(USDC)
-  //     ).toEqual(USDC100)
-  //   })
-
-  //   it('throws if not in the pool', () => {
-  //     expect(() =>
-  //       new Pool(
-  //         new TokenAmount(DAI, '101'),
-  //         USDC100,
-  //         FeeAmount.LOW,
-  //         sqrtPriceX96Default,
-  //         inRangeLiquidityDefault,
-  //         tickMapDefault
-  //       ).reserveOf(WETH9[ChainId.MAINNET])
-  //     ).toThrow('TOKEN')
-  //   })
-  // })
-
   // describe('#chainId', () => {
   //   it('returns the token0 chainId', () => {
   //     pool = new Pool(USDC100, DAI100, FeeAmount.LOW, sqrtPriceX96Default, inRangeLiquidityDefault, tickMapDefault)
@@ -276,11 +219,43 @@ describe('Pool', () => {
   //     expect(pool.chainId).toEqual(ChainId.MAINNET)
   //   })
   // })
-  // describe('#involvesToken', () => {
+  // describe.skip('#involvesToken', () => {
   //   pool = new Pool(USDC100, DAI100, FeeAmount.LOW, sqrtPriceX96Default, inRangeLiquidityDefault, tickMapDefault)
   //   expect(pool.involvesToken(USDC)).toEqual(true)
   //   expect(pool.involvesToken(DAI)).toEqual(true)
-  //   pool = new Pool(USDC100, DAI100, FeeAmount.LOW, sqrtPriceX96Default, inRangeLiquidityDefault, tickMapDefault)
   //   expect(pool.involvesToken(WETH9[ChainId.MAINNET])).toEqual(false)
+  // })
+
+  // describe('#getLiquidityForAmounts', () => {
+  //   it('amounts for price inside', () => {
+  //     pool = new Pool(USDC100, DAI100, FeeAmount.LOW, encodePriceSqrt(1, 1), inRangeLiquidityDefault, tickMapDefault)
+  //     const sqrtPriceAX96 = encodePriceSqrt(100, 110)
+  //     const sqrtPriceBX96 = encodePriceSqrt(110, 100)
+  //     const liquidity = pool.getLiquidityForAmounts(sqrtPriceAX96, sqrtPriceBX96, USDC100, DAI200)
+  //     expect(liquidity).toEqual(JSBI.BigInt(2148))
+  //   })
+
+  //   it('amounts for price below', () => {
+  //     pool = new Pool(USDC100, DAI100, FeeAmount.LOW, encodePriceSqrt(99, 110), inRangeLiquidityDefault, tickMapDefault)
+  //     const sqrtPriceAX96 = encodePriceSqrt(100, 110)
+  //     const sqrtPriceBX96 = encodePriceSqrt(110, 100)
+  //     const liquidity = pool.getLiquidityForAmounts(sqrtPriceAX96, sqrtPriceBX96, USDC100, DAI200)
+  //     expect(liquidity).toEqual(JSBI.BigInt(1048))
+  //   })
+
+  //   it('amounts for price above', () => {
+  //     pool = new Pool(
+  //       USDC100,
+  //       DAI100,
+  //       FeeAmount.LOW,
+  //       encodePriceSqrt(111, 100),
+  //       inRangeLiquidityDefault,
+  //       tickMapDefault
+  //     )
+  //     const sqrtPriceAX96 = encodePriceSqrt(100, 110)
+  //     const sqrtPriceBX96 = encodePriceSqrt(110, 100)
+  //     const liquidity = pool.getLiquidityForAmounts(sqrtPriceAX96, sqrtPriceBX96, USDC100, DAI200)
+  //     expect(liquidity).toEqual(JSBI.BigInt(2097))
+  //   })
   // })
 })

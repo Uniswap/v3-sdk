@@ -1,6 +1,9 @@
-import { CurrencyAmount, ETHER, Percent, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
+import { ETHER, Percent, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
+import { SWAP_ROUTER_ADDRESS } from './constants'
 import { Trade } from './entities/trade'
+import { MethodParameters } from './utils/calldata'
+import { toHex, ZERO_HEX } from './utils/toHex'
 
 /**
  * Options for producing the arguments to send call to the router.
@@ -10,12 +13,12 @@ export interface TradeOptions {
    * How much the execution price is allowed to move unfavorably from the trade execution price.
    */
   allowedSlippage: Percent
+
   /**
-   * How long the swap is valid until it expires, in seconds.
-   * This will be used to produce a `deadline` parameter which is computed from when the swap call parameters
-   * are generated.
+   * When the transaction expires, in epoch seconds.
    */
-  ttl: number
+  deadline: number
+
   /**
    * The account that should receive the output of the swap.
    */
@@ -26,38 +29,6 @@ export interface TradeOptions {
    */
   feeOnTransfer?: boolean
 }
-
-export interface TradeOptionsDeadline extends Omit<TradeOptions, 'ttl'> {
-  /**
-   * When the transaction expires.
-   * This is an atlernate to specifying the ttl, for when you do not want to use local time.
-   */
-  deadline: number
-}
-
-/**
- * The parameters to use in the call to the Uniswap V2 Router to execute a trade.
- */
-export interface SwapParameters {
-  /**
-   * The method to call on the Uniswap V2 Router.
-   */
-  methodName: string
-  /**
-   * The arguments to pass to the method, all hex encoded.
-   */
-  args: (string | string[])[]
-  /**
-   * The amount of wei to send in hex.
-   */
-  value: string
-}
-
-function toHex(currencyAmount: CurrencyAmount) {
-  return `0x${currencyAmount.raw.toString(16)}`
-}
-
-const ZERO_HEX = '0x0'
 
 /**
  * Represents the Uniswap V2 Router, and has static methods for helping execute trades.
@@ -72,21 +43,17 @@ export abstract class Router {
    * @param trade to produce call parameters for
    * @param options options for the call parameters
    */
-  public static swapCallParameters(trade: Trade, options: TradeOptions | TradeOptionsDeadline): SwapParameters {
+  public static swapCallParameters(trade: Trade, options: TradeOptions): MethodParameters {
     const etherIn = trade.inputAmount.currency === ETHER
     const etherOut = trade.outputAmount.currency === ETHER
     // the router does not support both ether in and out
     invariant(!(etherIn && etherOut), 'ETHER_IN_OUT')
-    invariant(!('ttl' in options) || options.ttl > 0, 'TTL')
 
     const to: string = validateAndParseAddress(options.recipient)
     const amountIn: string = toHex(trade.maximumAmountIn(options.allowedSlippage))
     const amountOut: string = toHex(trade.minimumAmountOut(options.allowedSlippage))
     const path: string[] = trade.route.tokenPath.map(token => token.address)
-    const deadline =
-      'ttl' in options
-        ? `0x${(Math.floor(new Date().getTime() / 1000) + options.ttl).toString(16)}`
-        : `0x${options.deadline.toString(16)}`
+    const deadline = `0x${options.deadline.toString(16)}`
 
     const useFeeOnTransfer = Boolean(options.feeOnTransfer)
 
@@ -139,7 +106,8 @@ export abstract class Router {
     return {
       methodName,
       args,
-      value
+      value,
+      address: SWAP_ROUTER_ADDRESS
     }
   }
 }
