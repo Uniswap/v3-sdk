@@ -3,6 +3,9 @@ import JSBI from 'jsbi'
 // todo: replace with v3 factory address
 export const FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 
+// todo: replace with v3 swap router
+export const SWAP_ROUTER_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
+
 export const INIT_CODE_HASH = '0x56cf930c850ce212aa057e794ef994327f2cb22ca6f87b126cc538e797b9541c'
 
 // exports for internal consumption
@@ -10,7 +13,7 @@ export const ZERO = JSBI.BigInt(0)
 export const ONE = JSBI.BigInt(1)
 
 // used in liquiditiy amount math
-export const Q96_BIG_INT = JSBI.BigInt(2 ** 96)
+export const Q96 = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(96))
 
 export enum FeeAmount {
   LOW = 500,
