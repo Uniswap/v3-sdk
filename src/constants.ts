@@ -6,7 +6,7 @@ export const FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 // todo: replace with v3 swap router
 export const SWAP_ROUTER_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 
-export const POOL_INIT_CODE_HASH = '0x56cf930c850ce212aa057e794ef994327f2cb22ca6f87b126cc538e797b9541c'
+export const POOL_INIT_CODE_HASH = '0x01d4d358e07707f4db84b6a7527455b06f95ee89b5d059b4a1298ada7b6c7d67'
 
 // exports for internal consumption
 export const ZERO = JSBI.BigInt(0)

@@ -21,40 +21,40 @@ describe.skip('Trade', () => {
     ]
   })
   const pool_0_1 = new Pool(
-    new TokenAmount(token0, JSBI.BigInt(1000)),
-    new TokenAmount(token1, JSBI.BigInt(1000)),
+    token0,
+    token1,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
     tickMapDefault
   )
   const pool_0_2 = new Pool(
-    new TokenAmount(token0, JSBI.BigInt(1000)),
-    new TokenAmount(token2, JSBI.BigInt(1100)),
+    token0,
+    token2,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
     tickMapDefault
   )
   const pool_0_3 = new Pool(
-    new TokenAmount(token0, JSBI.BigInt(1000)),
-    new TokenAmount(token3, JSBI.BigInt(900)),
+    token0,
+    token3,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
     tickMapDefault
   )
   const pool_1_2 = new Pool(
-    new TokenAmount(token1, JSBI.BigInt(1200)),
-    new TokenAmount(token2, JSBI.BigInt(1000)),
+    token1,
+    token2,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
     tickMapDefault
   )
   const pool_1_3 = new Pool(
-    new TokenAmount(token1, JSBI.BigInt(1200)),
-    new TokenAmount(token3, JSBI.BigInt(1300)),
+    token1,
+    token3,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
@@ -62,8 +62,8 @@ describe.skip('Trade', () => {
   )
 
   const pool_weth_0 = new Pool(
-    new TokenAmount(WETH9[ChainId.MAINNET], JSBI.BigInt(1000)),
-    new TokenAmount(token0, JSBI.BigInt(1000)),
+    WETH9[ChainId.MAINNET],
+    token0,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
@@ -71,8 +71,8 @@ describe.skip('Trade', () => {
   )
 
   const empty_pool_0_1 = new Pool(
-    new TokenAmount(token0, JSBI.BigInt(0)),
-    new TokenAmount(token1, JSBI.BigInt(0)),
+    token0,
+    token1,
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,

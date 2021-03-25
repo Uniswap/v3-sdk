@@ -283,7 +283,6 @@ export class Trade {
       const pool = pools[i]
       // pool irrelevant
       if (!pool.token0.equals(amountIn.token) && !pool.token1.equals(amountIn.token)) continue
-      if (pool.reserve0.equalTo(ZERO) || pool.reserve1.equalTo(ZERO)) continue
 
       let amountOut: TokenAmount
       try {
@@ -371,7 +370,6 @@ export class Trade {
       const pool = pools[i]
       // pool irrelevant
       if (!pool.token0.equals(amountOut.token) && !pool.token1.equals(amountOut.token)) continue
-      if (pool.reserve0.equalTo(ZERO) || pool.reserve1.equalTo(ZERO)) continue
 
       let amountIn: TokenAmount
       try {
