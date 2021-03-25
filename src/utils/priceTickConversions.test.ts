@@ -1,4 +1,4 @@
-import { ChainId, Token, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Price, Token, WETH9 } from '@uniswap/sdk-core'
 import { tickToPrice } from './index'
 import { priceToClosestTick } from './priceTickConversions'
 
@@ -36,21 +36,41 @@ describe('priceTickConversions', () => {
   })
 
   describe('#priceToClosestTick', () => {
-    it('1800 DAI/1 ETH', () => {
-      expect(priceToClosestTick(tickToPrice(WETH, DAI, -74959))).toEqual(-74959)
+    describe('user input prices', () => {
+      it('1800 DAI/1 ETH', () => {
+        expect(priceToClosestTick(new Price(WETH, DAI, 1, 1800))).toEqual(-74959)
+      })
+
+      it('1 ETH/1800 DAI', () => {
+        expect(priceToClosestTick(new Price(DAI, WETH, 1800, 1))).toEqual(-74960)
+      })
+
+      it('1.01 USDC/1 DAI', () => {
+        expect(priceToClosestTick(new Price(DAI, USDC, 100e18, 101e6))).toEqual(-276225)
+      })
+
+      it('1 DAI/1.01 USDC', () => {
+        expect(priceToClosestTick(new Price(USDC, DAI, 101e6, 100e18))).toEqual(-276224)
+      })
     })
 
-    it('1 ETH/1800 DAI', () => {
-      // tick is negative because DAI is token0
-      expect(priceToClosestTick(tickToPrice(DAI, WETH, -74959))).toEqual(-74959)
-    })
+    describe('prices from tickToPrice', () => {
+      it('1800 DAI/1 ETH', () => {
+        expect(priceToClosestTick(tickToPrice(WETH, DAI, -74959))).toEqual(-74959)
+      })
 
-    it('1.01 USDC/1 DAI', () => {
-      expect(priceToClosestTick(tickToPrice(DAI, USDC, -276225))).toEqual(-276225)
-    })
+      it('1 ETH/1800 DAI', () => {
+        // tick is negative because DAI is token0
+        expect(priceToClosestTick(tickToPrice(DAI, WETH, -74959))).toEqual(-74959)
+      })
 
-    it('1 DAI/1.01 USDC', () => {
-      expect(priceToClosestTick(tickToPrice(USDC, DAI, -276225))).toEqual(-276225)
+      it('1.01 USDC/1 DAI', () => {
+        expect(priceToClosestTick(tickToPrice(DAI, USDC, -276225))).toEqual(-276225)
+      })
+
+      it('1 DAI/1.01 USDC', () => {
+        expect(priceToClosestTick(tickToPrice(USDC, DAI, -276225))).toEqual(-276225)
+      })
     })
   })
 })
