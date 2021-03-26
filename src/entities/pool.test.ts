@@ -86,7 +86,7 @@ describe('Pool', () => {
           liquidityDefault,
           tickMapDefault
         ).token1Price.toSignificant(5)
-      ).toEqual('0.99012')
+      ).toEqual('0.9901')
       expect(
         new Pool(
           DAI,
@@ -96,7 +96,7 @@ describe('Pool', () => {
           liquidityDefault,
           tickMapDefault
         ).token1Price.toSignificant(5)
-      ).toEqual('0.99012')
+      ).toEqual('0.9901')
     })
   })
 
