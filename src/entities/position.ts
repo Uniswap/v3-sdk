@@ -1,4 +1,4 @@
-import { BigintIsh, TokenAmount } from '@uniswap/sdk-core'
+import { BigintIsh, Percent, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { MAX_TICK, MIN_TICK } from '../constants'
@@ -33,11 +33,11 @@ export class Position {
     this.liquidity = JSBI.BigInt(liquidity)
   }
 
-  public get maxAmount0(): TokenAmount {
+  public maxAmount0(_slippageTolerance: Percent): TokenAmount {
     throw new Error('todo')
   }
 
-  public get maxAmount1(): TokenAmount {
+  public maxAmount1(_slippageTolerance: Percent): TokenAmount {
     throw new Error('todo')
   }
 
