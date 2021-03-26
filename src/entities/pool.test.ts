@@ -1,10 +1,9 @@
-import { ChainId, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Token, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount } from '../constants'
 import { Pool } from './pool'
 import { Tick } from './tick'
 import { TickList } from './tickList'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
-import JSBI from 'jsbi'
 
 describe('Pool', () => {
   const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
@@ -121,51 +120,11 @@ describe('Pool', () => {
       expect(pool.chainId).toEqual(ChainId.MAINNET)
     })
   })
-  describe.skip('#involvesToken', () => {
+
+  describe('#involvesToken', () => {
     const pool = new Pool(USDC, DAI, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
     expect(pool.involvesToken(USDC)).toEqual(true)
     expect(pool.involvesToken(DAI)).toEqual(true)
     expect(pool.involvesToken(WETH9[ChainId.MAINNET])).toEqual(false)
-  })
-
-  describe('#getLiquidityForAmounts', () => {
-    it('amounts for price inside', () => {
-      const pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), liquidityDefault, tickMapDefault)
-      const sqrtPriceAX96 = encodeSqrtRatioX96(100, 110)
-      const sqrtPriceBX96 = encodeSqrtRatioX96(110, 100)
-      const liquidity = pool.getLiquidityForAmounts(
-        sqrtPriceAX96,
-        sqrtPriceBX96,
-        new TokenAmount(USDC, '100'),
-        new TokenAmount(DAI, '200')
-      )
-      expect(liquidity).toEqual(JSBI.BigInt(2149))
-    })
-
-    it('amounts for price below', () => {
-      const pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(99, 110), liquidityDefault, tickMapDefault)
-      const sqrtPriceAX96 = encodeSqrtRatioX96(100, 110)
-      const sqrtPriceBX96 = encodeSqrtRatioX96(110, 100)
-      const liquidity = pool.getLiquidityForAmounts(
-        sqrtPriceAX96,
-        sqrtPriceBX96,
-        new TokenAmount(USDC, '100'),
-        new TokenAmount(DAI, '200')
-      )
-      expect(liquidity).toEqual(JSBI.BigInt(1048))
-    })
-
-    it('amounts for price above', () => {
-      const pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(111, 100), liquidityDefault, tickMapDefault)
-      const sqrtPriceAX96 = encodeSqrtRatioX96(100, 110)
-      const sqrtPriceBX96 = encodeSqrtRatioX96(110, 100)
-      const liquidity = pool.getLiquidityForAmounts(
-        sqrtPriceAX96,
-        sqrtPriceBX96,
-        new TokenAmount(USDC, '100'),
-        new TokenAmount(DAI, '200')
-      )
-      expect(liquidity).toEqual(JSBI.BigInt(2097))
-    })
   })
 })

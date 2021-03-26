@@ -1,10 +1,9 @@
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { FACTORY_ADDRESS, FeeAmount } from '../constants'
+import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
 import { Q192, ZERO } from '../internalConstants'
 import { computePoolAddress } from '../utils/computePoolAddress'
-import { getLiquidityForAmounts } from '../utils/getLiquidityForAmounts'
 import { TickList } from './tickList'
 
 export class Pool {
@@ -115,32 +114,7 @@ export class Pool {
     throw new Error('todo')
   }
 
-  /**
-   * Computes the maximum amount of liquidity received for a given amount of token0, token1,
-   * and the prices at the tick boundaries.
-   * @param sqrtRatioAX96 price at lower boundary
-   * @param sqrtRatioBX96 price at upper boundary
-   * @param amount0 token0 amount
-   * @param amount1 token1 amount
-   */
-  public getLiquidityForAmounts(
-    sqrtRatioAX96: JSBI,
-    sqrtRatioBX96: JSBI,
-    amount0: TokenAmount,
-    amount1: TokenAmount
-  ): JSBI {
-    return getLiquidityForAmounts(this.sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1)
-  }
-
-  public getLiquidityValue(
-    token: Token,
-    totalSupply: TokenAmount,
-    liquidity: TokenAmount,
-    _: boolean = false,
-    __?: BigintIsh
-  ): TokenAmount {
-    invariant(this.involvesToken(token), 'TOKEN')
-    invariant(liquidity.raw <= totalSupply.raw, 'LIQUIDITY')
-    throw new Error('todo')
+  public get tickSpacing(): number {
+    return TICK_SPACINGS[this.fee]
   }
 }
