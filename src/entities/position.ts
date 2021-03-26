@@ -2,7 +2,7 @@ import { BigintIsh, MaxUint256, Percent, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { MAX_TICK, MIN_TICK } from '../constants'
-import { maxLiquidityForAmount0, maxLiquidityForAmounts } from '../utils/maxLiquidityForAmounts'
+import { maxLiquidityForAmounts } from '../utils/maxLiquidityForAmounts'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 
