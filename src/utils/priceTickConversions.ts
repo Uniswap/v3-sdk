@@ -22,6 +22,8 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
     : new Price(baseToken, quoteToken, ratioX192, Q192)
 }
 
+const Q96_DECIMAL = new Decimal(2).pow(96)
+
 /**
  * Returns the first tick for which the given price is greater than or equal to the tick price
  * @param price for which to return the closest tick that represents a price less than or equal to the input price,
@@ -30,25 +32,40 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
 export function priceToClosestTick(price: Price): number {
   invariant(price.baseCurrency instanceof Token && price.quoteCurrency instanceof Token, 'TOKENS')
 
-  const ratioDecimal = price.baseCurrency.sortsBefore(price.quoteCurrency)
+  const sorted = price.baseCurrency.sortsBefore(price.quoteCurrency)
+
+  const ratioDecimal = sorted
     ? new Decimal(price.raw.numerator.toString()).dividedBy(price.raw.denominator.toString())
     : new Decimal(price.raw.denominator.toString()).dividedBy(price.raw.numerator.toString())
   const sqrtRatio = ratioDecimal.sqrt()
 
   // hacky way to avoid exponential notation without modifying a global configuration
   const toExpPosBefore = Decimal.toExpPos
+  const precisionBefore = Decimal.precision
   Decimal.toExpPos = 9_999_999
+  // 78 decimals can store 256 bits
+  Decimal.precision = 9_999_999
 
   const sqrtRatioX96 = JSBI.BigInt(
     sqrtRatio
-      .mul(new Decimal(2).pow(96))
+      .mul(Q96_DECIMAL)
       .toInteger()
       .toString()
   )
 
   Decimal.toExpPos = toExpPosBefore
+  Decimal.precision = precisionBefore
 
   let tick = TickMath.getTickAtSqrtRatio(sqrtRatioX96)
-  if (!tickToPrice(price.baseCurrency, price.quoteCurrency, tick + 1).greaterThan(price)) tick++
+  const nextTickPrice = tickToPrice(price.baseCurrency, price.quoteCurrency, tick + 1)
+  if (sorted) {
+    if (!price.lessThan(nextTickPrice)) {
+      tick++
+    }
+  } else {
+    if (!price.greaterThan(nextTickPrice)) {
+      tick++
+    }
+  }
   return tick
 }

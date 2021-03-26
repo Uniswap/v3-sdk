@@ -1,75 +1,118 @@
-import { ChainId, Price, Token, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Price, Token } from '@uniswap/sdk-core'
 import { tickToPrice } from './index'
 import { priceToClosestTick } from './priceTickConversions'
 
 describe('priceTickConversions', () => {
-  const WETH = WETH9[ChainId.MAINNET]
-  const DAI = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'Dai Stablecoin')
-  const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
+  /**
+   * Creates an example token with a specific sort order
+   */
+  function token({
+    sortOrder,
+    decimals = 18,
+    chainId = ChainId.MAINNET
+  }: {
+    sortOrder: number
+    decimals?: number
+    chainId?: ChainId
+  }): Token {
+    if (sortOrder > 9 || sortOrder % 1 !== 0) throw new Error('invalid sort order')
+    return new Token(
+      chainId,
+      `0x${new Array<string>(40).fill(`${sortOrder}`).join('')}`,
+      decimals,
+      `T${sortOrder}`,
+      `token${sortOrder}`
+    )
+  }
 
-  it('DAI sorts before ETH', () => {
-    expect(DAI.sortsBefore(WETH)).toEqual(true)
-  })
-
-  it('DAI sorts before USDC', () => {
-    expect(DAI.sortsBefore(USDC)).toEqual(true)
-  })
+  const token0 = token({ sortOrder: 0 })
+  const token1 = token({ sortOrder: 1 })
+  const token2_6decimals = token({ sortOrder: 2, decimals: 6 })
 
   describe('#tickToPrice', () => {
-    it('1800 DAI/1 ETH', () => {
-      // tick is negative because DAI is token0
-      expect(tickToPrice(WETH, DAI, -74959).toSignificant(5)).toEqual('1800')
+    it('1800 t0/1 t1', () => {
+      expect(tickToPrice(token1, token0, -74959).toSignificant(5)).toEqual('1800')
     })
 
-    it('1 ETH/1800 DAI', () => {
-      // tick is negative because DAI is token0
-      expect(tickToPrice(DAI, WETH, -74959).toSignificant(5)).toEqual('0.00055556')
+    it('1 t1/1800 t0', () => {
+      expect(tickToPrice(token0, token1, -74959).toSignificant(5)).toEqual('0.00055556')
     })
 
-    it('1.01 USDC/1 DAI', () => {
-      expect(tickToPrice(DAI, USDC, -276225).toSignificant(5)).toEqual('1.01')
+    it('1800 t1/1 t0', () => {
+      expect(tickToPrice(token0, token1, 74959).toSignificant(5)).toEqual('1800')
     })
 
-    it('1 DAI/1.01 USDC', () => {
-      expect(tickToPrice(USDC, DAI, -276225).toSignificant(5)).toEqual('0.99015')
+    it('1 t0/1800 t1', () => {
+      expect(tickToPrice(token1, token0, 74959).toSignificant(5)).toEqual('0.00055556')
+    })
+
+    describe('12 decimal difference', () => {
+      it('1.01 t2/1 t0', () => {
+        expect(tickToPrice(token0, token2_6decimals, -276225).toSignificant(5)).toEqual('1.01')
+      })
+
+      it('1 t0/1.01 t2', () => {
+        expect(tickToPrice(token2_6decimals, token0, -276225).toSignificant(5)).toEqual('0.99015')
+      })
+
+      it('1 t2/1.01 t0', () => {
+        expect(tickToPrice(token0, token2_6decimals, -276423).toSignificant(5)).toEqual('0.99015')
+      })
+
+      it('1.01 t0/1 t2', () => {
+        expect(tickToPrice(token2_6decimals, token0, -276423).toSignificant(5)).toEqual('1.0099')
+      })
+
+      it('1.01 t2/1 t0', () => {
+        expect(tickToPrice(token0, token2_6decimals, -276225).toSignificant(5)).toEqual('1.01')
+      })
+
+      it('1 t0/1.01 t2', () => {
+        expect(tickToPrice(token2_6decimals, token0, -276225).toSignificant(5)).toEqual('0.99015')
+      })
     })
   })
 
   describe('#priceToClosestTick', () => {
-    describe('user input prices', () => {
-      it('1800 DAI/1 ETH', () => {
-        expect(priceToClosestTick(new Price(WETH, DAI, 1, 1800))).toEqual(-74959)
-      })
-
-      it('1 ETH/1800 DAI', () => {
-        expect(priceToClosestTick(new Price(DAI, WETH, 1800, 1))).toEqual(-74960)
-      })
-
-      it('1.01 USDC/1 DAI', () => {
-        expect(priceToClosestTick(new Price(DAI, USDC, 100e18, 101e6))).toEqual(-276225)
-      })
-
-      it('1 DAI/1.01 USDC', () => {
-        expect(priceToClosestTick(new Price(USDC, DAI, 101e6, 100e18))).toEqual(-276224)
-      })
+    it('1800 t0/1 t1', () => {
+      expect(priceToClosestTick(new Price(token1, token0, 1, 1800))).toEqual(-74960)
     })
 
-    describe('prices from tickToPrice', () => {
-      it('1800 DAI/1 ETH', () => {
-        expect(priceToClosestTick(tickToPrice(WETH, DAI, -74959))).toEqual(-74959)
+    it('1 t1/1800 t0', () => {
+      expect(priceToClosestTick(new Price(token0, token1, 1800, 1))).toEqual(-74960)
+    })
+
+    it('1.01 t2/1 t0', () => {
+      expect(priceToClosestTick(new Price(token0, token2_6decimals, 100e18, 101e6))).toEqual(-276225)
+    })
+
+    it('1 t0/1.01 t2', () => {
+      expect(priceToClosestTick(new Price(token2_6decimals, token0, 101e6, 100e18))).toEqual(-276225)
+    })
+
+    describe('reciprocal with tickToPrice', () => {
+      it('1800 t0/1 t1', () => {
+        expect(priceToClosestTick(tickToPrice(token1, token0, -74960))).toEqual(-74960)
       })
 
-      it('1 ETH/1800 DAI', () => {
-        // tick is negative because DAI is token0
-        expect(priceToClosestTick(tickToPrice(DAI, WETH, -74959))).toEqual(-74959)
+      it('1 t0/1800 t1', () => {
+        expect(priceToClosestTick(tickToPrice(token1, token0, 74960))).toEqual(74960)
       })
 
-      it('1.01 USDC/1 DAI', () => {
-        expect(priceToClosestTick(tickToPrice(DAI, USDC, -276225))).toEqual(-276225)
+      it('1 t1/1800 t0', () => {
+        expect(priceToClosestTick(tickToPrice(token0, token1, -74960))).toEqual(-74960)
       })
 
-      it('1 DAI/1.01 USDC', () => {
-        expect(priceToClosestTick(tickToPrice(USDC, DAI, -276225))).toEqual(-276225)
+      it('1800 t1/1 t0', () => {
+        expect(priceToClosestTick(tickToPrice(token0, token1, 74960))).toEqual(74960)
+      })
+
+      it('1.01 t2/1 t0', () => {
+        expect(priceToClosestTick(tickToPrice(token0, token2_6decimals, -276225))).toEqual(-276225)
+      })
+
+      it('1 t0/1.01 t2', () => {
+        expect(priceToClosestTick(tickToPrice(token2_6decimals, token0, -276225))).toEqual(-276225)
       })
     })
   })
