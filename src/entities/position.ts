@@ -1,8 +1,9 @@
-import { BigintIsh, MaxUint256, Percent, TokenAmount } from '@uniswap/sdk-core'
+import { BigintIsh, MaxUint256, Percent, Price, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { MAX_TICK, MIN_TICK } from '../constants'
 import { maxLiquidityForAmounts } from '../utils/maxLiquidityForAmounts'
+import { tickToPrice } from '../utils/priceTickConversions'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 
@@ -34,13 +35,42 @@ export class Position {
   }
 
   /**
-   * Returns the amount of token0 that this position represents
+   * Returns the price of token0 at the lower tick
+   */
+  public get token0PriceLower(): Price {
+    return tickToPrice(this.pool.token0, this.pool.token1, this.tickLower)
+  }
+
+  /**
+   * Returns the price of token1 at the lower tick
+   */
+  public get token1PriceLower(): Price {
+    return tickToPrice(this.pool.token1, this.pool.token0, this.tickLower)
+  }
+
+  /**
+   * Returns the price of token0 at the upper tick
+   */
+  public get token0PriceUpper(): Price {
+    return tickToPrice(this.pool.token0, this.pool.token1, this.tickUpper)
+  }
+
+  /**
+   * Returns the price of token1 at the upper tick
+   */
+  public get token1PriceUpper(): Price {
+    return tickToPrice(this.pool.token1, this.pool.token0, this.tickUpper)
+  }
+
+  /**
+   * Returns the amount of token0 that this position's liquidity could be burned for at the current pool price
    */
   public get amount0(): TokenAmount {
     throw new Error('todo')
   }
+
   /**
-   * Returns the amount of token1 that this position represents
+   * Returns the amount of token1 that this position's liquidity could be burned for at the current pool price
    */
   public get amount1(): TokenAmount {
     throw new Error('todo')
@@ -102,6 +132,13 @@ export class Position {
     })
   }
 
+  /**
+   * Computes a position with the maximum amount of liquidity received for a given amount of token0, assuming an unlimited amount of token1
+   * @param pool the pool for which the position is created
+   * @param tickLower the lower tick
+   * @param tickUpper the upper tick
+   * @param amount0 the desired amount of token0
+   */
   public static fromAmount0({
     pool,
     tickLower,
@@ -116,6 +153,13 @@ export class Position {
     return Position.fromAmounts({ pool, tickLower, tickUpper, amount0, amount1: MaxUint256 })
   }
 
+  /**
+   * Computes a position with the maximum amount of liquidity received for a given amount of token1, assuming an unlimited amount of token0
+   * @param pool the pool for which the position is created
+   * @param tickLower the lower tick
+   * @param tickUpper the upper tick
+   * @param amount1 the desired amount of token1
+   */
   public static fromAmount1({
     pool,
     tickLower,
