@@ -16,13 +16,29 @@ export abstract class TickMath {
    */
   private constructor() {}
 
-  static MIN_TICK: number = -887272
-  static MAX_TICK: number = -TickMath.MIN_TICK
+  /**
+   * The minimum tick that can be used on any pool.
+   */
+  public static MIN_TICK: number = -887272
+  /**
+   * The maximum tick that can be used on any pool.
+   */
+  public static MAX_TICK: number = -TickMath.MIN_TICK
 
-  static MIN_SQRT_RATIO: JSBI = JSBI.BigInt('4295128739')
-  static MAX_SQRT_RATIO: JSBI = JSBI.BigInt('1461446703485210103287273052203988822378723970342')
+  /**
+   * The sqrt ratio corresponding to the minimum tick that could be used on any pool.
+   */
+  public static MIN_SQRT_RATIO: JSBI = JSBI.BigInt('4295128739')
+  /**
+   * The sqrt ratio corresponding to the maximum tick that could be used on any pool.
+   */
+  public static MAX_SQRT_RATIO: JSBI = JSBI.BigInt('1461446703485210103287273052203988822378723970342')
 
-  static getSqrtRatioAtTick(tick: number): JSBI {
+  /**
+   * Returns the sqrt ratio as a Q64.96 for the given tick. The sqrt ratio is computed as sqrt(1.0001)^tick
+   * @param tick the tick for which to compute the sqrt ratio
+   */
+  public static getSqrtRatioAtTick(tick: number): JSBI {
     const absTick: number = tick < 0 ? tick * -1 : tick
     invariant(absTick <= TickMath.MAX_TICK, 'ABS_TICK')
 
@@ -58,7 +74,12 @@ export abstract class TickMath {
       : JSBI.divide(ratio, Q32)
   }
 
-  static getTickAtSqrtRatio(sqrtRatioX96: JSBI): number {
+  /**
+   * Returns the tick corresponding to a given sqrt ratio, s.t. #getSqrtRatioAtTick(tick) <= sqrtRatioX96
+   * and #getSqrtRatioAtTick(tick + 1) > sqrtRatioX96
+   * @param sqrtRatioX96 the sqrt ratio as a Q64.96 for which to compute the tick
+   */
+  public static getTickAtSqrtRatio(sqrtRatioX96: JSBI): number {
     invariant(
       JSBI.greaterThanOrEqual(sqrtRatioX96, TickMath.MIN_SQRT_RATIO) &&
         JSBI.lessThan(sqrtRatioX96, TickMath.MAX_SQRT_RATIO),
