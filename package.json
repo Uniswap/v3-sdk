@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "restricted"
   },
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "⚒️ An SDK for building applications on top of Uniswap V3",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
