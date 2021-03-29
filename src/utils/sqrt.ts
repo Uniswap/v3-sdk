@@ -1,8 +1,8 @@
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { MAX_SAFE_INTEGER, ONE, THREE, TWO, ZERO } from '../internalConstants'
+import { MAX_SAFE_INTEGER, ONE, TWO, ZERO } from '../internalConstants'
 
-/// TODO: optimize this function, move to sdk-core
+/// TODO: move to sdk-core
 /**
  * Computes floor(sqrt(value))
  * @param value the value for which to compute the square root, rounded down
@@ -15,17 +15,13 @@ export function sqrt(value: JSBI): JSBI {
     return JSBI.BigInt(Math.floor(Math.sqrt(JSBI.toNumber(value))))
   }
 
-  let z: JSBI = ZERO
+  let z: JSBI
   let x: JSBI
-  if (JSBI.greaterThan(value, THREE)) {
-    z = value
-    x = JSBI.add(JSBI.divide(value, TWO), ONE)
-    while (JSBI.lessThan(x, z)) {
-      z = x
-      x = JSBI.divide(JSBI.add(JSBI.divide(value, x), x), TWO)
-    }
-  } else if (JSBI.notEqual(value, ZERO)) {
-    z = ONE
+  z = value
+  x = JSBI.add(JSBI.divide(value, TWO), ONE)
+  while (JSBI.lessThan(x, z)) {
+    z = x
+    x = JSBI.divide(JSBI.add(JSBI.divide(value, x), x), TWO)
   }
   return z
 }
