@@ -39,8 +39,8 @@ export abstract class TickMath {
    * @param tick the tick for which to compute the sqrt ratio
    */
   public static getSqrtRatioAtTick(tick: number): JSBI {
+    invariant(tick >= TickMath.MIN_TICK && tick <= TickMath.MAX_TICK && Number.isInteger(tick), 'TICK')
     const absTick: number = tick < 0 ? tick * -1 : tick
-    invariant(absTick <= TickMath.MAX_TICK, 'ABS_TICK')
 
     let ratio: JSBI =
       (absTick & 0x1) != 0
@@ -69,7 +69,7 @@ export abstract class TickMath {
     if (tick > 0) ratio = JSBI.divide(MaxUint256, ratio)
 
     // back to Q96
-    return JSBI.greaterThanOrEqual(JSBI.remainder(ratio, Q32), ZERO)
+    return JSBI.greaterThan(JSBI.remainder(ratio, Q32), ZERO)
       ? JSBI.add(JSBI.divide(ratio, Q32), ONE)
       : JSBI.divide(ratio, Q32)
   }

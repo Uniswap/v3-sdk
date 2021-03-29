@@ -2,6 +2,7 @@ import { ChainId, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { FeeAmount } from '../constants'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
+import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Position } from './position'
 import { TickList } from './tickList'
@@ -15,6 +16,7 @@ describe('Position', () => {
     FeeAmount.LOW,
     encodeSqrtRatioX96(100e6, 100e18),
     0,
+    TickMath.getTickAtSqrtRatio(encodeSqrtRatioX96(100e6, 100e18)),
     new TickList({ ticks: [] })
   )
 

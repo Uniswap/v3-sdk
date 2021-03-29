@@ -1,5 +1,6 @@
 import { ChainId, Token, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount } from '../constants'
+import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Tick } from './tick'
 import { TickList } from './tickList'
@@ -15,13 +16,10 @@ describe('Pool', () => {
     ]
   })
 
-  const sqrtRatioX96Default = 20
-  const liquidityDefault = 0
-
   describe('constructor', () => {
     it('cannot be used for tokens on different chains', () => {
       expect(() => {
-        new Pool(USDC, WETH9[ChainId.RINKEBY], FeeAmount.MEDIUM, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+        new Pool(USDC, WETH9[ChainId.RINKEBY], FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
       }).toThrow('CHAIN_IDS')
     })
   })
@@ -35,17 +33,17 @@ describe('Pool', () => {
 
   describe('#token0', () => {
     it('always is the token that sorts before', () => {
-      let pool = new Pool(USDC, DAI, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+      let pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
       expect(pool.token0).toEqual(DAI)
-      pool = new Pool(DAI, USDC, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+      pool = new Pool(DAI, USDC, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
       expect(pool.token0).toEqual(DAI)
     })
   })
   describe('#token1', () => {
     it('always is the token that sorts after', () => {
-      let pool = new Pool(USDC, DAI, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+      let pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
       expect(pool.token1).toEqual(USDC)
-      pool = new Pool(DAI, USDC, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+      pool = new Pool(DAI, USDC, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
       expect(pool.token1).toEqual(USDC)
     })
   })
@@ -58,7 +56,8 @@ describe('Pool', () => {
           DAI,
           FeeAmount.LOW,
           encodeSqrtRatioX96(101e6, 100e18),
-          liquidityDefault,
+          0,
+          TickMath.getTickAtSqrtRatio(encodeSqrtRatioX96(101e6, 100e18)),
           tickMapDefault
         ).token0Price.toSignificant(5)
       ).toEqual('1.01')
@@ -68,7 +67,8 @@ describe('Pool', () => {
           USDC,
           FeeAmount.LOW,
           encodeSqrtRatioX96(101e6, 100e18),
-          liquidityDefault,
+          0,
+          TickMath.getTickAtSqrtRatio(encodeSqrtRatioX96(101e6, 100e18)),
           tickMapDefault
         ).token0Price.toSignificant(5)
       ).toEqual('1.01')
@@ -83,7 +83,8 @@ describe('Pool', () => {
           DAI,
           FeeAmount.LOW,
           encodeSqrtRatioX96(101e6, 100e18),
-          liquidityDefault,
+          0,
+          TickMath.getTickAtSqrtRatio(encodeSqrtRatioX96(101e6, 100e18)),
           tickMapDefault
         ).token1Price.toSignificant(5)
       ).toEqual('0.9901')
@@ -93,7 +94,8 @@ describe('Pool', () => {
           USDC,
           FeeAmount.LOW,
           encodeSqrtRatioX96(101e6, 100e18),
-          liquidityDefault,
+          0,
+          TickMath.getTickAtSqrtRatio(encodeSqrtRatioX96(101e6, 100e18)),
           tickMapDefault
         ).token1Price.toSignificant(5)
       ).toEqual('0.9901')
@@ -101,7 +103,7 @@ describe('Pool', () => {
   })
 
   describe('#priceOf', () => {
-    const pool = new Pool(USDC, DAI, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+    const pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
     it('returns price of token in terms of other token', () => {
       expect(pool.priceOf(DAI)).toEqual(pool.token0Price)
       expect(pool.priceOf(USDC)).toEqual(pool.token1Price)
@@ -114,15 +116,15 @@ describe('Pool', () => {
 
   describe('#chainId', () => {
     it('returns the token0 chainId', () => {
-      let pool = new Pool(USDC, DAI, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+      let pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
       expect(pool.chainId).toEqual(ChainId.MAINNET)
-      pool = new Pool(DAI, USDC, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+      pool = new Pool(DAI, USDC, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
       expect(pool.chainId).toEqual(ChainId.MAINNET)
     })
   })
 
   describe('#involvesToken', () => {
-    const pool = new Pool(USDC, DAI, FeeAmount.LOW, sqrtRatioX96Default, liquidityDefault, tickMapDefault)
+    const pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
     expect(pool.involvesToken(USDC)).toEqual(true)
     expect(pool.involvesToken(DAI)).toEqual(true)
     expect(pool.involvesToken(WETH9[ChainId.MAINNET])).toEqual(false)

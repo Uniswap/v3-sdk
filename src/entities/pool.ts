@@ -2,8 +2,9 @@ import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
-import { Q192, ZERO } from '../internalConstants'
+import { Q192 } from '../internalConstants'
 import { computePoolAddress } from '../utils/computePoolAddress'
+import { TickMath } from '../utils/tickMath'
 import { TickList } from './tickList'
 
 export class Pool {
@@ -12,6 +13,7 @@ export class Pool {
   public readonly fee: FeeAmount
   public readonly sqrtRatioX96: JSBI
   public readonly liquidity: JSBI
+  public readonly tickCurrent: number
   public readonly ticks: TickList
 
   private _token0Price?: Price
@@ -28,6 +30,7 @@ export class Pool {
    * @param fee the fee in hundredths of a bips of the input amount of every swap that is collected by the pool
    * @param sqrtRatioX96 the sqrt of the current ratio of amounts of token1 to token0
    * @param liquidity the current value of in range liquidity
+   * @param tickCurrent the current tick of the pool
    * @param ticks the current state of the pool ticks
    */
   public constructor(
@@ -36,18 +39,24 @@ export class Pool {
     fee: FeeAmount,
     sqrtRatioX96: BigintIsh,
     liquidity: BigintIsh,
+    tickCurrent: number,
     ticks: TickList
   ) {
-    invariant(Number.isInteger(fee), 'Fees can only be integer (uint24) values.')
+    invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
+
+    const tickCurrentSqrtRatioX96 = TickMath.getSqrtRatioAtTick(tickCurrent)
+    const nextTickSqrtRatioX96 = TickMath.getSqrtRatioAtTick(tickCurrent + 1)
     invariant(
-      Boolean(ticks?.head || JSBI.equal(JSBI.BigInt(liquidity), ZERO)),
-      'Must have at least one initialized tick.'
+      JSBI.greaterThanOrEqual(JSBI.BigInt(sqrtRatioX96), tickCurrentSqrtRatioX96) &&
+        JSBI.lessThanOrEqual(JSBI.BigInt(sqrtRatioX96), nextTickSqrtRatioX96),
+      'PRICE_BOUNDS'
     )
     ;[this.token0, this.token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
     this.fee = fee
     this.sqrtRatioX96 = JSBI.BigInt(sqrtRatioX96)
-    this.ticks = ticks
     this.liquidity = JSBI.BigInt(liquidity)
+    this.tickCurrent = tickCurrent
+    this.ticks = ticks
   }
 
   /**
