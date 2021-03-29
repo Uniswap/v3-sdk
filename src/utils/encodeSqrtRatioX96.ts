@@ -1,6 +1,5 @@
 import JSBI from 'jsbi'
-import { BigintIsh } from '@uniswap/sdk-core'
-import { sqrt } from './sqrt'
+import { BigintIsh, sqrt } from '@uniswap/sdk-core'
 
 // returns the sqrt price as a 64x96
 export function encodeSqrtRatioX96(amount1: BigintIsh, amount0: BigintIsh): JSBI {
