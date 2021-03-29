@@ -1,5 +1,6 @@
 import { ChainId, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount } from '../constants'
+import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
 import { Pool } from './pool'
 import { Route } from './route'
 import { Tick } from './tick'
@@ -9,7 +10,7 @@ describe.skip('Route', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const weth = WETH9[ChainId.MAINNET]
-  const sqrtPriceX96Default = 20
+  const sqrtPriceX96Default = encodeSqrtRatioX96(1, 1)
   const inRangeLiquidityDefault = 0
   const tickMapDefault = new TickList({
     ticks: [
@@ -23,6 +24,7 @@ describe.skip('Route', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
   const pool_0_weth = new Pool(
@@ -31,6 +33,7 @@ describe.skip('Route', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
   const pool_1_weth = new Pool(
@@ -39,6 +42,7 @@ describe.skip('Route', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
 

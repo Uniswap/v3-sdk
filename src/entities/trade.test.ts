@@ -26,6 +26,7 @@ describe.skip('Trade', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
   const pool_0_2 = new Pool(
@@ -34,6 +35,7 @@ describe.skip('Trade', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
   const pool_0_3 = new Pool(
@@ -42,6 +44,7 @@ describe.skip('Trade', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
   const pool_1_2 = new Pool(
@@ -50,6 +53,7 @@ describe.skip('Trade', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
   const pool_1_3 = new Pool(
@@ -58,6 +62,7 @@ describe.skip('Trade', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
 
@@ -67,6 +72,7 @@ describe.skip('Trade', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
 
@@ -76,6 +82,7 @@ describe.skip('Trade', () => {
     FeeAmount.MEDIUM,
     sqrtPriceX96Default,
     inRangeLiquidityDefault,
+    0,
     tickMapDefault
   )
 
