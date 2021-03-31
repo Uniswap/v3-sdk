@@ -1,98 +1,75 @@
+import JSBI from 'jsbi'
+import invariant from 'tiny-invariant'
+import { ZERO } from '../internalConstants'
 import { Tick } from './tick'
 
-export interface ListNode<T> {
-  value: T
-  right?: ListNode<T>
-  left?: ListNode<T>
-}
-
-interface TickListConstructorArgs {
-  ticks?: Tick[]
-  current?: Tick
-}
-
 export class TickList {
-  head?: ListNode<Tick> // right
-  tail?: ListNode<Tick> // left
-  constructor({ ticks }: TickListConstructorArgs) {
-    if (ticks && ticks.length > 0) {
-      ticks.sort(({ index: a }, { index: b }) => (a > b ? -1 : 1)).forEach(tick => this.insertUnsorted(tick))
+  public readonly ticks: Tick[]
+
+  constructor(ticks: Tick[], tickSpacing: number = 1) {
+    invariant(ticks.length >= 2, 'TICKS')
+
+    // ensure ticks are spaced appropriately
+    invariant(ticks.every(({ index }) => index % tickSpacing === 0))
+
+    // ensure tick liquidity deltas sum to 0
+    invariant(
+      JSBI.equal(
+        ticks.reduce((accumulator, { liquidityNet }) => JSBI.add(accumulator, liquidityNet), ZERO),
+        ZERO
+      ),
+      'ZERO_NET'
+    )
+
+    // sort ticks
+    this.ticks = ticks.slice().sort(({ index: a }, { index: b }) => (a < b ? -1 : 1))
+  }
+
+  public isBelowSmallest(tick: number): boolean {
+    return tick < this.ticks[0].index
+  }
+
+  public isAtOrAboveLargest(tick: number): boolean {
+    return tick >= this.ticks[this.ticks.length - 1].index
+  }
+
+  private binarySearch(tick: number): number {
+    invariant(!this.isBelowSmallest(tick), 'BELOW_SMALLEST')
+    invariant(!this.isAtOrAboveLargest(tick), 'AT_OR_ABOVE_LARGEST')
+
+    let l = 0
+    let r = this.ticks.length - 1
+    let i
+    while (true) {
+      i = Math.floor((l + r) / 2)
+
+      if (this.ticks[i].index <= tick && this.ticks[i + 1].index > tick) {
+        return i
+      }
+
+      if (this.ticks[i].index < tick) {
+        l = i + 1
+      } else {
+        r = i - 1
+      }
     }
   }
-  private insertUnsorted(tick: Tick): void {
-    const node: ListNode<Tick> = { value: tick }
-    if (this.head === undefined) {
-      this.head = node
-    } else if (this.tail === undefined) {
-      this.tail = node
-      this.tail.right = this.head
-      this.head.left = this.tail
+
+  public nextInitializedTick(tick: number, lte: boolean): Tick {
+    if (lte) {
+      invariant(!this.isBelowSmallest(tick), 'BELOW_SMALLEST')
+      if (this.isAtOrAboveLargest(tick)) {
+        return this.ticks[this.ticks.length - 1]
+      }
+      const index = this.binarySearch(tick)
+      return this.ticks[index]
     } else {
-      const priorTail = this.tail
-      node.right = priorTail
-      priorTail.left = node
-      this.tail = node
-    }
-  }
-  insert(tick: Tick): void {
-    const node: ListNode<Tick> = { value: tick }
-    if (this.head === undefined) {
-      this.head = node
-    } else if (this.head.value.index < node.value.index) {
-      // insert at the beginning
-      node.left = this.head
-      this.head.right = node
-      this.head = node
-    } else {
-      // find insertion point
-      let current: ListNode<Tick> | undefined = { ...this.head }
-      while (current.left && current.left.value.index >= node.value.index) {
-        current = current.left
+      invariant(!this.isAtOrAboveLargest(tick), 'AT_OR_ABOVE_LARGEST')
+      if (this.isBelowSmallest(tick)) {
+        return this.ticks[0]
       }
-      current.right = node
-      node.left = current
-      if (current.right === undefined) {
-        this.head = node
-      } else {
-        node.right = current.right
-      }
-      if (current.left === undefined) {
-        this.tail = node
-      }
+      const index = this.binarySearch(tick)
+      return this.ticks[index + 1]
     }
-  }
-  dequeue(): Tick | void {
-    if (this.head) {
-      const value = this.head.value
-      this.head = this.head.left
-      if (this.head === undefined) {
-        this.tail = undefined
-      } else {
-        this.head.left = undefined
-      }
-      return value
-    }
-  }
-  pop(): Tick | void {
-    if (this.tail) {
-      const value = this.tail.value
-      this.tail = this.tail.right
-      if (this.tail === undefined) {
-        this.head = undefined
-      } else {
-        this.tail.left = undefined
-      }
-      return value
-    }
-  }
-  public get values(): Tick[] {
-    // returns values starting from tail (lowest tick)
-    let current = this.tail
-    const result = []
-    while (current) {
-      result.push(current.value)
-      current = current.right
-    }
-    return result
   }
 }

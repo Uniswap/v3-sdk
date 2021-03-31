@@ -12,12 +12,10 @@ describe.skip('Route', () => {
   const weth = WETH9[ChainId.MAINNET]
   const sqrtPriceX96Default = encodeSqrtRatioX96(1, 1)
   const inRangeLiquidityDefault = 0
-  const tickMapDefault = new TickList({
-    ticks: [
-      new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
-      new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
-    ]
-  })
+  const tickMapDefault = new TickList([
+    new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
+    new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
+  ])
   const pool_0_1 = new Pool(
     token0,
     token1,

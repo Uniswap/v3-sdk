@@ -1,10 +1,11 @@
 import { ChainId, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { FeeAmount } from '../constants'
+import { FeeAmount, TICK_SPACINGS } from '../constants'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Position } from './position'
+import { Tick } from './tick'
 import { TickList } from './tickList'
 
 describe('Position', () => {
@@ -17,7 +18,18 @@ describe('Position', () => {
     encodeSqrtRatioX96(100e6, 100e18),
     0,
     TickMath.getTickAtSqrtRatio(encodeSqrtRatioX96(100e6, 100e18)),
-    new TickList({ ticks: [] })
+    new TickList([
+      new Tick({
+        index: -TICK_SPACINGS[FeeAmount.LOW],
+        liquidityNet: 1,
+        liquidityGross: 1
+      }),
+      new Tick({
+        index: TICK_SPACINGS[FeeAmount.LOW],
+        liquidityNet: -1,
+        liquidityGross: 1
+      })
+    ])
   )
 
   it('can be constructed', () => {
