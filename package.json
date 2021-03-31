@@ -2,7 +2,7 @@
   "name": "@uniswap/v3-sdk",
   "license": "UNLICENSED",
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   },
   "version": "1.0.0-alpha.5",
   "description": "⚒️ An SDK for building applications on top of Uniswap V3",
