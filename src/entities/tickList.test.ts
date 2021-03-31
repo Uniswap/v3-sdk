@@ -45,19 +45,19 @@ describe('TickMap', () => {
     })
   })
 
-  it('isBelowSmallest', () => {
+  it('#isBelowSmallest', () => {
     const result = new TickList([lowTick, midTick, highTick])
     expect(result.isBelowSmallest(MIN_TICK)).toBe(true)
     expect(result.isBelowSmallest(MIN_TICK + 1)).toBe(false)
   })
 
-  it('isAtOrAboveLargest', () => {
+  it('#isAtOrAboveLargest', () => {
     const result = new TickList([lowTick, midTick, highTick])
     expect(result.isAtOrAboveLargest(MAX_TICK - 2)).toBe(false)
     expect(result.isAtOrAboveLargest(MAX_TICK - 1)).toBe(true)
   })
 
-  describe('nextInitializedTick', () => {
+  describe('#nextInitializedTick', () => {
     let result: TickList
 
     beforeEach(() => {
@@ -100,6 +100,38 @@ describe('TickMap', () => {
 
       expect(result.nextInitializedTick(MAX_TICK - 2, false)).toEqual(highTick)
       expect(result.nextInitializedTick(MAX_TICK - 3, false)).toEqual(highTick)
+    })
+  })
+
+  describe('#nextInitializedTickWithinOneWord', () => {
+    let result: TickList
+
+    beforeEach(() => {
+      result = new TickList([lowTick, midTick, highTick])
+    })
+
+    it('words around 0, lte = true', () => {
+      expect(result.nextInitializedTickWithinOneWord(-257, true)).toEqual([-512, false])
+      expect(result.nextInitializedTickWithinOneWord(-256, true)).toEqual([-256, false])
+      expect(result.nextInitializedTickWithinOneWord(-1, true)).toEqual([-256, false])
+      expect(result.nextInitializedTickWithinOneWord(0, true)).toEqual([0, true])
+      expect(result.nextInitializedTickWithinOneWord(1, true)).toEqual([0, true])
+      expect(result.nextInitializedTickWithinOneWord(255, true)).toEqual([0, true])
+      expect(result.nextInitializedTickWithinOneWord(256, true)).toEqual([256, false])
+      expect(result.nextInitializedTickWithinOneWord(257, true)).toEqual([256, false])
+    })
+
+    it('words around 0, lte = false', () => {
+      expect(result.nextInitializedTickWithinOneWord(-258, false)).toEqual([-257, false])
+      expect(result.nextInitializedTickWithinOneWord(-257, false)).toEqual([-1, false])
+      expect(result.nextInitializedTickWithinOneWord(-256, false)).toEqual([-1, false])
+      expect(result.nextInitializedTickWithinOneWord(-2, false)).toEqual([-1, false])
+      expect(result.nextInitializedTickWithinOneWord(-1, false)).toEqual([0, true])
+      expect(result.nextInitializedTickWithinOneWord(0, false)).toEqual([255, false])
+      expect(result.nextInitializedTickWithinOneWord(1, false)).toEqual([255, false])
+      expect(result.nextInitializedTickWithinOneWord(254, false)).toEqual([255, false])
+      expect(result.nextInitializedTickWithinOneWord(255, false)).toEqual([511, false])
+      expect(result.nextInitializedTickWithinOneWord(256, false)).toEqual([511, false])
     })
   })
 })

@@ -1,11 +1,21 @@
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
-import { Q192 } from '../internalConstants'
+import { FACTORY_ADDRESS, FeeAmount, MAX_SQRT_RATIO, MIN_SQRT_RATIO, TICK_SPACINGS } from '../constants'
+import { Q192, NEGATIVE_ONE, ZERO } from '../internalConstants'
 import { computePoolAddress } from '../utils/computePoolAddress'
 import { TickMath } from '../utils/tickMath'
 import { TickList } from './tickList'
+
+interface StepComputations {
+  sqrtPriceStartX96: JSBI
+  tickNext: number
+  initialized: boolean
+  sqrtPriceNextX96: JSBI
+  amountIn: JSBI
+  amountOut: JSBI
+  feeAmount: JSBI
+}
 
 export class Pool {
   public readonly token0: Token
@@ -113,14 +123,60 @@ export class Pool {
     return this.token0.chainId
   }
 
-  public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pool] {
+  public getOutputAmount(inputAmount: TokenAmount): TokenAmount {
     invariant(this.involvesToken(inputAmount.token), 'TOKEN')
-    throw new Error('todo')
+
+    const zeroForOne = inputAmount.token.equals(this.token0)
+
+    const outputAmount = this.swap(zeroForOne, inputAmount.raw)
+    const outputToken = zeroForOne ? this.token1 : this.token0
+    return new TokenAmount(outputToken, outputAmount)
   }
 
-  public getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pool] {
+  public getInputAmount(outputAmount: TokenAmount): TokenAmount {
     invariant(this.involvesToken(outputAmount.token), 'TOKEN')
-    throw new Error('todo')
+
+    const zeroForOne = outputAmount.token.equals(this.token1)
+
+    const inputAmount = this.swap(zeroForOne, JSBI.multiply(outputAmount.raw, NEGATIVE_ONE))
+    const outputToken = zeroForOne ? this.token1 : this.token0
+    return new TokenAmount(outputToken, inputAmount)
+  }
+
+  private swap(zeroForOne: boolean, amountSpecified: JSBI, sqrtPriceLimitX96?: JSBI): JSBI {
+    invariant(JSBI.notEqual(amountSpecified, ZERO), 'ZERO')
+
+    if (!sqrtPriceLimitX96) sqrtPriceLimitX96 = zeroForOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO
+
+    if (zeroForOne) {
+      invariant(sqrtPriceLimitX96 >= MIN_SQRT_RATIO, 'RATIO_MIN')
+      invariant(sqrtPriceLimitX96 < this.sqrtRatioX96, 'RATIO_CURRENT')
+    } else {
+      invariant(sqrtPriceLimitX96 <= MAX_SQRT_RATIO, 'RATIO_MAX')
+      invariant(sqrtPriceLimitX96 > this.sqrtRatioX96, 'RATIO_CURRENT')
+    }
+
+    // keep track of swap state
+    const state = {
+      amountSpecifiedRemaining: amountSpecified,
+      amountCalculated: ZERO,
+      sqrtPriceX96: this.sqrtRatioX96,
+      tick: this.tickCurrent,
+      liquidity: this.liquidity
+    }
+
+    // start swap while loop
+    while (JSBI.notEqual(state.amountSpecifiedRemaining, ZERO) && state.sqrtPriceX96 != sqrtPriceLimitX96) {
+      let step: Partial<StepComputations> = {}
+      step.sqrtPriceStartX96 = state.sqrtPriceX96
+
+      // because each iteration of the while loop rounds, we can't optimize this code (relative to the smart contract)
+      // by simply traversing to the next available tick, we instead need to exactly replicate
+      // tickBitmap.nextInitializedTickWithinOneWord
+      ;[step.tickNext, step.initialized] = this.ticks.nextInitializedTickWithinOneWord(state.tick, zeroForOne)
+    }
+
+    return ZERO
   }
 
   public get tickSpacing(): number {

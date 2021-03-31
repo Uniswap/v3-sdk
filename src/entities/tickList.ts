@@ -4,6 +4,7 @@ import { ZERO } from '../internalConstants'
 import { Tick } from './tick'
 
 export class TickList {
+  public readonly tickSpacing: number
   public readonly ticks: Tick[]
 
   constructor(ticks: Tick[], tickSpacing: number = 1) {
@@ -21,7 +22,7 @@ export class TickList {
       'ZERO_NET'
     )
 
-    // sort ticks
+    this.tickSpacing = tickSpacing
     this.ticks = ticks.slice().sort(({ index: a }, { index: b }) => (a < b ? -1 : 1))
   }
 
@@ -70,6 +71,36 @@ export class TickList {
       }
       const index = this.binarySearch(tick)
       return this.ticks[index + 1]
+    }
+  }
+
+  public nextInitializedTickWithinOneWord(tick: number, lte: boolean): [number, boolean] {
+    const compressed = Math.floor(tick / this.tickSpacing) // matches rounding in the code
+
+    // get next initialized tick without bounds
+
+    if (lte) {
+      const wordPos = compressed >> 8
+      const minimum = (wordPos << 8) * this.tickSpacing
+
+      if (this.isBelowSmallest(tick)) {
+        return [minimum, false]
+      }
+
+      const index = this.nextInitializedTick(tick, lte).index
+      const nextInitializedTick = Math.max(minimum, index)
+      return [nextInitializedTick, nextInitializedTick === index]
+    } else {
+      const wordPos = (compressed + 1) >> 8
+      const maximum = ((wordPos + 1) << 8) * this.tickSpacing - 1
+
+      if (this.isAtOrAboveLargest(tick)) {
+        return [maximum, false]
+      }
+
+      const index = this.nextInitializedTick(tick, lte).index
+      const nextInitializedTick = Math.min(maximum, index)
+      return [nextInitializedTick, nextInitializedTick === index]
     }
   }
 }
