@@ -1,5 +1,5 @@
-import { MAX_TICK, MIN_TICK } from '../constants'
 import { nearestUsableTick } from './nearestUsableTick'
+import { TickMath } from './tickMath'
 
 describe('#nearestUsableTick', () => {
   it('throws if tickSpacing is 0', () => {
@@ -15,9 +15,9 @@ describe('#nearestUsableTick', () => {
     expect(() => nearestUsableTick(1, 1.5)).toThrow('INTEGERS')
   })
 
-  it('throws if tick is greater than MAX_TICK', () => {
-    expect(() => nearestUsableTick(MAX_TICK + 1, 1)).toThrow('TICK_BOUND')
-    expect(() => nearestUsableTick(MIN_TICK - 1, 1)).toThrow('TICK_BOUND')
+  it('throws if tick is greater than TickMath.MAX_TICK', () => {
+    expect(() => nearestUsableTick(TickMath.MAX_TICK + 1, 1)).toThrow('TICK_BOUND')
+    expect(() => nearestUsableTick(TickMath.MIN_TICK - 1, 1)).toThrow('TICK_BOUND')
   })
 
   it('rounds at positive half', () => {
@@ -37,10 +37,10 @@ describe('#nearestUsableTick', () => {
   })
 
   it('cannot round past MIN_TICK', () => {
-    expect(nearestUsableTick(MIN_TICK, MAX_TICK / 2 + 100)).toEqual(-(MAX_TICK / 2 + 100))
+    expect(nearestUsableTick(TickMath.MIN_TICK, TickMath.MAX_TICK / 2 + 100)).toEqual(-(TickMath.MAX_TICK / 2 + 100))
   })
 
   it('cannot round past MAX_TICK', () => {
-    expect(nearestUsableTick(MAX_TICK, MAX_TICK / 2 + 100)).toEqual(MAX_TICK / 2 + 100)
+    expect(nearestUsableTick(TickMath.MAX_TICK, TickMath.MAX_TICK / 2 + 100)).toEqual(TickMath.MAX_TICK / 2 + 100)
   })
 })

@@ -1,7 +1,7 @@
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { BigintIsh } from '@uniswap/sdk-core'
-import { MAX_TICK, MIN_TICK } from '../constants'
+import { TickMath } from '../utils'
 
 interface TickConstructorArgs {
   feeGrowthOutside0X128?: BigintIsh
@@ -25,7 +25,7 @@ export class Tick {
     liquidityGross,
     liquidityNet
   }: TickConstructorArgs) {
-    invariant(index >= MIN_TICK && index <= MAX_TICK, 'TICK')
+    invariant(index >= TickMath.MIN_TICK && index <= TickMath.MAX_TICK, 'TICK')
     this.index = index
     if (feeGrowthOutside0X128) this.feeGrowthOutside0X128 = JSBI.BigInt(feeGrowthOutside0X128)
     if (feeGrowthOutside1X128) this.feeGrowthOutside1X128 = JSBI.BigInt(feeGrowthOutside1X128)

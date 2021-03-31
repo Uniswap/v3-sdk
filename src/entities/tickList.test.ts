@@ -1,6 +1,6 @@
+import { TickMath } from '../utils'
 import { Tick } from './tick'
 import { TickList } from './tickList'
-import { MAX_TICK, MIN_TICK } from '../constants'
 
 describe('TickMap', () => {
   let highTick: Tick
@@ -9,7 +9,7 @@ describe('TickMap', () => {
 
   beforeEach(() => {
     lowTick = new Tick({
-      index: MIN_TICK + 1,
+      index: TickMath.MIN_TICK + 1,
       liquidityNet: 10,
       liquidityGross: 10
     })
@@ -19,7 +19,7 @@ describe('TickMap', () => {
       liquidityGross: 5
     })
     highTick = new Tick({
-      index: MAX_TICK - 1,
+      index: TickMath.MAX_TICK - 1,
       liquidityNet: -5,
       liquidityGross: 5
     })
@@ -47,14 +47,14 @@ describe('TickMap', () => {
 
   it('#isBelowSmallest', () => {
     const result = new TickList([lowTick, midTick, highTick])
-    expect(result.isBelowSmallest(MIN_TICK)).toBe(true)
-    expect(result.isBelowSmallest(MIN_TICK + 1)).toBe(false)
+    expect(result.isBelowSmallest(TickMath.MIN_TICK)).toBe(true)
+    expect(result.isBelowSmallest(TickMath.MIN_TICK + 1)).toBe(false)
   })
 
   it('#isAtOrAboveLargest', () => {
     const result = new TickList([lowTick, midTick, highTick])
-    expect(result.isAtOrAboveLargest(MAX_TICK - 2)).toBe(false)
-    expect(result.isAtOrAboveLargest(MAX_TICK - 1)).toBe(true)
+    expect(result.isAtOrAboveLargest(TickMath.MAX_TICK - 2)).toBe(false)
+    expect(result.isAtOrAboveLargest(TickMath.MAX_TICK - 1)).toBe(true)
   })
 
   describe('#nextInitializedTick', () => {
@@ -66,16 +66,16 @@ describe('TickMap', () => {
 
     it('low - lte = true', () => {
       expect(() => {
-        result.nextInitializedTick(MIN_TICK, true)
+        result.nextInitializedTick(TickMath.MIN_TICK, true)
       }).toThrow('BELOW_SMALLEST')
 
-      expect(result.nextInitializedTick(MIN_TICK + 1, true)).toEqual(lowTick)
-      expect(result.nextInitializedTick(MIN_TICK + 2, true)).toEqual(lowTick)
+      expect(result.nextInitializedTick(TickMath.MIN_TICK + 1, true)).toEqual(lowTick)
+      expect(result.nextInitializedTick(TickMath.MIN_TICK + 2, true)).toEqual(lowTick)
     })
 
     it('low - lte = false', () => {
-      expect(result.nextInitializedTick(MIN_TICK, false)).toEqual(lowTick)
-      expect(result.nextInitializedTick(MIN_TICK + 1, false)).toEqual(midTick)
+      expect(result.nextInitializedTick(TickMath.MIN_TICK, false)).toEqual(lowTick)
+      expect(result.nextInitializedTick(TickMath.MIN_TICK + 1, false)).toEqual(midTick)
     })
 
     it('mid - lte = true', () => {
@@ -89,17 +89,17 @@ describe('TickMap', () => {
     })
 
     it('high - lte = true', () => {
-      expect(result.nextInitializedTick(MAX_TICK - 1, true)).toEqual(highTick)
-      expect(result.nextInitializedTick(MAX_TICK, true)).toEqual(highTick)
+      expect(result.nextInitializedTick(TickMath.MAX_TICK - 1, true)).toEqual(highTick)
+      expect(result.nextInitializedTick(TickMath.MAX_TICK, true)).toEqual(highTick)
     })
 
     it('high - lte = false', () => {
       expect(() => {
-        result.nextInitializedTick(MAX_TICK - 1, false)
+        result.nextInitializedTick(TickMath.MAX_TICK - 1, false)
       }).toThrow('AT_OR_ABOVE_LARGEST')
 
-      expect(result.nextInitializedTick(MAX_TICK - 2, false)).toEqual(highTick)
-      expect(result.nextInitializedTick(MAX_TICK - 3, false)).toEqual(highTick)
+      expect(result.nextInitializedTick(TickMath.MAX_TICK - 2, false)).toEqual(highTick)
+      expect(result.nextInitializedTick(TickMath.MAX_TICK - 3, false)).toEqual(highTick)
     })
   })
 

@@ -1,9 +1,10 @@
 import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { FACTORY_ADDRESS, FeeAmount, MAX_SQRT_RATIO, MIN_SQRT_RATIO, TICK_SPACINGS } from '../constants'
-import { Q192, NEGATIVE_ONE, ZERO } from '../internalConstants'
+import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
+import { Q192, NEGATIVE_ONE, ZERO, ONE } from '../internalConstants'
 import { computePoolAddress } from '../utils/computePoolAddress'
+import { SwapMath } from '../utils/swapMath'
 import { TickMath } from '../utils/tickMath'
 import { TickList } from './tickList'
 
@@ -146,15 +147,20 @@ export class Pool {
   private swap(zeroForOne: boolean, amountSpecified: JSBI, sqrtPriceLimitX96?: JSBI): JSBI {
     invariant(JSBI.notEqual(amountSpecified, ZERO), 'ZERO')
 
-    if (!sqrtPriceLimitX96) sqrtPriceLimitX96 = zeroForOne ? MIN_SQRT_RATIO : MAX_SQRT_RATIO
+    if (!sqrtPriceLimitX96)
+      sqrtPriceLimitX96 = zeroForOne
+        ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
+        : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE)
 
     if (zeroForOne) {
-      invariant(sqrtPriceLimitX96 >= MIN_SQRT_RATIO, 'RATIO_MIN')
+      invariant(sqrtPriceLimitX96 > TickMath.MIN_SQRT_RATIO, 'RATIO_MIN')
       invariant(sqrtPriceLimitX96 < this.sqrtRatioX96, 'RATIO_CURRENT')
     } else {
-      invariant(sqrtPriceLimitX96 <= MAX_SQRT_RATIO, 'RATIO_MAX')
+      invariant(sqrtPriceLimitX96 < TickMath.MAX_SQRT_RATIO, 'RATIO_MAX')
       invariant(sqrtPriceLimitX96 > this.sqrtRatioX96, 'RATIO_CURRENT')
     }
+
+    const exactInput = JSBI.greaterThan(amountSpecified, ZERO)
 
     // keep track of swap state
     const state = {
@@ -174,9 +180,76 @@ export class Pool {
       // by simply traversing to the next available tick, we instead need to exactly replicate
       // tickBitmap.nextInitializedTickWithinOneWord
       ;[step.tickNext, step.initialized] = this.ticks.nextInitializedTickWithinOneWord(state.tick, zeroForOne)
+
+      if (step.tickNext < TickMath.MIN_TICK) {
+        step.tickNext = TickMath.MIN_TICK
+      } else if (step.tickNext > TickMath.MAX_TICK) {
+        step.tickNext = TickMath.MAX_TICK
+      }
+
+      step.sqrtPriceNextX96 = TickMath.getSqrtRatioAtTick(step.tickNext)
+      ;[state.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount] = SwapMath.computeSwapStep(
+        state.sqrtPriceX96,
+        (zeroForOne
+        ? JSBI.lessThan(step.sqrtPriceNextX96, sqrtPriceLimitX96)
+        : JSBI.greaterThan(step.sqrtPriceNextX96, sqrtPriceLimitX96))
+          ? sqrtPriceLimitX96
+          : step.sqrtPriceNextX96,
+        state.liquidity,
+        state.amountSpecifiedRemaining,
+        this.fee
+      )
+
+      if (exactInput) {
+        state.amountSpecifiedRemaining = JSBI.subtract(
+          state.amountSpecifiedRemaining,
+          JSBI.add(step.amountIn, step.feeAmount)
+        )
+        state.amountCalculated = JSBI.subtract(state.amountCalculated, step.amountOut)
+      } else {
+        state.amountSpecifiedRemaining = JSBI.add(state.amountSpecifiedRemaining, step.amountOut)
+        state.amountCalculated = JSBI.add(state.amountCalculated, JSBI.add(step.amountIn, step.feeAmount))
+      }
+
+      // TODO
+      //   if (state.sqrtPriceX96 == step.sqrtPriceNextX96) {
+      //     // if the tick is initialized, run the tick transition
+      //     if (step.initialized) {
+      //         int128 liquidityNet =
+      //             ticks.cross(
+      //                 step.tickNext,
+      //                 (zeroForOne ? state.feeGrowthGlobalX128 : feeGrowthGlobal0X128),
+      //                 (zeroForOne ? feeGrowthGlobal1X128 : state.feeGrowthGlobalX128)
+      //             );
+      //         // if we're moving leftward, we interpret liquidityNet as the opposite sign
+      //         // safe because liquidityNet cannot be type(int128).min
+      //         if (zeroForOne) liquidityNet = -liquidityNet;
+
+      //         secondsOutside.cross(step.tickNext, tickSpacing, cache.blockTimestamp);
+
+      //         state.liquidity = LiquidityMath.addDelta(state.liquidity, liquidityNet);
+      //     }
+
+      //     state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext;
+      // } else if (state.sqrtPriceX96 != step.sqrtPriceStartX96) {
+      //     // recompute unless we're on a lower tick boundary (i.e. already transitioned ticks), and haven't moved
+      //     state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96);
+      // }
     }
 
-    return ZERO
+    if (zeroForOne) {
+      if (exactInput) {
+        return JSBI.multiply(state.amountCalculated, NEGATIVE_ONE)
+      } else {
+        return state.amountCalculated
+      }
+    } else {
+      if (exactInput) {
+        return JSBI.multiply(state.amountCalculated, NEGATIVE_ONE)
+      } else {
+        return state.amountCalculated
+      }
+    }
   }
 
   public get tickSpacing(): number {
