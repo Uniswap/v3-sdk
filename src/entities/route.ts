@@ -8,7 +8,6 @@ export class Route {
   public readonly tokenPath: Token[]
   public readonly input: Currency
   public readonly output: Currency
-  // public readonly midPrice: Price
 
   public constructor(pools: Pool[], input: Currency, output?: Currency) {
     invariant(pools.length > 0, 'POOLS: none provided')
