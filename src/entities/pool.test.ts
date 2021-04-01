@@ -1,10 +1,14 @@
-import { ChainId, Token, WETH9 } from '@uniswap/sdk-core'
-import { FeeAmount } from '../constants'
+import { ChainId, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
+import { FeeAmount, MAX_TICK, MIN_TICK, TICK_SPACINGS } from '../constants'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Tick } from './tick'
 import { TickList } from './tickList'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
+import JSBI from 'jsbi'
+import { NEGATIVE_ONE } from '../internalConstants'
+
+const ONE_ETHER = JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(18))
 
 describe('Pool', () => {
   const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
@@ -126,5 +130,64 @@ describe('Pool', () => {
     expect(pool.involvesToken(USDC)).toEqual(true)
     expect(pool.involvesToken(DAI)).toEqual(true)
     expect(pool.involvesToken(WETH9[ChainId.MAINNET])).toEqual(false)
+  })
+
+  describe('swaps', () => {
+    let pool: Pool
+
+    beforeEach(() => {
+      pool = new Pool(
+        USDC,
+        DAI,
+        FeeAmount.LOW,
+        encodeSqrtRatioX96(1, 1),
+        ONE_ETHER,
+        0,
+        new TickList([
+          new Tick({
+            index: MIN_TICK(TICK_SPACINGS[FeeAmount.LOW]),
+            liquidityNet: ONE_ETHER,
+            liquidityGross: ONE_ETHER
+          }),
+          new Tick({
+            index: MAX_TICK(TICK_SPACINGS[FeeAmount.LOW]),
+            liquidityNet: JSBI.multiply(ONE_ETHER, NEGATIVE_ONE),
+            liquidityGross: ONE_ETHER
+          })
+        ])
+      )
+    })
+
+    describe('#getOutputAmount', () => {
+      it('USDC -> DAI', () => {
+        const inputAmount = new TokenAmount(USDC, 100)
+        const [outputAmount] = pool.getOutputAmount(inputAmount)
+        expect(outputAmount.token.equals(DAI)).toBe(true)
+        expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
+      })
+
+      it('DAI -> USDC', () => {
+        const inputAmount = new TokenAmount(DAI, 100)
+        const [outputAmount] = pool.getOutputAmount(inputAmount)
+        expect(outputAmount.token.equals(USDC)).toBe(true)
+        expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
+      })
+    })
+
+    describe('#getInputAmount', () => {
+      it('USDC -> DAI', () => {
+        const outputAmount = new TokenAmount(DAI, 98)
+        const [inputAmount] = pool.getInputAmount(outputAmount)
+        expect(inputAmount.token.equals(USDC)).toBe(true)
+        expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
+      })
+
+      it('DAI -> USDC', () => {
+        const outputAmount = new TokenAmount(USDC, 98)
+        const [inputAmount] = pool.getInputAmount(outputAmount)
+        expect(inputAmount.token.equals(DAI)).toBe(true)
+        expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
+      })
+    })
   })
 })

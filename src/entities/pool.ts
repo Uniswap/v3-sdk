@@ -4,6 +4,7 @@ import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
 import { Q192, NEGATIVE_ONE, ZERO, ONE } from '../internalConstants'
 import { computePoolAddress } from '../utils/computePoolAddress'
+import { LiquidityMath } from '../utils/liquidityMath'
 import { SwapMath } from '../utils/swapMath'
 import { TickMath } from '../utils/tickMath'
 import { TickList } from './tickList'
@@ -124,27 +125,43 @@ export class Pool {
     return this.token0.chainId
   }
 
-  public getOutputAmount(inputAmount: TokenAmount): TokenAmount {
+  public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pool] {
     invariant(this.involvesToken(inputAmount.token), 'TOKEN')
 
     const zeroForOne = inputAmount.token.equals(this.token0)
 
-    const outputAmount = this.swap(zeroForOne, inputAmount.raw)
+    const { amountCalculated: outputAmount, sqrtRatioX96, liquidity, tickCurrent } = this.swap(
+      zeroForOne,
+      inputAmount.raw
+    )
     const outputToken = zeroForOne ? this.token1 : this.token0
-    return new TokenAmount(outputToken, outputAmount)
+    return [
+      new TokenAmount(outputToken, JSBI.multiply(outputAmount, NEGATIVE_ONE)),
+      new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.ticks)
+    ]
   }
 
-  public getInputAmount(outputAmount: TokenAmount): TokenAmount {
+  public getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pool] {
     invariant(this.involvesToken(outputAmount.token), 'TOKEN')
 
     const zeroForOne = outputAmount.token.equals(this.token1)
 
-    const inputAmount = this.swap(zeroForOne, JSBI.multiply(outputAmount.raw, NEGATIVE_ONE))
-    const outputToken = zeroForOne ? this.token1 : this.token0
-    return new TokenAmount(outputToken, inputAmount)
+    const { amountCalculated: inputAmount, sqrtRatioX96, liquidity, tickCurrent } = this.swap(
+      zeroForOne,
+      JSBI.multiply(outputAmount.raw, NEGATIVE_ONE)
+    )
+    const inputToken = zeroForOne ? this.token0 : this.token1
+    return [
+      new TokenAmount(inputToken, inputAmount),
+      new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.ticks)
+    ]
   }
 
-  private swap(zeroForOne: boolean, amountSpecified: JSBI, sqrtPriceLimitX96?: JSBI): JSBI {
+  private swap(
+    zeroForOne: boolean,
+    amountSpecified: JSBI,
+    sqrtPriceLimitX96?: JSBI
+  ): { amountCalculated: JSBI; sqrtRatioX96: JSBI; liquidity: JSBI; tickCurrent: number } {
     invariant(JSBI.notEqual(amountSpecified, ZERO), 'ZERO')
 
     if (!sqrtPriceLimitX96)
@@ -153,11 +170,11 @@ export class Pool {
         : JSBI.subtract(TickMath.MAX_SQRT_RATIO, ONE)
 
     if (zeroForOne) {
-      invariant(sqrtPriceLimitX96 > TickMath.MIN_SQRT_RATIO, 'RATIO_MIN')
-      invariant(sqrtPriceLimitX96 < this.sqrtRatioX96, 'RATIO_CURRENT')
+      invariant(JSBI.greaterThan(sqrtPriceLimitX96, TickMath.MIN_SQRT_RATIO), 'RATIO_MIN')
+      invariant(JSBI.lessThan(sqrtPriceLimitX96, this.sqrtRatioX96), 'RATIO_CURRENT')
     } else {
-      invariant(sqrtPriceLimitX96 < TickMath.MAX_SQRT_RATIO, 'RATIO_MAX')
-      invariant(sqrtPriceLimitX96 > this.sqrtRatioX96, 'RATIO_CURRENT')
+      invariant(JSBI.lessThan(sqrtPriceLimitX96, TickMath.MAX_SQRT_RATIO), 'RATIO_MAX')
+      invariant(JSBI.greaterThan(sqrtPriceLimitX96, this.sqrtRatioX96), 'RATIO_CURRENT')
     }
 
     const exactInput = JSBI.greaterThan(amountSpecified, ZERO)
@@ -212,43 +229,29 @@ export class Pool {
       }
 
       // TODO
-      //   if (state.sqrtPriceX96 == step.sqrtPriceNextX96) {
-      //     // if the tick is initialized, run the tick transition
-      //     if (step.initialized) {
-      //         int128 liquidityNet =
-      //             ticks.cross(
-      //                 step.tickNext,
-      //                 (zeroForOne ? state.feeGrowthGlobalX128 : feeGrowthGlobal0X128),
-      //                 (zeroForOne ? feeGrowthGlobal1X128 : state.feeGrowthGlobalX128)
-      //             );
-      //         // if we're moving leftward, we interpret liquidityNet as the opposite sign
-      //         // safe because liquidityNet cannot be type(int128).min
-      //         if (zeroForOne) liquidityNet = -liquidityNet;
+      if (JSBI.equal(state.sqrtPriceX96, step.sqrtPriceNextX96)) {
+        // if the tick is initialized, run the tick transition
+        if (step.initialized) {
+          let liquidityNet = this.ticks.getTick(step.tickNext).liquidityNet
+          // if we're moving leftward, we interpret liquidityNet as the opposite sign
+          // safe because liquidityNet cannot be type(int128).min
+          if (zeroForOne) liquidityNet = JSBI.multiply(liquidityNet, NEGATIVE_ONE)
 
-      //         secondsOutside.cross(step.tickNext, tickSpacing, cache.blockTimestamp);
+          state.liquidity = LiquidityMath.addDelta(state.liquidity, liquidityNet)
+        }
 
-      //         state.liquidity = LiquidityMath.addDelta(state.liquidity, liquidityNet);
-      //     }
-
-      //     state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext;
-      // } else if (state.sqrtPriceX96 != step.sqrtPriceStartX96) {
-      //     // recompute unless we're on a lower tick boundary (i.e. already transitioned ticks), and haven't moved
-      //     state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96);
-      // }
+        state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext
+      } else if (state.sqrtPriceX96 != step.sqrtPriceStartX96) {
+        // recompute unless we're on a lower tick boundary (i.e. already transitioned ticks), and haven't moved
+        state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96)
+      }
     }
 
-    if (zeroForOne) {
-      if (exactInput) {
-        return JSBI.multiply(state.amountCalculated, NEGATIVE_ONE)
-      } else {
-        return state.amountCalculated
-      }
-    } else {
-      if (exactInput) {
-        return JSBI.multiply(state.amountCalculated, NEGATIVE_ONE)
-      } else {
-        return state.amountCalculated
-      }
+    return {
+      amountCalculated: state.amountCalculated,
+      sqrtRatioX96: state.sqrtPriceX96,
+      liquidity: state.liquidity,
+      tickCurrent: state.tick
     }
   }
 

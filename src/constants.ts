@@ -1,3 +1,5 @@
+import { TickMath } from './utils'
+
 // todo: replace with v3 factory address
 export const FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 
@@ -16,4 +18,12 @@ export const TICK_SPACINGS: { [amount in FeeAmount]: number } = {
   [FeeAmount.LOW]: 10,
   [FeeAmount.MEDIUM]: 60,
   [FeeAmount.HIGH]: 200
+}
+
+export function MIN_TICK(tickSpacing: number) {
+  return Math.ceil(TickMath.MIN_TICK / tickSpacing) * tickSpacing
+}
+
+export function MAX_TICK(tickSpacing: number) {
+  return Math.floor(TickMath.MAX_TICK / tickSpacing) * tickSpacing
 }

@@ -1,7 +1,7 @@
 import JSBI from 'jsbi'
 import { FeeAmount } from '../constants'
 import { NEGATIVE_ONE, ZERO } from '../internalConstants'
-import { FullMath } from './FullMath'
+import { FullMath } from './fullMath'
 import { SqrtPriceMath } from './sqrtPriceMath'
 
 const MAX_FEE = JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(6))

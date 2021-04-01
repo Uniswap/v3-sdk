@@ -34,6 +34,12 @@ export class TickList {
     return tick >= this.ticks[this.ticks.length - 1].index
   }
 
+  public getTick(index: number): Tick {
+    const tick = this.ticks[this.binarySearch(index)]
+    invariant(tick.index === index, 'NOT_CONTAINED')
+    return tick
+  }
+
   private binarySearch(tick: number): number {
     invariant(!this.isBelowSmallest(tick), 'BELOW_SMALLEST')
     invariant(!this.isAtOrAboveLargest(tick), 'AT_OR_ABOVE_LARGEST')
@@ -76,8 +82,6 @@ export class TickList {
 
   public nextInitializedTickWithinOneWord(tick: number, lte: boolean): [number, boolean] {
     const compressed = Math.floor(tick / this.tickSpacing) // matches rounding in the code
-
-    // get next initialized tick without bounds
 
     if (lte) {
       const wordPos = compressed >> 8
