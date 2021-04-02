@@ -1,6 +1,6 @@
 {
   "name": "@uniswap/v3-sdk",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
