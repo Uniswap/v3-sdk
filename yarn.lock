@@ -1524,6 +1524,11 @@
     semver "^7.3.2"
     tsutils "^3.17.1"
 
+"@uniswap/lib@^4.0.1-alpha":
+  version "4.0.1-alpha"
+  resolved "https://registry.yarnpkg.com/@uniswap/lib/-/lib-4.0.1-alpha.tgz#2881008e55f075344675b3bca93f020b028fbd02"
+  integrity sha512-f6UIliwBbRsgVLxIaBANF6w09tYqc6Y/qXdsrbEmXHyFA7ILiKrIwRFXe1yOg8M3cksgVsO9N7yuL2DdCGQKBA==
+
 "@uniswap/sdk-core@^1.0.9":
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.9.tgz#67e8d506e2c563f5183245ae9c32c54ac083479b"
@@ -1537,18 +1542,25 @@
     tiny-warning "^1.0.3"
     toformat "^2.0.0"
 
-"@uniswap/v3-core@^1.0.0-rc.0":
-  version "1.0.0-rc.0"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-core/-/v3-core-1.0.0-rc.0.tgz#eee325b11ab423b5e77af1ae6e9aec89fa51d7c5"
-  integrity sha512-nMmAtXtU1B3pOsP1DMMBO4/CUwPlatVhPKoos1l8KvVKCO9wP+trMR/heYmcwILJVF4Em5EqUBvx6Jzd8oagAg==
+"@uniswap/v2-core@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@uniswap/v2-core/-/v2-core-1.0.1.tgz#af8f508bf183204779938969e2e54043e147d425"
+  integrity sha512-MtybtkUPSyysqLY2U210NBDeCHX+ltHt3oADGdjqoThZaFRDKwM6k1Nb3F0A3hk5hwuQvytFWhrWHOEq6nVJ8Q==
 
-"@uniswap/v3-periphery@^1.0.0-beta.11":
-  version "1.0.0-beta.11"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.0.0-beta.11.tgz#5068eed1cafa591ebb69ee4e990b4ca38de602be"
-  integrity sha512-/jUNxj+/oH9TDbXv4acJc4G4xLydYJnsFc5W+fYvPTMR89PT3RLXWYK8o8FaEr/2uDxnycjXfovHb1tgB/kgtg==
+"@uniswap/v3-core@1.0.0-rc.1", "@uniswap/v3-core@^1.0.0-rc.1":
+  version "1.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-core/-/v3-core-1.0.0-rc.1.tgz#f2bbc483451364a951fba06eb2d978c6e8bdd58f"
+  integrity sha512-4ET2H0a8p7nVBGFWfio9SHc+RA6UIXEvlTRIJNsDwjQvfs8Jq9lfJ+eSOUTGmiB8Vp8V5dWarLDBU/rDE159pQ==
+
+"@uniswap/v3-periphery@^1.0.0-beta.14":
+  version "1.0.0-beta.14"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.0.0-beta.14.tgz#9af4bd8c2e41a4699ccc6684b2b8f04d84670a9b"
+  integrity sha512-/uMEJqswU0ooRH4lyF0xDaQ422zPojEL01UePihDbGszU+VpxmGwBoiLAWECpV27V+znZ+ZAkqWG1KndJ8j8QQ==
   dependencies:
     "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
-    "@uniswap/v3-core" "^1.0.0-rc.0"
+    "@uniswap/lib" "^4.0.1-alpha"
+    "@uniswap/v2-core" "1.0.1"
+    "@uniswap/v3-core" "1.0.0-rc.1"
 
 abab@^2.0.0:
   version "2.0.5"

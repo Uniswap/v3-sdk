@@ -4,7 +4,7 @@ export const FACTORY_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 // todo: replace with v3 swap router
 export const SWAP_ROUTER_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 
-export const POOL_INIT_CODE_HASH = '0x01d4d358e07707f4db84b6a7527455b06f95ee89b5d059b4a1298ada7b6c7d67'
+export const POOL_INIT_CODE_HASH = '0xa8180af292c6986c74fa300a542e049db8a89221e2452e431c3d8103b610c568'
 
 /**
  * The default factory enabled fee amounts, denominated in hundredths of bips.
