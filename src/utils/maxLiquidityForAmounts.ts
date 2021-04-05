@@ -2,7 +2,7 @@ import { BigintIsh } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { Q96 } from '../internalConstants'
 
-export function maxLiquidityForAmount0(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
+function maxLiquidityForAmount0(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
   if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
     ;[sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]
   }
@@ -10,7 +10,7 @@ export function maxLiquidityForAmount0(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI,
   return JSBI.divide(JSBI.multiply(JSBI.BigInt(amount0), intermediate), JSBI.subtract(sqrtRatioBX96, sqrtRatioAX96))
 }
 
-export function maxLiquidityForAmount1(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount1: BigintIsh): JSBI {
+function maxLiquidityForAmount1(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount1: BigintIsh): JSBI {
   if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
     ;[sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]
   }

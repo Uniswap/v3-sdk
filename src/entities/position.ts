@@ -1,8 +1,10 @@
-import { BigintIsh, MaxUint256, Percent, Price, TokenAmount } from '@uniswap/sdk-core'
+import { BigintIsh, MaxUint256, Price, TokenAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
+import { ZERO } from '../internalConstants'
 import { maxLiquidityForAmounts } from '../utils/maxLiquidityForAmounts'
 import { tickToPrice } from '../utils/priceTickConversions'
+import { SqrtPriceMath } from '../utils/sqrtPriceMath'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 
@@ -21,6 +23,10 @@ export class Position {
   public readonly tickLower: number
   public readonly tickUpper: number
   public readonly liquidity: JSBI
+
+  // cached resuts for the getters
+  private _token0Amount: TokenAmount | null = null
+  private _token1Amount: TokenAmount | null = null
 
   public constructor({ pool, liquidity, tickLower, tickUpper }: PositionConstructorArgs) {
     invariant(tickLower < tickUpper, 'TICK_ORDER')
@@ -44,6 +50,7 @@ export class Position {
    * Returns the price of token1 at the lower tick
    */
   public get token1PriceLower(): Price {
+    // TODO: should this use tickUpper?
     return tickToPrice(this.pool.token1, this.pool.token0, this.tickLower)
   }
 
@@ -58,45 +65,71 @@ export class Position {
    * Returns the price of token1 at the upper tick
    */
   public get token1PriceUpper(): Price {
+    // TODO: should this use tickLower?
     return tickToPrice(this.pool.token1, this.pool.token0, this.tickUpper)
   }
 
   /**
-   * Returns the amount of token0 that this position's liquidity could be burned for at the current pool price
+   * Returns the amount of token0 that this position's liquidity could be burned for at the current pool price.
+   * To get the minimum amount that must be spent to mint the same amount of liquidity, add one.
    */
   public get amount0(): TokenAmount {
-    throw new Error('todo')
+    if (this._token0Amount !== null) return this._token0Amount
+    if (this.pool.tickCurrent < this.tickLower) {
+      this._token0Amount = new TokenAmount(
+        this.pool.token0,
+        SqrtPriceMath.getAmount0Delta(
+          TickMath.getSqrtRatioAtTick(this.tickLower),
+          TickMath.getSqrtRatioAtTick(this.tickUpper),
+          this.liquidity,
+          false
+        )
+      )
+    } else if (this.pool.tickCurrent < this.tickUpper) {
+      this._token0Amount = new TokenAmount(
+        this.pool.token0,
+        SqrtPriceMath.getAmount0Delta(
+          this.pool.sqrtRatioX96,
+          TickMath.getSqrtRatioAtTick(this.tickUpper),
+          this.liquidity,
+          false
+        )
+      )
+    } else {
+      this._token0Amount = new TokenAmount(this.pool.token0, ZERO)
+    }
+    return this._token0Amount
   }
 
   /**
    * Returns the amount of token1 that this position's liquidity could be burned for at the current pool price
    */
   public get amount1(): TokenAmount {
-    throw new Error('todo')
-  }
-
-  /**
-   * Compute the maximum amount of token0 that should be spent to produce the amount of liquidity in this position, given
-   * some tolerance of price movement
-   */
-  public maxAmount0(_slippageTolerance: Percent): TokenAmount {
-    throw new Error('todo')
-  }
-
-  /**
-   * Compute the maximum amount of token1 that should be spent to produce the amount of liquidity in this position, given
-   * some tolerance of price movement
-   */
-  public maxAmount1(_slippageTolerance: Percent): TokenAmount {
-    throw new Error('todo')
-  }
-
-  /**
-   * Returns a number representing the amount of capital required to produce this position relative to amount of capital
-   * required for a V2 position
-   */
-  public get capitalEfficiency(): number {
-    throw new Error('todo')
+    if (this._token1Amount !== null) return this._token1Amount
+    if (this.pool.tickCurrent < this.tickLower) {
+      this._token1Amount = new TokenAmount(this.pool.token0, ZERO)
+    } else if (this.pool.tickCurrent < this.tickUpper) {
+      this._token1Amount = new TokenAmount(
+        this.pool.token1,
+        SqrtPriceMath.getAmount1Delta(
+          TickMath.getSqrtRatioAtTick(this.tickLower),
+          this.pool.sqrtRatioX96,
+          this.liquidity,
+          false
+        )
+      )
+    } else {
+      this._token1Amount = new TokenAmount(
+        this.pool.token1,
+        SqrtPriceMath.getAmount1Delta(
+          TickMath.getSqrtRatioAtTick(this.tickLower),
+          TickMath.getSqrtRatioAtTick(this.tickUpper),
+          this.liquidity,
+          false
+        )
+      )
+    }
+    return this._token1Amount
   }
 
   /**

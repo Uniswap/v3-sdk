@@ -1,5 +1,6 @@
 import { ChainId, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
-import { FeeAmount, MAX_TICK, MIN_TICK, TICK_SPACINGS } from '../constants'
+import { FeeAmount, TICK_SPACINGS } from '../constants'
+import { nearestUsableTick } from '../utils/nearestUsableTick'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Tick } from './tick'
@@ -145,12 +146,12 @@ describe('Pool', () => {
         0,
         new TickList([
           new Tick({
-            index: MIN_TICK(TICK_SPACINGS[FeeAmount.LOW]),
+            index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[FeeAmount.LOW]),
             liquidityNet: ONE_ETHER,
             liquidityGross: ONE_ETHER
           }),
           new Tick({
-            index: MAX_TICK(TICK_SPACINGS[FeeAmount.LOW]),
+            index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[FeeAmount.LOW]),
             liquidityNet: JSBI.multiply(ONE_ETHER, NEGATIVE_ONE),
             liquidityGross: ONE_ETHER
           })
