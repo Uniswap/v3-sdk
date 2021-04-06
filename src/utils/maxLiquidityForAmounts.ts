@@ -36,7 +36,7 @@ export function maxLiquidityForAmounts(
   if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
     ;[sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]
   }
-  if (JSBI.lessThan(sqrtRatioCurrentX96, sqrtRatioAX96)) {
+  if (JSBI.lessThanOrEqual(sqrtRatioCurrentX96, sqrtRatioAX96)) {
     return maxLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, amount0)
   } else if (JSBI.lessThan(sqrtRatioCurrentX96, sqrtRatioBX96)) {
     const liquidity0 = maxLiquidityForAmount0(sqrtRatioCurrentX96, sqrtRatioBX96, amount0)
