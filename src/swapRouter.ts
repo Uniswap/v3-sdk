@@ -1,6 +1,5 @@
 import { ETHER, Percent, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import { SWAP_ROUTER_ADDRESS } from './constants'
 import { Trade } from './entities/trade'
 import { MethodParameters } from './utils/calldata'
 import { toHex, ZERO_HEX } from './utils/toHex'
@@ -106,8 +105,7 @@ export abstract class SwapRouter {
     return {
       methodName,
       args,
-      value,
-      address: SWAP_ROUTER_ADDRESS
+      value
     }
   }
 }

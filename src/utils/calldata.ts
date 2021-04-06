@@ -3,10 +3,6 @@
  */
 export interface MethodParameters {
   /**
-   * The address that should be called.
-   */
-  address: string
-  /**
    * The method to call on the given address.
    */
   methodName: string

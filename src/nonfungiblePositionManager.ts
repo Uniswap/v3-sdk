@@ -1,6 +1,5 @@
-import { Percent, TokenAmount } from '@uniswap/sdk-core'
-import invariant from 'tiny-invariant'
-import { Pool } from './entities/pool'
+import { Percent } from '@uniswap/sdk-core'
+import { Position } from './entities/position'
 import { MethodParameters } from './utils/calldata'
 
 /**
@@ -21,25 +20,6 @@ export interface MintOptions {
    * When the transaction expires, in epoch seconds.
    */
   deadline: number
-
-  /**
-   * The desired amount of token0 to be spent.
-   */
-  amount0: TokenAmount
-
-  /**
-   * The desired amount of token1 to be spent.
-   */
-  amount1: TokenAmount
-
-  /**
-   * The lower tick of the minted position.
-   */
-  tickLower: number
-  /**
-   * The upper tick of the minted position.
-   */
-  tickUpper: number
 }
 
 export abstract class NonfungiblePositionManager {
@@ -48,7 +28,7 @@ export abstract class NonfungiblePositionManager {
    */
   private constructor() {}
 
-  public static mintCallParameters(_pool: Pool, _options: MintOptions): MethodParameters {
-    invariant(false, 'NOT_IMPLEMENTED')
+  public static mintCallParameters(position: Position, _options: MintOptions): MethodParameters {
+    throw new Error('todo')
   }
 }

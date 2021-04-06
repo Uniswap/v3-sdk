@@ -6,7 +6,6 @@ import { nearestUsableTick } from '../utils/nearestUsableTick'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Position } from './position'
-import { Tick } from './tick'
 import { TickList } from './tickList'
 
 describe('Position', () => {
@@ -22,18 +21,7 @@ describe('Position', () => {
     POOL_SQRT_RATIO_START,
     0,
     POOL_TICK_CURRENT,
-    new TickList([
-      new Tick({
-        index: -TICK_SPACING,
-        liquidityNet: 1,
-        liquidityGross: 1
-      }),
-      new Tick({
-        index: TICK_SPACING,
-        liquidityNet: -1,
-        liquidityGross: 1
-      })
-    ])
+    new TickList([])
   )
 
   it('can be constructed around 0 tick', () => {

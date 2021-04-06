@@ -26,14 +26,10 @@ describe('TickMap', () => {
   })
 
   describe('constructor', () => {
-    it('errors for short lists', () => {
-      expect(() => {
-        new TickList([])
-      }).toThrow('TICKS')
-
+    it('errors for incomplete lists', () => {
       expect(() => {
         new TickList([lowTick])
-      }).toThrow('TICKS')
+      }).toThrow('ZERO_NET')
     })
 
     it('should sort the initial ticks', () => {

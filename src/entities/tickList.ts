@@ -8,8 +8,6 @@ export class TickList {
   public readonly ticks: Tick[]
 
   constructor(ticks: Tick[], tickSpacing: number = 1) {
-    invariant(ticks.length >= 2, 'TICKS')
-
     // ensure ticks are spaced appropriately
     invariant(ticks.every(({ index }) => index % tickSpacing === 0))
 
