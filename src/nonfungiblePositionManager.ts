@@ -28,7 +28,7 @@ export abstract class NonfungiblePositionManager {
    */
   private constructor() {}
 
-  public static mintCallParameters(position: Position, _options: MintOptions): MethodParameters {
+  public static mintCallParameters(_position: Position, _options: MintOptions): MethodParameters {
     throw new Error('todo')
   }
 }
