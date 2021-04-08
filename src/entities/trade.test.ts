@@ -10,11 +10,11 @@ import { Tick } from './tick'
 import { TickList } from './tickList'
 import { Trade } from './trade'
 
-describe.skip('Trade', () => {
-  const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
-  const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
-  const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2')
-  const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3')
+describe('Trade', () => {
+  const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
+  const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
+  const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2', 'token2')
+  const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3', 'token3')
 
   function v2StylePool(reserveA: TokenAmount, reserveB: TokenAmount, feeAmount: FeeAmount = FeeAmount.MEDIUM) {
     const [reserve0, reserve1] = reserveA.token.sortsBefore(reserveB.token)
@@ -31,12 +31,12 @@ describe.skip('Trade', () => {
       TickMath.getTickAtSqrtRatio(sqrtRatioX96),
       new TickList([
         new Tick({
-          index: nearestUsableTick(TickMath.MIN_TICK / 2, TICK_SPACINGS[feeAmount]),
+          index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount]),
           liquidityNet: liquidity,
           liquidityGross: liquidity
         }),
         new Tick({
-          index: nearestUsableTick(TickMath.MAX_TICK / 2, TICK_SPACINGS[feeAmount]),
+          index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount]),
           liquidityNet: JSBI.multiply(liquidity, JSBI.BigInt(-1)),
           liquidityGross: liquidity
         })
@@ -44,11 +44,11 @@ describe.skip('Trade', () => {
     )
   }
 
-  const pool_0_1 = v2StylePool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token1, JSBI.BigInt(1000)))
-  const pool_0_2 = v2StylePool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token2, JSBI.BigInt(1100)))
-  const pool_0_3 = v2StylePool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token3, JSBI.BigInt(900)))
-  const pool_1_2 = v2StylePool(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token2, JSBI.BigInt(1000)))
-  const pool_1_3 = v2StylePool(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token3, JSBI.BigInt(1300)))
+  const pool_0_1 = v2StylePool(new TokenAmount(token0, 1000), new TokenAmount(token1, 1000))
+  const pool_0_2 = v2StylePool(new TokenAmount(token0, 1000), new TokenAmount(token2, 1100))
+  const pool_0_3 = v2StylePool(new TokenAmount(token0, 1000), new TokenAmount(token3, 900))
+  const pool_1_2 = v2StylePool(new TokenAmount(token1, 1200), new TokenAmount(token2, 1000))
+  const pool_1_3 = v2StylePool(new TokenAmount(token1, 1200), new TokenAmount(token3, 1300))
 
   const pool_weth_0 = v2StylePool(
     new TokenAmount(WETH9[ChainId.MAINNET], JSBI.BigInt(1000)),
@@ -104,20 +104,16 @@ describe.skip('Trade', () => {
     })
 
     it('provides best route', () => {
-      const result = Trade.bestTradeExactIn(
-        [pool_0_1, pool_0_2, pool_1_2],
-        new TokenAmount(token0, JSBI.BigInt(100)),
-        token2
-      )
+      const result = Trade.bestTradeExactIn([pool_0_1, pool_0_2, pool_1_2], new TokenAmount(token0, 100), token2)
       expect(result).toHaveLength(2)
       expect(result[0].route.pools).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.tokenPath).toEqual([token0, token2])
       expect(result[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
-      expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(99)))
+      expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(87)))
       expect(result[1].route.pools).toHaveLength(2) // 0 -> 1 -> 2 at 12:12:10
       expect(result[1].route.tokenPath).toEqual([token0, token1, token2])
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
-      expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(69)))
+      expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(55)))
     })
 
     it('respects maxHops', () => {
@@ -133,15 +129,11 @@ describe.skip('Trade', () => {
     })
 
     it('insufficient input for one pool', () => {
-      const result = Trade.bestTradeExactIn(
-        [pool_0_1, pool_0_2, pool_1_2],
-        new TokenAmount(token0, JSBI.BigInt(1)),
-        token2
-      )
-      expect(result).toHaveLength(1)
+      const result = Trade.bestTradeExactIn([pool_0_1, pool_0_2, pool_1_2], new TokenAmount(token0, 1), token2)
+      expect(result).toHaveLength(2)
       expect(result[0].route.pools).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.tokenPath).toEqual([token0, token2])
-      expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(1)))
+      expect(result[0].outputAmount).toEqual(new TokenAmount(token2, 0))
     })
 
     it('respects n', () => {
@@ -238,13 +230,13 @@ describe.skip('Trade', () => {
       })
       it('returns slippage amount if nonzero', () => {
         expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token0, JSBI.BigInt(156))
+          new TokenAmount(token0, JSBI.BigInt(210))
         )
         expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(5), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token0, JSBI.BigInt(163))
+          new TokenAmount(token0, JSBI.BigInt(220))
         )
         expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(200), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token0, JSBI.BigInt(468))
+          new TokenAmount(token0, JSBI.BigInt(630))
         )
       })
     })
@@ -267,13 +259,13 @@ describe.skip('Trade', () => {
       })
       it('returns exact if nonzero', () => {
         expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(0), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token2, JSBI.BigInt(69))
+          new TokenAmount(token2, 55)
         )
         expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(5), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token2, JSBI.BigInt(65))
+          new TokenAmount(token2, 52)
         )
         expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(200), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token2, JSBI.BigInt(23))
+          new TokenAmount(token2, 18)
         )
       })
     })
@@ -325,11 +317,11 @@ describe.skip('Trade', () => {
       expect(result).toHaveLength(2)
       expect(result[0].route.pools).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.tokenPath).toEqual([token0, token2])
-      expect(result[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(101)))
+      expect(result[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(119)))
       expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(100)))
       expect(result[1].route.pools).toHaveLength(2) // 0 -> 1 -> 2 at 12:12:10
       expect(result[1].route.tokenPath).toEqual([token0, token1, token2])
-      expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(156)))
+      expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(210)))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(100)))
     })
 
@@ -345,7 +337,7 @@ describe.skip('Trade', () => {
       expect(result[0].route.tokenPath).toEqual([token0, token2])
     })
 
-    it('insufficient liquidity', () => {
+    it.skip('insufficient liquidity', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
         token0,
@@ -354,7 +346,7 @@ describe.skip('Trade', () => {
       expect(result).toHaveLength(0)
     })
 
-    it('insufficient liquidity in one pool but not the other', () => {
+    it.skip('insufficient liquidity in one pool but not the other', () => {
       const result = Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
         token0,
@@ -383,7 +375,7 @@ describe.skip('Trade', () => {
       expect(result).toHaveLength(0)
     })
 
-    it('works for ETHER currency input', () => {
+    it.skip('works for ETHER currency input', () => {
       const result = Trade.bestTradeExactOut(
         [pool_weth_0, pool_0_1, pool_0_3, pool_1_3],
         ETHER,

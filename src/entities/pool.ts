@@ -170,8 +170,6 @@ export class Pool {
     amountSpecified: JSBI,
     sqrtPriceLimitX96?: JSBI
   ): { amountCalculated: JSBI; sqrtRatioX96: JSBI; liquidity: JSBI; tickCurrent: number } {
-    invariant(JSBI.notEqual(amountSpecified, ZERO), 'ZERO')
-
     if (!sqrtPriceLimitX96)
       sqrtPriceLimitX96 = zeroForOne
         ? JSBI.add(TickMath.MIN_SQRT_RATIO, ONE)
@@ -185,7 +183,7 @@ export class Pool {
       invariant(JSBI.greaterThan(sqrtPriceLimitX96, this.sqrtRatioX96), 'RATIO_CURRENT')
     }
 
-    const exactInput = JSBI.greaterThan(amountSpecified, ZERO)
+    const exactInput = JSBI.greaterThanOrEqual(amountSpecified, ZERO)
 
     // keep track of swap state
     const state = {
