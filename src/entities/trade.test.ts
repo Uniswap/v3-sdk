@@ -16,16 +16,13 @@ describe('Trade', () => {
   const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2', 'token2')
   const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3', 'token3')
 
-  function v2StylePool(reserveA: TokenAmount, reserveB: TokenAmount, feeAmount: FeeAmount = FeeAmount.MEDIUM) {
-    const [reserve0, reserve1] = reserveA.token.sortsBefore(reserveB.token)
-      ? [reserveA, reserveB]
-      : [reserveB, reserveA]
+  function v2StylePool(reserve0: TokenAmount, reserve1: TokenAmount, feeAmount: FeeAmount = FeeAmount.MEDIUM) {
     const sqrtRatioX96 = encodeSqrtRatioX96(reserve1.raw, reserve0.raw)
-    const liquidity = sqrt(JSBI.multiply(reserveA.raw, reserveB.raw))
+    const liquidity = sqrt(JSBI.multiply(reserve0.raw, reserve1.raw))
     return new Pool(
       reserve0.token,
       reserve1.token,
-      FeeAmount.MEDIUM,
+      feeAmount,
       sqrtRatioX96,
       liquidity,
       TickMath.getTickAtSqrtRatio(sqrtRatioX96),
@@ -170,6 +167,7 @@ describe('Trade', () => {
       expect(result[1].route.tokenPath).toEqual([WETH9[ChainId.MAINNET], token0, token3])
       expect(result[1].outputAmount.currency).toEqual(token3)
     })
+
     it('works for ETHER currency output', () => {
       const result = Trade.bestTradeExactIn(
         [pool_weth_0, pool_0_1, pool_0_3, pool_1_3],
@@ -213,6 +211,7 @@ describe('Trade', () => {
         )
       })
     })
+
     describe('tradeType = EXACT_OUTPUT', () => {
       const exactOut = new Trade(
         new Route([pool_0_1, pool_1_2], token0),
@@ -327,11 +326,7 @@ describe('Trade', () => {
     })
 
     it.skip('insufficient liquidity', () => {
-      const result = Trade.bestTradeExactOut(
-        [pool_0_1, pool_0_2, pool_1_2],
-        token0,
-        new TokenAmount(token2, JSBI.BigInt(1200))
-      )
+      const result = Trade.bestTradeExactOut([pool_0_1, pool_0_2, pool_1_2], token0, new TokenAmount(token2, 1200))
       expect(result).toHaveLength(0)
     })
 
@@ -364,11 +359,11 @@ describe('Trade', () => {
       expect(result).toHaveLength(0)
     })
 
-    it.skip('works for ETHER currency input', () => {
+    it('works for ETHER currency input', () => {
       const result = Trade.bestTradeExactOut(
         [pool_weth_0, pool_0_1, pool_0_3, pool_1_3],
         ETHER,
-        new TokenAmount(token3, JSBI.BigInt(100))
+        new TokenAmount(token3, 10000)
       )
       expect(result).toHaveLength(2)
       expect(result[0].inputAmount.currency).toEqual(ETHER)

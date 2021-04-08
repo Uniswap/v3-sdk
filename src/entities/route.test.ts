@@ -3,46 +3,16 @@ import { FeeAmount } from '../constants'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
 import { Pool } from './pool'
 import { Route } from './route'
-import { Tick } from './tick'
 import { TickList } from './tickList'
 
-describe.skip('Route', () => {
+describe('Route', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const weth = WETH9[ChainId.MAINNET]
-  const sqrtPriceX96Default = encodeSqrtRatioX96(1, 1)
-  const inRangeLiquidityDefault = 0
-  const tickMapDefault = new TickList([
-    new Tick({ index: -2, liquidityNet: 0, liquidityGross: 0 }),
-    new Tick({ index: 2, liquidityNet: 0, liquidityGross: 0 })
-  ])
-  const pool_0_1 = new Pool(
-    token0,
-    token1,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
-  const pool_0_weth = new Pool(
-    token0,
-    weth,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
-  const pool_1_weth = new Pool(
-    token1,
-    weth,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
+
+  const pool_0_1 = new Pool(token0, token1, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
+  const pool_0_weth = new Pool(token0, weth, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
+  const pool_1_weth = new Pool(token1, weth, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
 
   describe('path', () => {
     it('constructs a path from the tokens', () => {
