@@ -1,6 +1,9 @@
-import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, TradeType, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, CurrencyAmount, ETHER, Percent, sqrt, Token, TokenAmount, TradeType, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { FeeAmount } from '../constants'
+import { FeeAmount, TICK_SPACINGS } from '../constants'
+import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
+import { nearestUsableTick } from '../utils/nearestUsableTick'
+import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Route } from './route'
 import { Tick } from './tick'
@@ -12,76 +15,44 @@ describe.skip('Trade', () => {
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1')
   const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2')
   const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3')
-  const sqrtPriceX96Default = 20
-  const inRangeLiquidityDefault = 0
-  const tickMapDefault = new TickList([
-    new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
-    new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
-  ])
-  const pool_0_1 = new Pool(
-    token0,
-    token1,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
-  const pool_0_2 = new Pool(
-    token0,
-    token2,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
-  const pool_0_3 = new Pool(
-    token0,
-    token3,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
-  const pool_1_2 = new Pool(
-    token1,
-    token2,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
-  const pool_1_3 = new Pool(
-    token1,
-    token3,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
 
-  const pool_weth_0 = new Pool(
-    WETH9[ChainId.MAINNET],
-    token0,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
-  )
+  function v2StylePool(reserveA: TokenAmount, reserveB: TokenAmount, feeAmount: FeeAmount = FeeAmount.MEDIUM) {
+    const [reserve0, reserve1] = reserveA.token.sortsBefore(reserveB.token)
+      ? [reserveA, reserveB]
+      : [reserveB, reserveA]
+    const sqrtRatioX96 = encodeSqrtRatioX96(reserve1.raw, reserve0.raw)
+    const liquidity = sqrt(JSBI.multiply(reserveA.raw, reserveB.raw))
+    return new Pool(
+      reserve0.token,
+      reserve1.token,
+      FeeAmount.MEDIUM,
+      sqrtRatioX96,
+      liquidity,
+      TickMath.getTickAtSqrtRatio(sqrtRatioX96),
+      new TickList([
+        new Tick({
+          index: nearestUsableTick(TickMath.MIN_TICK / 2, TICK_SPACINGS[feeAmount]),
+          liquidityNet: liquidity,
+          liquidityGross: liquidity
+        }),
+        new Tick({
+          index: nearestUsableTick(TickMath.MAX_TICK / 2, TICK_SPACINGS[feeAmount]),
+          liquidityNet: JSBI.multiply(liquidity, JSBI.BigInt(-1)),
+          liquidityGross: liquidity
+        })
+      ])
+    )
+  }
 
-  const empty_pool_0_1 = new Pool(
-    token0,
-    token1,
-    FeeAmount.MEDIUM,
-    sqrtPriceX96Default,
-    inRangeLiquidityDefault,
-    0,
-    tickMapDefault
+  const pool_0_1 = v2StylePool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token1, JSBI.BigInt(1000)))
+  const pool_0_2 = v2StylePool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token2, JSBI.BigInt(1100)))
+  const pool_0_3 = v2StylePool(new TokenAmount(token0, JSBI.BigInt(1000)), new TokenAmount(token3, JSBI.BigInt(900)))
+  const pool_1_2 = v2StylePool(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token2, JSBI.BigInt(1000)))
+  const pool_1_3 = v2StylePool(new TokenAmount(token1, JSBI.BigInt(1200)), new TokenAmount(token3, JSBI.BigInt(1300)))
+
+  const pool_weth_0 = v2StylePool(
+    new TokenAmount(WETH9[ChainId.MAINNET], JSBI.BigInt(1000)),
+    new TokenAmount(token0, JSBI.BigInt(1000))
   )
 
   it('can be constructed with ETHER as input', () => {
@@ -147,12 +118,6 @@ describe.skip('Trade', () => {
       expect(result[1].route.tokenPath).toEqual([token0, token1, token2])
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(100)))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(69)))
-    })
-
-    it('doesnt throw for zero liquidity pools', () => {
-      expect(Trade.bestTradeExactIn([empty_pool_0_1], new TokenAmount(token0, JSBI.BigInt(100)), token1)).toHaveLength(
-        0
-      )
     })
 
     it('respects maxHops', () => {
@@ -366,12 +331,6 @@ describe.skip('Trade', () => {
       expect(result[1].route.tokenPath).toEqual([token0, token1, token2])
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(156)))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(100)))
-    })
-
-    it('doesnt throw for zero liquidity pools', () => {
-      expect(Trade.bestTradeExactOut([empty_pool_0_1], token1, new TokenAmount(token1, JSBI.BigInt(100)))).toHaveLength(
-        0
-      )
     })
 
     it('respects maxHops', () => {

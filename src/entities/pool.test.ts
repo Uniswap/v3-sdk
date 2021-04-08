@@ -15,8 +15,8 @@ describe('Pool', () => {
   const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
   const DAI = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
   const tickMapDefault: TickList = new TickList([
-    new Tick({ feeGrowthOutside0X128: 2, feeGrowthOutside1X128: 3, index: -2, liquidityNet: 0, liquidityGross: 0 }),
-    new Tick({ feeGrowthOutside0X128: 4, feeGrowthOutside1X128: 1, index: 2, liquidityNet: 0, liquidityGross: 0 })
+    new Tick({ index: -2, liquidityNet: 0, liquidityGross: 0 }),
+    new Tick({ index: 2, liquidityNet: 0, liquidityGross: 0 })
   ])
 
   describe('constructor', () => {

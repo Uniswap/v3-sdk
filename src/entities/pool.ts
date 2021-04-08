@@ -125,6 +125,10 @@ export class Pool {
     return this.token0.chainId
   }
 
+  /**
+   * Given an input amount of a token, return the computed output amount and a pool with state updated after the trade
+   * @param inputAmount the input amount for which to quote the output amount
+   */
   public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pool] {
     invariant(this.involvesToken(inputAmount.token), 'TOKEN')
 
@@ -141,6 +145,10 @@ export class Pool {
     ]
   }
 
+  /**
+   * Given a desired output amount of a token, return the computed input amount and a pool with state updated after the trade
+   * @param outputAmount the output amount for which to quote the input amount
+   */
   public getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pool] {
     invariant(this.involvesToken(outputAmount.token), 'TOKEN')
 
