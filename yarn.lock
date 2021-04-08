@@ -1552,10 +1552,10 @@
   resolved "https://registry.yarnpkg.com/@uniswap/v3-core/-/v3-core-1.0.0-rc.1.tgz#f2bbc483451364a951fba06eb2d978c6e8bdd58f"
   integrity sha512-4ET2H0a8p7nVBGFWfio9SHc+RA6UIXEvlTRIJNsDwjQvfs8Jq9lfJ+eSOUTGmiB8Vp8V5dWarLDBU/rDE159pQ==
 
-"@uniswap/v3-periphery@^1.0.0-beta.14":
-  version "1.0.0-beta.14"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.0.0-beta.14.tgz#9af4bd8c2e41a4699ccc6684b2b8f04d84670a9b"
-  integrity sha512-/uMEJqswU0ooRH4lyF0xDaQ422zPojEL01UePihDbGszU+VpxmGwBoiLAWECpV27V+znZ+ZAkqWG1KndJ8j8QQ==
+"@uniswap/v3-periphery@^1.0.0-beta.17":
+  version "1.0.0-beta.17"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.0.0-beta.17.tgz#da150f1c08259be3c0452d0bcd46f4f19fa26d49"
+  integrity sha512-yhxdRGI2ZO/hdqYUMGCkeaPXADNHE88p5nDtufmhIH80n7Xyb2WyMUQ1e5obkJZ9EM848rZ8PFzHsdvBP5kC0A==
   dependencies:
     "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
     "@uniswap/lib" "^4.0.1-alpha"

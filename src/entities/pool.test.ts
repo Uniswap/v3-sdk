@@ -22,15 +22,62 @@ describe('Pool', () => {
   describe('constructor', () => {
     it('cannot be used for tokens on different chains', () => {
       expect(() => {
-        new Pool(USDC, WETH9[ChainId.RINKEBY], FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, tickMapDefault)
+        new Pool(USDC, WETH9[ChainId.RINKEBY], FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
       }).toThrow('CHAIN_IDS')
+    })
+
+    it('fee must be integer', () => {
+      expect(() => {
+        new Pool(USDC, WETH9[ChainId.MAINNET], FeeAmount.MEDIUM + 0.5, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
+      }).toThrow('FEE')
+    })
+
+    it('fee cannot be more than 1e6', () => {
+      expect(() => {
+        new Pool(USDC, WETH9[ChainId.MAINNET], 1e6, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
+      }).toThrow('FEE')
+    })
+
+    it('cannot be given two of the same token', () => {
+      expect(() => {
+        new Pool(USDC, USDC, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
+      }).toThrow('ADDRESSES')
+    })
+
+    it('price must be within tick price bounds', () => {
+      expect(() => {
+        new Pool(USDC, WETH9[ChainId.MAINNET], FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 1, new TickList([]))
+      }).toThrow('PRICE_BOUNDS')
+      expect(() => {
+        new Pool(
+          USDC,
+          WETH9[ChainId.MAINNET],
+          FeeAmount.MEDIUM,
+          JSBI.add(encodeSqrtRatioX96(1, 1), JSBI.BigInt(1)),
+          0,
+          -1,
+          new TickList([])
+        )
+      }).toThrow('PRICE_BOUNDS')
+    })
+
+    it('works with valid arguments for empty pool medium fee', () => {
+      new Pool(USDC, WETH9[ChainId.MAINNET], FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
+    })
+
+    it('works with valid arguments for empty pool low fee', () => {
+      new Pool(USDC, WETH9[ChainId.MAINNET], FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
+    })
+
+    it('works with valid arguments for empty pool high fee', () => {
+      new Pool(USDC, WETH9[ChainId.MAINNET], FeeAmount.HIGH, encodeSqrtRatioX96(1, 1), 0, 0, new TickList([]))
     })
   })
 
-  describe.skip('#getAddress', () => {
+  describe('#getAddress', () => {
     it('matches an example', () => {
       const result = Pool.getAddress(USDC, DAI, FeeAmount.LOW)
-      expect(result).toEqual('0x84e755dD2f34969933a9F9334C40b15146d52510')
+      expect(result).toEqual('0xE2E0399F5Fa02d7a3B6A9566539C14C799FAf413')
     })
   })
 

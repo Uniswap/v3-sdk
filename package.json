@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/jest": "^24.0.25",
     "@uniswap/v3-core": "^1.0.0-rc.1",
-    "@uniswap/v3-periphery": "^1.0.0-beta.14",
+    "@uniswap/v3-periphery": "^1.0.0-beta.17",
     "tsdx": "^0.14.1"
   },
   "engines": {

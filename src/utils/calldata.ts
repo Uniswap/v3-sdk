@@ -3,13 +3,9 @@
  */
 export interface MethodParameters {
   /**
-   * The method to call on the given address.
+   * The hex encoded calldata to perform the given operation
    */
-  methodName: string
-  /**
-   * The arguments to pass to the method, all hex encoded.
-   */
-  args: (string | string[])[]
+  calldata: string
   /**
    * The amount of ether (wei) to send in hex.
    */
