@@ -6,7 +6,6 @@ import { nearestUsableTick } from '../utils/nearestUsableTick'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Route } from './route'
-import { Tick } from './tick'
 import { Trade } from './trade'
 
 describe('Trade', () => {
@@ -26,16 +25,16 @@ describe('Trade', () => {
       liquidity,
       TickMath.getTickAtSqrtRatio(sqrtRatioX96),
       [
-        new Tick({
+        {
           index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount]),
           liquidityNet: liquidity,
           liquidityGross: liquidity
-        }),
-        new Tick({
+        },
+        {
           index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount]),
           liquidityNet: JSBI.multiply(liquidity, JSBI.BigInt(-1)),
           liquidityGross: liquidity
-        })
+        }
       ]
     )
   }

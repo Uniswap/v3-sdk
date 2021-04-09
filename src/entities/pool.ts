@@ -7,7 +7,7 @@ import { computePoolAddress } from '../utils/computePoolAddress'
 import { LiquidityMath } from '../utils/liquidityMath'
 import { SwapMath } from '../utils/swapMath'
 import { TickMath } from '../utils/tickMath'
-import { Tick } from './tick'
+import { Tick, TickConstructorArgs } from './tick'
 import { TickList } from '../utils/tickList'
 
 interface StepComputations {
@@ -53,7 +53,7 @@ export class Pool {
     sqrtRatioX96: BigintIsh,
     liquidity: BigintIsh,
     tickCurrent: number,
-    ticks: Tick[]
+    ticks: (Tick | TickConstructorArgs)[]
   ) {
     invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
 
@@ -64,13 +64,15 @@ export class Pool {
         JSBI.lessThanOrEqual(JSBI.BigInt(sqrtRatioX96), nextTickSqrtRatioX96),
       'PRICE_BOUNDS'
     )
-    TickList.validate(ticks, TICK_SPACINGS[fee])
+    // always create a copy of the list since we want the pool's tick list to be immutable
+    const ticksMapped: Tick[] = ticks.map(t => (t instanceof Tick ? t : new Tick(t)))
+    TickList.validate(ticksMapped, TICK_SPACINGS[fee])
     ;[this.token0, this.token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
     this.fee = fee
     this.sqrtRatioX96 = JSBI.BigInt(sqrtRatioX96)
     this.liquidity = JSBI.BigInt(liquidity)
     this.tickCurrent = tickCurrent
-    this.ticks = ticks.slice() // create a copy since we want the pool's list to be immutable
+    this.ticks = ticksMapped
   }
 
   /**

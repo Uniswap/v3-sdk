@@ -3,7 +3,7 @@ import invariant from 'tiny-invariant'
 import { BigintIsh } from '@uniswap/sdk-core'
 import { TickMath } from '../utils'
 
-interface TickConstructorArgs {
+export interface TickConstructorArgs {
   index: number
   liquidityGross: BigintIsh
   liquidityNet: BigintIsh

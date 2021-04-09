@@ -3,7 +3,6 @@ import { FeeAmount, TICK_SPACINGS } from '../constants'
 import { nearestUsableTick } from '../utils/nearestUsableTick'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
-import { Tick } from './tick'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
 import JSBI from 'jsbi'
 import { NEGATIVE_ONE } from '../internalConstants'
@@ -180,16 +179,16 @@ describe('Pool', () => {
 
     beforeEach(() => {
       pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), ONE_ETHER, 0, [
-        new Tick({
+        {
           index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[FeeAmount.LOW]),
           liquidityNet: ONE_ETHER,
           liquidityGross: ONE_ETHER
-        }),
-        new Tick({
+        },
+        {
           index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[FeeAmount.LOW]),
           liquidityNet: JSBI.multiply(ONE_ETHER, NEGATIVE_ONE),
           liquidityGross: ONE_ETHER
-        })
+        }
       ])
     })
 
