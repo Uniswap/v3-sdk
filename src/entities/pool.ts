@@ -7,7 +7,8 @@ import { computePoolAddress } from '../utils/computePoolAddress'
 import { LiquidityMath } from '../utils/liquidityMath'
 import { SwapMath } from '../utils/swapMath'
 import { TickMath } from '../utils/tickMath'
-import { TickList } from './tickList'
+import { Tick } from './tick'
+import { TickList } from '../utils/tickList'
 
 interface StepComputations {
   sqrtPriceStartX96: JSBI
@@ -26,7 +27,7 @@ export class Pool {
   public readonly sqrtRatioX96: JSBI
   public readonly liquidity: JSBI
   public readonly tickCurrent: number
-  public readonly ticks: TickList
+  public readonly ticks: Tick[]
 
   private _token0Price?: Price
   private _token1Price?: Price
@@ -52,7 +53,7 @@ export class Pool {
     sqrtRatioX96: BigintIsh,
     liquidity: BigintIsh,
     tickCurrent: number,
-    ticks: TickList
+    ticks: Tick[]
   ) {
     invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
 
@@ -63,12 +64,13 @@ export class Pool {
         JSBI.lessThanOrEqual(JSBI.BigInt(sqrtRatioX96), nextTickSqrtRatioX96),
       'PRICE_BOUNDS'
     )
+    TickList.validate(ticks, TICK_SPACINGS[fee])
     ;[this.token0, this.token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
     this.fee = fee
     this.sqrtRatioX96 = JSBI.BigInt(sqrtRatioX96)
     this.liquidity = JSBI.BigInt(liquidity)
     this.tickCurrent = tickCurrent
-    this.ticks = ticks
+    this.ticks = ticks.slice() // create a copy since we want the pool's list to be immutable
   }
 
   /**
@@ -202,7 +204,12 @@ export class Pool {
       // because each iteration of the while loop rounds, we can't optimize this code (relative to the smart contract)
       // by simply traversing to the next available tick, we instead need to exactly replicate
       // tickBitmap.nextInitializedTickWithinOneWord
-      ;[step.tickNext, step.initialized] = this.ticks.nextInitializedTickWithinOneWord(state.tick, zeroForOne)
+      ;[step.tickNext, step.initialized] = TickList.nextInitializedTickWithinOneWord(
+        this.ticks,
+        state.tick,
+        zeroForOne,
+        this.tickSpacing
+      )
 
       if (step.tickNext < TickMath.MIN_TICK) {
         step.tickNext = TickMath.MIN_TICK
@@ -238,7 +245,7 @@ export class Pool {
       if (JSBI.equal(state.sqrtPriceX96, step.sqrtPriceNextX96)) {
         // if the tick is initialized, run the tick transition
         if (step.initialized) {
-          let liquidityNet = this.ticks.getTick(step.tickNext).liquidityNet
+          let liquidityNet = TickList.getTick(this.ticks, step.tickNext).liquidityNet
           // if we're moving leftward, we interpret liquidityNet as the opposite sign
           // safe because liquidityNet cannot be type(int128).min
           if (zeroForOne) liquidityNet = JSBI.multiply(liquidityNet, NEGATIVE_ONE)

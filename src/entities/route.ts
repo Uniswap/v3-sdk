@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 
-import { ChainId, Currency, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Currency, ETHER, Price, Token, WETH9 } from '@uniswap/sdk-core'
 import { Pool } from './pool'
 
 export class Route {
@@ -52,5 +52,9 @@ export class Route {
 
   public get chainId(): ChainId | number {
     return this.pools[0].chainId
+  }
+
+  public get midPrice(): Price {
+    throw new Error('todo')
   }
 }
