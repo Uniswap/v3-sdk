@@ -1,4 +1,4 @@
-import { ChainId, Fraction, Percent, WETH9 } from '@uniswap/sdk-core'
+import { BigintIsh, ChainId, Fraction, Percent, Token, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
@@ -7,6 +7,24 @@ import { ONE, ZERO } from './internalConstants'
 import { MethodParameters } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
+
+export interface StandardPermitArguments {
+  v: 0 | 1 | 27 | 28
+  r: string
+  s: string
+  amount: BigintIsh
+  deadline: number
+}
+
+export interface AllowedPermitArguments {
+  v: 0 | 1 | 27 | 28
+  r: string
+  s: string
+  nonce: BigintIsh
+  expiry: number
+}
+
+export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
 
 /**
  * Options for producing the arguments to send call to the router.
@@ -31,6 +49,16 @@ export interface MintOptions {
    * Whether to spend ether. If true, one of the pool tokens must be WETH
    */
   useEther: boolean
+
+  /**
+   * The optional permit parameters for spending token0
+   */
+  token0Permit?: PermitOptions
+
+  /**
+   * The optional permit parameters for spending token1
+   */
+  token1Permit?: PermitOptions
 }
 
 export abstract class NonfungiblePositionManager {
@@ -41,6 +69,26 @@ export abstract class NonfungiblePositionManager {
    * Cannot be constructed.
    */
   private constructor() {}
+
+  private static encodePermit(token: Token, options: PermitOptions) {
+    return 'nonce' in options
+      ? NonfungiblePositionManager.INTERFACE.encodeFunctionData('selfPermitAllowed', [
+          token.address,
+          options.nonce,
+          options.expiry,
+          options.v,
+          options.r,
+          options.s
+        ])
+      : NonfungiblePositionManager.INTERFACE.encodeFunctionData('selfPermit', [
+          token.address,
+          options.amount.toString(),
+          options.deadline,
+          options.v,
+          options.r,
+          options.s
+        ])
+  }
 
   public static mintCallParameters(position: Position, options: MintOptions): MethodParameters {
     invariant(JSBI.greaterThan(position.liquidity, ZERO), 'LIQUIDITY')
@@ -55,7 +103,12 @@ export abstract class NonfungiblePositionManager {
     const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
     const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
 
-    let value: string = '0x0'
+    if (options.token0Permit) {
+      calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token0, options.token0Permit))
+    }
+    if (options.token1Permit) {
+      calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token1, options.token1Permit))
+    }
 
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('mint', [
@@ -75,6 +128,8 @@ export abstract class NonfungiblePositionManager {
       ])
     )
 
+    let value: string = '0x0'
+
     if (options.useEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
       invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
@@ -83,8 +138,6 @@ export abstract class NonfungiblePositionManager {
         ? `0x${position.amount0.raw.toString(16)}`
         : `0x${position.amount1.raw.toString(16)}`
     }
-
-    /// TODO: handle permit
 
     if (calldatas.length === 1) {
       return {
