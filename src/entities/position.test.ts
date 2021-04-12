@@ -6,7 +6,6 @@ import { nearestUsableTick } from '../utils/nearestUsableTick'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Position } from './position'
-import { TickList } from './tickList'
 
 describe('Position', () => {
   const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
@@ -14,15 +13,7 @@ describe('Position', () => {
   const POOL_SQRT_RATIO_START = encodeSqrtRatioX96(100e6, 100e18)
   const POOL_TICK_CURRENT = TickMath.getTickAtSqrtRatio(POOL_SQRT_RATIO_START)
   const TICK_SPACING = TICK_SPACINGS[FeeAmount.LOW]
-  const DAI_USDC_POOL = new Pool(
-    DAI,
-    USDC,
-    FeeAmount.LOW,
-    POOL_SQRT_RATIO_START,
-    0,
-    POOL_TICK_CURRENT,
-    new TickList([])
-  )
+  const DAI_USDC_POOL = new Pool(DAI, USDC, FeeAmount.LOW, POOL_SQRT_RATIO_START, 0, POOL_TICK_CURRENT, [])
 
   it('can be constructed around 0 tick', () => {
     const position = new Position({

@@ -6,8 +6,6 @@ import { nearestUsableTick } from '../utils/nearestUsableTick'
 import { TickMath } from '../utils/tickMath'
 import { Pool } from './pool'
 import { Route } from './route'
-import { Tick } from './tick'
-import { TickList } from './tickList'
 import { Trade } from './trade'
 
 describe('Trade', () => {
@@ -26,18 +24,18 @@ describe('Trade', () => {
       sqrtRatioX96,
       liquidity,
       TickMath.getTickAtSqrtRatio(sqrtRatioX96),
-      new TickList([
-        new Tick({
+      [
+        {
           index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount]),
           liquidityNet: liquidity,
           liquidityGross: liquidity
-        }),
-        new Tick({
+        },
+        {
           index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount]),
           liquidityNet: JSBI.multiply(liquidity, JSBI.BigInt(-1)),
           liquidityGross: liquidity
-        })
-      ])
+        }
+      ]
     )
   }
 
@@ -106,11 +104,11 @@ describe('Trade', () => {
       expect(result[0].route.pools).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.tokenPath).toEqual([token0, token2])
       expect(result[0].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(10000)))
-      expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(9962)))
+      expect(result[0].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(9971)))
       expect(result[1].route.pools).toHaveLength(2) // 0 -> 1 -> 2 at 12:12:10
       expect(result[1].route.tokenPath).toEqual([token0, token1, token2])
       expect(result[1].inputAmount).toEqual(new TokenAmount(token0, JSBI.BigInt(10000)))
-      expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(6991)))
+      expect(result[1].outputAmount).toEqual(new TokenAmount(token2, JSBI.BigInt(7004)))
     })
 
     it('respects maxHops', () => {
@@ -228,12 +226,12 @@ describe('Trade', () => {
       })
 
       it('returns slippage amount if nonzero', () => {
-        expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(0), 100))).toEqual(new TokenAmount(token0, 15528))
+        expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(0), 100))).toEqual(new TokenAmount(token0, 15488))
         expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(5), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token0, 16304)
+          new TokenAmount(token0, 16262)
         )
         expect(exactOut.maximumAmountIn(new Percent(JSBI.BigInt(200), JSBI.BigInt(100)))).toEqual(
-          new TokenAmount(token0, 46584)
+          new TokenAmount(token0, 46464)
         )
       })
     })
@@ -256,9 +254,9 @@ describe('Trade', () => {
       })
 
       it('returns exact if nonzero', () => {
-        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(0), 100))).toEqual(new TokenAmount(token2, 6991))
-        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(5), 100))).toEqual(new TokenAmount(token2, 6658))
-        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(200), 100))).toEqual(new TokenAmount(token2, 2330))
+        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(0), 100))).toEqual(new TokenAmount(token2, 7004))
+        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(5), 100))).toEqual(new TokenAmount(token2, 6670))
+        expect(exactIn.minimumAmountOut(new Percent(JSBI.BigInt(200), 100))).toEqual(new TokenAmount(token2, 2334))
       })
     })
     describe('tradeType = EXACT_OUTPUT', () => {
@@ -305,11 +303,11 @@ describe('Trade', () => {
       expect(result).toHaveLength(2)
       expect(result[0].route.pools).toHaveLength(1) // 0 -> 2 at 10:11
       expect(result[0].route.tokenPath).toEqual([token0, token2])
-      expect(result[0].inputAmount).toEqual(new TokenAmount(token0, 10042))
+      expect(result[0].inputAmount).toEqual(new TokenAmount(token0, 10032))
       expect(result[0].outputAmount).toEqual(new TokenAmount(token2, 10000))
       expect(result[1].route.pools).toHaveLength(2) // 0 -> 1 -> 2 at 12:12:10
       expect(result[1].route.tokenPath).toEqual([token0, token1, token2])
-      expect(result[1].inputAmount).toEqual(new TokenAmount(token0, 15528))
+      expect(result[1].inputAmount).toEqual(new TokenAmount(token0, 15488))
       expect(result[1].outputAmount).toEqual(new TokenAmount(token2, 10000))
     })
 
