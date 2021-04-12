@@ -59,6 +59,11 @@ export interface MintOptions {
    * The optional permit parameters for spending token1
    */
   token1Permit?: PermitOptions
+
+  /**
+   * Create pool if not initialized before mint
+   */
+  createPool?: boolean
 }
 
 export abstract class NonfungiblePositionManager {
@@ -103,6 +108,19 @@ export abstract class NonfungiblePositionManager {
     const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
     const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
 
+    // create pool if needed
+    if (options.createPool) {
+      calldatas.push(
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('createAndInitializePoolIfNecessary', [
+          position.pool.token0.address,
+          position.pool.token1.address,
+          position.pool.fee,
+          position.pool.sqrtRatioX96.toString()
+        ])
+      )
+    }
+
+    // permits if possible
     if (options.token0Permit) {
       calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token0, options.token0Permit))
     }
@@ -110,6 +128,7 @@ export abstract class NonfungiblePositionManager {
       calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token1, options.token1Permit))
     }
 
+    // mint
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('mint', [
         {
