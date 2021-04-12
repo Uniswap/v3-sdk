@@ -1,12 +1,10 @@
-import { BigintIsh, ChainId, ETHER, Fraction, Percent, Price, Token, WETH9 } from '@uniswap/sdk-core'
+import { BigintIsh, ChainId, Fraction, Percent, Token, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { FeeAmount, NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
 import { Position } from './entities/position'
 import { ONE, ZERO } from './internalConstants'
 import { MethodParameters } from './utils/calldata'
-import { defaultAbiCoder } from '@ethersproject/abi'
-import { priceToClosestTick, TickMath } from './utils'
 import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 
@@ -61,6 +59,11 @@ export interface MintOptions {
    * The optional permit parameters for spending token1
    */
   token1Permit?: PermitOptions
+
+  /**
+   * Create pool if not initialized before mint
+   */
+  createPool?: boolean
 }
 
 export abstract class NonfungiblePositionManager {
@@ -105,6 +108,19 @@ export abstract class NonfungiblePositionManager {
     const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
     const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
 
+    // create pool if needed
+    if (options.createPool) {
+      calldatas.push(
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('createAndInitializePoolIfNecessary', [
+          position.pool.token0.address,
+          position.pool.token1.address,
+          position.pool.fee,
+          position.pool.sqrtRatioX96.toString()
+        ])
+      )
+    }
+
+    // permits if possible
     if (options.token0Permit) {
       calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token0, options.token0Permit))
     }
@@ -112,6 +128,7 @@ export abstract class NonfungiblePositionManager {
       calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token1, options.token1Permit))
     }
 
+    // mint
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('mint', [
         {
@@ -151,44 +168,6 @@ export abstract class NonfungiblePositionManager {
         calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
         value
       }
-    }
-  }
-
-  /**
-   *
-   * @param chainId
-   * @param startingPrice
-   * @param feeAmount
-   */
-  public static createCallParameters(chainId: ChainId, startingPrice: Price, feeAmount: FeeAmount): MethodParameters {
-    // get sqrt price
-    const currentTick = priceToClosestTick(startingPrice)
-    const sqrtRatioX96 = TickMath.getSqrtRatioAtTick(currentTick)
-
-    const tokenA: Token | undefined =
-      startingPrice.baseCurrency === ETHER
-        ? WETH9[chainId]
-        : startingPrice.baseCurrency instanceof Token
-        ? startingPrice.baseCurrency
-        : undefined
-
-    const tokenB: Token | undefined =
-      startingPrice.baseCurrency === ETHER
-        ? WETH9[chainId]
-        : startingPrice.quoteCurrency instanceof Token
-        ? startingPrice.quoteCurrency
-        : undefined
-
-    invariant(!!tokenA && !!tokenB, 'TOKENS')
-
-    const calldata = defaultAbiCoder.encode(
-      ['bytes4'],
-      [tokenA.address, tokenB.address, feeAmount, sqrtRatioX96.toString()]
-    )
-
-    return {
-      calldata,
-      value: '0x0000000000000000000000000000000000000000000000000000000000000000'
     }
   }
 }
