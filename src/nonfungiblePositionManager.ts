@@ -1,9 +1,10 @@
-import { ChainId, Percent, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, ETHER, Percent, Price, Token, WETH9 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
+import { FeeAmount, NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
 import { Position } from './entities/position'
 import { MethodParameters } from './utils/calldata'
 import { defaultAbiCoder } from '@ethersproject/abi'
+import { priceToClosestTick, TickMath } from './utils'
 
 /**
  * Options for producing the arguments to send call to the router.
@@ -46,5 +47,43 @@ export abstract class NonfungiblePositionManager {
 
     defaultAbiCoder.encode(['bytes4'], [])
     throw new Error('todo')
+  }
+
+  /**
+   *
+   * @param chainId
+   * @param startingPrice
+   * @param feeAmount
+   */
+  public static createCallParameters(chainId: ChainId, startingPrice: Price, feeAmount: FeeAmount): MethodParameters {
+    // get sqrt price
+    const currentTick = priceToClosestTick(startingPrice)
+    const sqrtRatioX96 = TickMath.getSqrtRatioAtTick(currentTick)
+
+    const tokenA: Token | undefined =
+      startingPrice.baseCurrency === ETHER
+        ? WETH9[chainId]
+        : startingPrice.baseCurrency instanceof Token
+        ? startingPrice.baseCurrency
+        : undefined
+
+    const tokenB: Token | undefined =
+      startingPrice.baseCurrency === ETHER
+        ? WETH9[chainId]
+        : startingPrice.quoteCurrency instanceof Token
+        ? startingPrice.quoteCurrency
+        : undefined
+
+    invariant(!!tokenA && !!tokenB, 'TOKENS')
+
+    const calldata = defaultAbiCoder.encode(
+      ['bytes4'],
+      [tokenA.address, tokenB.address, feeAmount, sqrtRatioX96.toString()]
+    )
+
+    return {
+      calldata,
+      value: '0x0000000000000000000000000000000000000000000000000000000000000000'
+    }
   }
 }
