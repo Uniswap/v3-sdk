@@ -10,4 +10,4 @@ Feedback is welcome.
 [![npm version](https://img.shields.io/npm/v/@uniswap/v3-sdk/latest.svg)](https://www.npmjs.com/package/@uniswap/v3-sdk/v/latest)
 [![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@uniswap/v3-sdk/latest.svg)](https://bundlephobia.com/result?p=@uniswap/v3-sdk@latest)
 
-In-depth documentation on this SDK is available at [uniswap.org](https://uniswap.org/docs/v3/SDK/getting-started/).
+In-depth documentation on this SDK is available at [uniswap.org](https://docs.uniswap.org/).
