@@ -27,7 +27,7 @@ export interface AllowedPermitArguments {
 export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
 
 /**
- * Options for producing the arguments to send call to the router.
+ * Options for producing the calldata to mint a position.
  */
 export interface MintOptions {
   /**
@@ -64,6 +64,60 @@ export interface MintOptions {
    * Create pool if not initialized before mint
    */
   createPool?: boolean
+}
+
+export interface NFTPermitOptions {
+  v: 0 | 1 | 27 | 28
+  r: string
+  s: string
+  tokenId: BigintIsh
+  deadline: number
+  spender: string
+}
+
+/**
+ * Options for producing the calldata to exit a position.
+ */
+export interface ExitOptions {
+  /**
+   * The ID of the token to exit
+   */
+  tokenId: BigintIsh
+
+  /**
+   * The percentage of position liquidity to exit. Optional--if not specified, exit the entire position
+   */
+  liquidityPercentage?: Percent
+
+  /**
+   * How much the pool price is allowed to move.
+   */
+  slippageTolerance: Percent
+
+  /**
+   * The account that should receive the tokens.
+   */
+  recipient: string
+
+  /**
+   * When the transaction expires, in epoch seconds.
+   */
+  deadline: number
+
+  /**
+   * Whether to receive ether. If true, one of the pool tokens must be WETH
+   */
+  receiveEther: boolean
+
+  /**
+   * The optional permit of the token ID being exited, in case the exit transaction is being sent by an account that does not own the NFT
+   */
+  permit?: NFTPermitOptions
+
+  /**
+   * Whether the NFT should be burned after exiting the entire position, by default true
+   */
+  burnToken?: boolean
 }
 
 export abstract class NonfungiblePositionManager {
@@ -168,6 +222,68 @@ export abstract class NonfungiblePositionManager {
         calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
         value
       }
+    }
+  }
+
+  /**
+   * Produces the calldata for completely or partially exiting a position
+   * @param position the position to exit
+   * @param options additional information necessary for generating the calldata
+   */
+  public static exitCallParameters(position: Position, options: ExitOptions): MethodParameters {
+    invariant(JSBI.greaterThan(position.liquidity, ZERO), 'LIQUIDITY')
+    invariant(JSBI.greaterThan(JSBI.BigInt(options.tokenId), ZERO), 'TOKEN_ID')
+    if (options.burnToken === false) invariant(!options.liquidityPercentage?.equalTo(ONE), 'BURN_AMOUNT_KEEP')
+
+    if (options.receiveEther) {
+      const weth = WETH9[position.pool.chainId as ChainId]
+      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
+      throw new Error('todo')
+    }
+
+    const calldatas: string[] = []
+
+    const liquidity: JSBI =
+      options.liquidityPercentage?.multiply(position.liquidity)?.quotient ?? JSBI.BigInt(position.liquidity)
+
+    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
+    const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
+    const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
+
+    calldatas.push(
+      NonfungiblePositionManager.INTERFACE.encodeFunctionData('decreaseLiquidity', [
+        {
+          tokenId: options.tokenId,
+          liquidity: `0x${liquidity.toString(16)}`,
+          amount0Min,
+          amount1Min,
+          deadline: options.deadline
+        }
+      ])
+    )
+
+    const MaxUint128Hex = `0x${JSBI.subtract(
+      JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
+      JSBI.BigInt(1)
+    ).toString(16)}`
+
+    calldatas.push(
+      NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [
+        {
+          tokenId: options.tokenId,
+          recipient: options.recipient,
+          amount0Max: MaxUint128Hex,
+          amount1Max: MaxUint128Hex
+        }
+      ])
+    )
+
+    if (options.burnToken !== false && (options.liquidityPercentage?.equalTo(ONE) ?? true))
+      calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [options.tokenId]))
+
+    return {
+      calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      value: '0x0'
     }
   }
 }
