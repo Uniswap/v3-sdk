@@ -7,7 +7,7 @@ export const SWAP_ROUTER_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 // todo: replace with v3 nft position manager
 export const NONFUNGIBLE_POSITION_MANAGER_ADDRESS = '0x1F98431c8aD98523631AE4a59f267346ea31F984'
 
-export const POOL_INIT_CODE_HASH = '0xa8180af292c6986c74fa300a542e049db8a89221e2452e431c3d8103b610c568'
+export const POOL_INIT_CODE_HASH = '0xc02f72e8ae5e68802e6d893d58ddfb0df89a2f4c9c2f04927db1186a29373660'
 
 /**
  * The default factory enabled fee amounts, denominated in hundredths of bips.
