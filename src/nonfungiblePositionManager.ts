@@ -208,8 +208,10 @@ export abstract class NonfungiblePositionManager {
       invariant((weth && position.pool.token0.equals(weth)) || position.pool.token1.equals(weth), 'NO_WETH')
 
       value = position.pool.token0.equals(weth)
-        ? `0x${position.amount0.raw.toString(16)}`
-        : `0x${position.amount1.raw.toString(16)}`
+        ? `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
+        : `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
+
+      // todo: add a calldata to return any leftover eth
     }
 
     if (calldatas.length === 1) {
