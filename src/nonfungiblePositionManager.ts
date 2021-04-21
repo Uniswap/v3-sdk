@@ -205,7 +205,7 @@ export abstract class NonfungiblePositionManager {
 
     if (options.useEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
-      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
+      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token1.equals(weth), 'NO_WETH')
 
       value = position.pool.token0.equals(weth)
         ? `0x${position.amount0.raw.toString(16)}`
@@ -237,7 +237,7 @@ export abstract class NonfungiblePositionManager {
 
     if (options.receiveEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
-      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
+      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token1.equals(weth), 'NO_WETH')
       throw new Error('todo')
     }
 
