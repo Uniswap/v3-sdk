@@ -28,17 +28,17 @@ describe('TickList', () => {
   describe('#validate', () => {
     it('errors for incomplete lists', () => {
       expect(() => {
-        TickList.validate([lowTick], 1)
+        TickList.validateList([lowTick], 1)
       }).toThrow('ZERO_NET')
     })
     it('errors for unsorted lists', () => {
       expect(() => {
-        TickList.validate([highTick, lowTick, midTick], 1)
+        TickList.validateList([highTick, lowTick, midTick], 1)
       }).toThrow('SORTED')
     })
     it('errors if ticks are not on multiples of tick spacing', () => {
       expect(() => {
-        TickList.validate([highTick, lowTick, midTick], 1337)
+        TickList.validateList([highTick, lowTick, midTick], 1337)
       }).toThrow('TICK_SPACING')
     })
   })

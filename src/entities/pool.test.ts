@@ -193,32 +193,32 @@ describe('Pool', () => {
     })
 
     describe('#getOutputAmount', () => {
-      it('USDC -> DAI', () => {
+      it('USDC -> DAI', async () => {
         const inputAmount = new TokenAmount(USDC, 100)
-        const [outputAmount] = pool.getOutputAmount(inputAmount)
+        const [outputAmount] = await pool.getOutputAmount(inputAmount)
         expect(outputAmount.token.equals(DAI)).toBe(true)
         expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
       })
 
-      it('DAI -> USDC', () => {
+      it('DAI -> USDC', async () => {
         const inputAmount = new TokenAmount(DAI, 100)
-        const [outputAmount] = pool.getOutputAmount(inputAmount)
+        const [outputAmount] = await pool.getOutputAmount(inputAmount)
         expect(outputAmount.token.equals(USDC)).toBe(true)
         expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
       })
     })
 
     describe('#getInputAmount', () => {
-      it('USDC -> DAI', () => {
+      it('USDC -> DAI', async () => {
         const outputAmount = new TokenAmount(DAI, 98)
-        const [inputAmount] = pool.getInputAmount(outputAmount)
+        const [inputAmount] = await pool.getInputAmount(outputAmount)
         expect(inputAmount.token.equals(USDC)).toBe(true)
         expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
       })
 
-      it('DAI -> USDC', () => {
+      it('DAI -> USDC', async () => {
         const outputAmount = new TokenAmount(USDC, 98)
-        const [inputAmount] = pool.getInputAmount(outputAmount)
+        const [inputAmount] = await pool.getInputAmount(outputAmount)
         expect(inputAmount.token.equals(DAI)).toBe(true)
         expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
       })
