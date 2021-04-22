@@ -237,11 +237,13 @@ export abstract class NonfungiblePositionManager {
 
     if (options.useEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
-      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
+      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token1.equals(weth), 'NO_WETH')
 
       value = position.pool.token0.equals(weth)
-        ? `0x${position.amount0.raw.toString(16)}`
-        : `0x${position.amount1.raw.toString(16)}`
+        ? `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
+        : `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
+
+      // todo: add a calldata to return any leftover eth
     }
 
     if (calldatas.length === 1) {
@@ -331,7 +333,7 @@ export abstract class NonfungiblePositionManager {
 
     if (options.receiveEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
-      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
+      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token1.equals(weth), 'NO_WETH')
       throw new Error('todo')
     }
 

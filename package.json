@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.0-alpha.11",
+  "version": "1.0.0-alpha.14",
   "description": "⚒️ An SDK for building applications on top of Uniswap V3",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -27,13 +27,13 @@
     "@ethersproject/abi": "^5.0.12",
     "@ethersproject/solidity": "^5.0.9",
     "@uniswap/sdk-core": "^1.0.9",
-    "@uniswap/v3-periphery": "^1.0.0-beta.19",
+    "@uniswap/v3-periphery": "^1.0.0-beta.21",
     "tiny-invariant": "^1.1.0",
     "tiny-warning": "^1.0.3"
   },
   "devDependencies": {
     "@types/jest": "^24.0.25",
-    "@uniswap/v3-core": "^1.0.0-rc.1",
+    "@uniswap/v3-core": "^1.0.0-rc.2",
     "tsdx": "^0.14.1"
   },
   "engines": {
