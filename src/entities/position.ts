@@ -27,6 +27,7 @@ export class Position {
   // cached resuts for the getters
   private _token0Amount: TokenAmount | null = null
   private _token1Amount: TokenAmount | null = null
+  private _mintAmounts: Readonly<{ amount0: JSBI; amount1: JSBI }> | null = null
 
   /**
    * Constructs a position for a given pool with the given liquidity
@@ -64,29 +65,30 @@ export class Position {
    * Returns the amount of token0 that this position's liquidity could be burned for at the current pool price
    */
   public get amount0(): TokenAmount {
-    if (this._token0Amount !== null) return this._token0Amount
-    if (this.pool.tickCurrent < this.tickLower) {
-      this._token0Amount = new TokenAmount(
-        this.pool.token0,
-        SqrtPriceMath.getAmount0Delta(
-          TickMath.getSqrtRatioAtTick(this.tickLower),
-          TickMath.getSqrtRatioAtTick(this.tickUpper),
-          this.liquidity,
-          false
+    if (this._token0Amount === null) {
+      if (this.pool.tickCurrent < this.tickLower) {
+        this._token0Amount = new TokenAmount(
+          this.pool.token0,
+          SqrtPriceMath.getAmount0Delta(
+            TickMath.getSqrtRatioAtTick(this.tickLower),
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            false
+          )
         )
-      )
-    } else if (this.pool.tickCurrent < this.tickUpper) {
-      this._token0Amount = new TokenAmount(
-        this.pool.token0,
-        SqrtPriceMath.getAmount0Delta(
-          this.pool.sqrtRatioX96,
-          TickMath.getSqrtRatioAtTick(this.tickUpper),
-          this.liquidity,
-          false
+      } else if (this.pool.tickCurrent < this.tickUpper) {
+        this._token0Amount = new TokenAmount(
+          this.pool.token0,
+          SqrtPriceMath.getAmount0Delta(
+            this.pool.sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            false
+          )
         )
-      )
-    } else {
-      this._token0Amount = new TokenAmount(this.pool.token0, ZERO)
+      } else {
+        this._token0Amount = new TokenAmount(this.pool.token0, ZERO)
+      }
     }
     return this._token0Amount
   }
@@ -95,31 +97,78 @@ export class Position {
    * Returns the amount of token1 that this position's liquidity could be burned for at the current pool price
    */
   public get amount1(): TokenAmount {
-    if (this._token1Amount !== null) return this._token1Amount
-    if (this.pool.tickCurrent < this.tickLower) {
-      this._token1Amount = new TokenAmount(this.pool.token0, ZERO)
-    } else if (this.pool.tickCurrent < this.tickUpper) {
-      this._token1Amount = new TokenAmount(
-        this.pool.token1,
-        SqrtPriceMath.getAmount1Delta(
-          TickMath.getSqrtRatioAtTick(this.tickLower),
-          this.pool.sqrtRatioX96,
-          this.liquidity,
-          false
+    if (this._token1Amount === null) {
+      if (this.pool.tickCurrent < this.tickLower) {
+        this._token1Amount = new TokenAmount(this.pool.token0, ZERO)
+      } else if (this.pool.tickCurrent < this.tickUpper) {
+        this._token1Amount = new TokenAmount(
+          this.pool.token1,
+          SqrtPriceMath.getAmount1Delta(
+            TickMath.getSqrtRatioAtTick(this.tickLower),
+            this.pool.sqrtRatioX96,
+            this.liquidity,
+            false
+          )
         )
-      )
-    } else {
-      this._token1Amount = new TokenAmount(
-        this.pool.token1,
-        SqrtPriceMath.getAmount1Delta(
-          TickMath.getSqrtRatioAtTick(this.tickLower),
-          TickMath.getSqrtRatioAtTick(this.tickUpper),
-          this.liquidity,
-          false
+      } else {
+        this._token1Amount = new TokenAmount(
+          this.pool.token1,
+          SqrtPriceMath.getAmount1Delta(
+            TickMath.getSqrtRatioAtTick(this.tickLower),
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            false
+          )
         )
-      )
+      }
     }
     return this._token1Amount
+  }
+
+  /**
+   * Returns the minimum amount that must be sent in order to mint the amount of liquidity held by the position at
+   * the current price for the pool
+   */
+  public get mintAmounts(): Readonly<{ amount0: JSBI; amount1: JSBI }> {
+    if (this._mintAmounts === null) {
+      if (this.pool.tickCurrent < this.tickLower) {
+        return {
+          amount0: SqrtPriceMath.getAmount0Delta(
+            TickMath.getSqrtRatioAtTick(this.tickLower),
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            true
+          ),
+          amount1: ZERO
+        }
+      } else if (this.pool.tickCurrent < this.tickUpper) {
+        return {
+          amount0: SqrtPriceMath.getAmount0Delta(
+            this.pool.sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            true
+          ),
+          amount1: SqrtPriceMath.getAmount1Delta(
+            TickMath.getSqrtRatioAtTick(this.tickLower),
+            this.pool.sqrtRatioX96,
+            this.liquidity,
+            true
+          )
+        }
+      } else {
+        return {
+          amount0: ZERO,
+          amount1: SqrtPriceMath.getAmount1Delta(
+            TickMath.getSqrtRatioAtTick(this.tickLower),
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            true
+          )
+        }
+      }
+    }
+    return this._mintAmounts
   }
 
   /**

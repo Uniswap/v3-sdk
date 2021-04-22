@@ -26,6 +26,12 @@ export interface AllowedPermitArguments {
 
 export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
 
+function toHex(num: BigintIsh) {
+  return typeof num === 'string' ? `0x${parseInt(num).toString(16)}` : `0x${num.toString(16)}`
+}
+
+const MaxUint128Hex = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
+
 /**
  * Options for producing the calldata to mint a position.
  */
@@ -173,7 +179,7 @@ export abstract class NonfungiblePositionManager {
         ])
       : NonfungiblePositionManager.INTERFACE.encodeFunctionData('selfPermit', [
           token.address,
-          options.amount.toString(),
+          toHex(options.amount),
           options.deadline,
           options.v,
           options.r,
@@ -186,13 +192,12 @@ export abstract class NonfungiblePositionManager {
 
     const calldatas: string[] = []
 
-    // TODO: we always add 1 instead of computing the exact amount which isn't always the amount0/amount1 plus one
-    const amount0Desired = `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
-    const amount1Desired = `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
-    // TODO: these calculations may not be exactly right
+    const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmounts
+
+    // we adjust the amounts, not the price of the pool, because the user likely does not want to add the other asset
     const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
-    const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
+    const amount0Min = toHex(ONE_LESS_TOLERANCE.multiply(amount0Desired).quotient)
+    const amount1Min = toHex(ONE_LESS_TOLERANCE.multiply(amount1Desired).quotient)
 
     // create pool if needed
     if (options.createPool) {
@@ -201,7 +206,7 @@ export abstract class NonfungiblePositionManager {
           position.pool.token0.address,
           position.pool.token1.address,
           position.pool.fee,
-          position.pool.sqrtRatioX96.toString()
+          toHex(position.pool.sqrtRatioX96)
         ])
       )
     }
@@ -223,8 +228,8 @@ export abstract class NonfungiblePositionManager {
           fee: position.pool.fee,
           tickLower: position.tickLower,
           tickUpper: position.tickUpper,
-          amount0Desired,
-          amount1Desired,
+          amount0Desired: toHex(amount0Desired),
+          amount1Desired: toHex(amount1Desired),
           amount0Min,
           amount1Min,
           recipient: options.recipient,
@@ -239,11 +244,15 @@ export abstract class NonfungiblePositionManager {
       const weth = WETH9[position.pool.chainId as ChainId]
       invariant((weth && position.pool.token0.equals(weth)) || position.pool.token1.equals(weth), 'NO_WETH')
 
-      value = position.pool.token0.equals(weth)
-        ? `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
-        : `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
+      value = toHex(position.pool.token0.equals(weth) ? amount0Desired : amount1Desired)
 
-      // todo: add a calldata to return any leftover eth
+      // todo: unwrap to sender instead of recipient
+      calldatas.push(
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [
+          /*amountMinimum=*/ 0,
+          /*recipient=*/ options.recipient
+        ])
+      )
     }
 
     if (calldatas.length === 1) {
@@ -267,13 +276,12 @@ export abstract class NonfungiblePositionManager {
 
     const calldatas: string[] = []
 
-    // TODO: we always add 1 instead of computing the exact amount which isn't always the amount0/amount1 plus one
-    const amount0Desired = `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
-    const amount1Desired = `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
+    const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmounts
+
     // TODO: these calculations may not be exactly right
     const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
-    const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
+    const amount0Min = toHex(ONE_LESS_TOLERANCE.multiply(amount0Desired).quotient)
+    const amount1Min = toHex(ONE_LESS_TOLERANCE.multiply(amount1Desired).quotient)
 
     // permits if possible
     if (options.token0Permit) {
@@ -283,13 +291,13 @@ export abstract class NonfungiblePositionManager {
       calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token1, options.token1Permit))
     }
 
-    // mint
+    // increase the liquidity
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('increaseLiquidity', [
         {
           tokenId: options.tokenId,
-          amount0Desired,
-          amount1Desired,
+          amount0Desired: toHex(amount0Desired),
+          amount1Desired: toHex(amount1Desired),
           amount0Min,
           amount1Min,
           deadline: options.deadline
@@ -303,9 +311,9 @@ export abstract class NonfungiblePositionManager {
       const weth = WETH9[position.pool.chainId as ChainId]
       invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
 
-      value = position.pool.token0.equals(weth)
-        ? `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
-        : `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
+      value = toHex(position.pool.token0.equals(weth) ? amount0Desired : amount1Desired)
+
+      // todo: unwrap any remaining weth to sender
     }
 
     if (calldatas.length === 1) {
@@ -343,25 +351,20 @@ export abstract class NonfungiblePositionManager {
       options.liquidityPercentage?.multiply(position.liquidity)?.quotient ?? JSBI.BigInt(position.liquidity)
 
     const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
-    const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
+    const amount0Min = toHex(ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient)
+    const amount1Min = toHex(ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient)
 
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('decreaseLiquidity', [
         {
           tokenId: options.tokenId,
-          liquidity: `0x${liquidity.toString(16)}`,
+          liquidity: toHex(liquidity),
           amount0Min,
           amount1Min,
           deadline: options.deadline
         }
       ])
     )
-
-    const MaxUint128Hex = `0x${JSBI.subtract(
-      JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
-      JSBI.BigInt(1)
-    ).toString(16)}`
 
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [

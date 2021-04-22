@@ -172,4 +172,38 @@ describe('Position', () => {
       ).toEqual('79831926242')
     })
   })
+
+  describe('#mintAmounts', () => {
+    it('is correct for price above', () => {
+      const { amount0, amount1 } = new Position({
+        pool: DAI_USDC_POOL,
+        liquidity: 100e18,
+        tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
+        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+      }).mintAmounts
+      expect(amount0.toString()).toEqual('49949961958869841754182')
+      expect(amount1.toString()).toEqual('0')
+    })
+    it('is correct for price below', () => {
+      const { amount0, amount1 } = new Position({
+        pool: DAI_USDC_POOL,
+        liquidity: 100e18,
+        tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
+        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+      }).mintAmounts
+      expect(amount0.toString()).toEqual('0')
+      expect(amount1.toString()).toEqual('49970077053')
+    })
+    it('is correct for in-range position', () => {
+      const { amount0, amount1 } = new Position({
+        pool: DAI_USDC_POOL,
+        liquidity: 100e18,
+        tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
+        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+      }).mintAmounts
+      // note these are rounded up
+      expect(amount0.toString()).toEqual('120054069145287995769397')
+      expect(amount1.toString()).toEqual('79831926243')
+    })
+  })
 })
