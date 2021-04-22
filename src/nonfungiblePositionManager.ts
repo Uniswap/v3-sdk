@@ -246,13 +246,7 @@ export abstract class NonfungiblePositionManager {
 
       value = toHex(position.pool.token0.equals(weth) ? amount0Desired : amount1Desired)
 
-      // todo: unwrap to sender instead of recipient
-      calldatas.push(
-        NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [
-          /*amountMinimum=*/ 0,
-          /*recipient=*/ options.recipient
-        ])
-      )
+      calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
     }
 
     if (calldatas.length === 1) {
@@ -309,11 +303,11 @@ export abstract class NonfungiblePositionManager {
 
     if (options.useEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
-      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
+      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token1.equals(weth), 'NO_WETH')
 
       value = toHex(position.pool.token0.equals(weth) ? amount0Desired : amount1Desired)
 
-      // todo: unwrap any remaining weth to sender
+      calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
     }
 
     if (calldatas.length === 1) {
