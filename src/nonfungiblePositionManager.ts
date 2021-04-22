@@ -75,6 +75,38 @@ export interface NFTPermitOptions {
   spender: string
 }
 
+export interface IncreaseLiquidityOptions {
+  /**
+   * The ID of the position to increase liquidity for
+   */
+  tokenId: BigintIsh
+
+  /**
+   * How much the pool price is allowed to move.
+   */
+  slippageTolerance: Percent
+
+  /**
+   * When the transaction expires, in epoch seconds.
+   */
+  deadline: number
+
+  /**
+   * Whether to spend ether. If true, one of the pool tokens must be WETH
+   */
+  useEther: boolean
+
+  /**
+   * The optional permit parameters for spending token0
+   */
+  token0Permit?: PermitOptions
+
+  /**
+   * The optional permit parameters for spending token1
+   */
+  token1Permit?: PermitOptions
+}
+
 /**
  * Options for producing the calldata to exit a position.
  */
@@ -212,6 +244,68 @@ export abstract class NonfungiblePositionManager {
         : `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
 
       // todo: add a calldata to return any leftover eth
+    }
+
+    if (calldatas.length === 1) {
+      return {
+        calldata: calldatas[0],
+        value
+      }
+    } else {
+      return {
+        calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+        value
+      }
+    }
+  }
+
+  public static increaseLiquidityCallParameters(
+    position: Position,
+    options: IncreaseLiquidityOptions
+  ): MethodParameters {
+    invariant(JSBI.greaterThan(position.liquidity, ZERO), 'LIQUIDITY')
+
+    const calldatas: string[] = []
+
+    // TODO: we always add 1 instead of computing the exact amount which isn't always the amount0/amount1 plus one
+    const amount0Desired = `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
+    const amount1Desired = `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
+    // TODO: these calculations may not be exactly right
+    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
+    const amount0Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount0.raw).quotient.toString(16)}`
+    const amount1Min = `0x${ONE_LESS_TOLERANCE.multiply(position.amount1.raw).quotient.toString(16)}`
+
+    // permits if possible
+    if (options.token0Permit) {
+      calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token0, options.token0Permit))
+    }
+    if (options.token1Permit) {
+      calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token1, options.token1Permit))
+    }
+
+    // mint
+    calldatas.push(
+      NonfungiblePositionManager.INTERFACE.encodeFunctionData('increaseLiquidity', [
+        {
+          tokenId: options.tokenId,
+          amount0Desired,
+          amount1Desired,
+          amount0Min,
+          amount1Min,
+          deadline: options.deadline
+        }
+      ])
+    )
+
+    let value: string = '0x0'
+
+    if (options.useEther) {
+      const weth = WETH9[position.pool.chainId as ChainId]
+      invariant((weth && position.pool.token0.equals(weth)) || position.pool.token0.equals(weth), 'NO_WETH')
+
+      value = position.pool.token0.equals(weth)
+        ? `0x${JSBI.add(position.amount0.raw, ONE).toString(16)}`
+        : `0x${JSBI.add(position.amount1.raw, ONE).toString(16)}`
     }
 
     if (calldatas.length === 1) {
