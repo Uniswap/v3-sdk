@@ -144,8 +144,8 @@ export class Trade {
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
-  public static exactIn(route: Route, amountIn: CurrencyAmount): Trade {
-    return new Trade(route, amountIn, TradeType.EXACT_INPUT)
+  public static async exactIn(route: Route, amountIn: CurrencyAmount): Promise<Trade> {
+    return Trade.fromRoute(route, amountIn, TradeType.EXACT_INPUT)
   }
 
   /**
@@ -153,11 +153,11 @@ export class Trade {
    * @param route route of the exact out trade
    * @param amountOut the amount returned by the trade
    */
-  public static exactOut(route: Route, amountOut: CurrencyAmount): Trade {
-    return new Trade(route, amountOut, TradeType.EXACT_OUTPUT)
+  public static async exactOut(route: Route, amountOut: CurrencyAmount): Promise<Trade> {
+    return Trade.fromRoute(route, amountOut, TradeType.EXACT_OUTPUT)
   }
 
-  public constructor(route: Route, amount: CurrencyAmount, tradeType: TradeType) {
+  public static async fromRoute(route: Route, amount: CurrencyAmount, tradeType: TradeType): Promise<Trade> {
     const amounts: TokenAmount[] = new Array(route.tokenPath.length)
     const nextPools: Pool[] = new Array(route.pools.length)
     if (tradeType === TradeType.EXACT_INPUT) {
@@ -165,7 +165,7 @@ export class Trade {
       amounts[0] = wrappedAmount(amount, route.chainId)
       for (let i = 0; i < route.tokenPath.length - 1; i++) {
         const pool = route.pools[i]
-        const [outputAmount, nextPool] = pool.getOutputAmount(amounts[i])
+        const [outputAmount, nextPool] = await pool.getOutputAmount(amounts[i])
         amounts[i + 1] = outputAmount
         nextPools[i] = nextPool
       }
@@ -174,37 +174,57 @@ export class Trade {
       amounts[amounts.length - 1] = wrappedAmount(amount, route.chainId)
       for (let i = route.tokenPath.length - 1; i > 0; i--) {
         const pool = route.pools[i - 1]
-        const [inputAmount, nextPool] = pool.getInputAmount(amounts[i])
+        const [inputAmount, nextPool] = await pool.getInputAmount(amounts[i])
         amounts[i - 1] = inputAmount
         nextPools[i - 1] = nextPool
       }
     }
 
-    this.route = route
-    this.tradeType = tradeType
-    this.inputAmount =
+    const inputAmount =
       tradeType === TradeType.EXACT_INPUT
         ? amount
         : route.input === ETHER
         ? CurrencyAmount.ether(amounts[0].raw)
         : amounts[0]
-    this.outputAmount =
+    const outputAmount =
       tradeType === TradeType.EXACT_OUTPUT
         ? amount
         : route.output === ETHER
         ? CurrencyAmount.ether(amounts[amounts.length - 1].raw)
         : amounts[amounts.length - 1]
-    this.executionPrice = new Price(
-      this.inputAmount.currency,
-      this.outputAmount.currency,
-      this.inputAmount.raw,
-      this.outputAmount.raw
-    )
-    this.priceImpact = computePriceImpact(
-      /*should equal route.midPrice*/ this.executionPrice,
-      this.inputAmount,
-      this.outputAmount
-    )
+    const executionPrice = new Price(inputAmount.currency, outputAmount.currency, inputAmount.raw, outputAmount.raw)
+    const priceImpact = computePriceImpact(/*should equal route.midPrice*/ executionPrice, inputAmount, outputAmount)
+    return new Trade({
+      route,
+      tradeType,
+      inputAmount,
+      outputAmount,
+      executionPrice,
+      priceImpact
+    })
+  }
+
+  private constructor({
+    route,
+    inputAmount,
+    executionPrice,
+    outputAmount,
+    priceImpact,
+    tradeType
+  }: {
+    route: Route
+    inputAmount: CurrencyAmount
+    outputAmount: CurrencyAmount
+    tradeType: TradeType
+    executionPrice: Price
+    priceImpact: Percent
+  }) {
+    this.route = route
+    this.inputAmount = inputAmount
+    this.outputAmount = outputAmount
+    this.tradeType = tradeType
+    this.executionPrice = executionPrice
+    this.priceImpact = priceImpact
   }
 
   /**
@@ -256,7 +276,7 @@ export class Trade {
    * @param originalAmountIn used in recursion; the original value of the currencyAmountIn parameter
    * @param bestTrades used in recursion; the current list of best trades
    */
-  public static bestTradeExactIn(
+  public static async bestTradeExactIn(
     pools: Pool[],
     currencyAmountIn: CurrencyAmount,
     currencyOut: Currency,
@@ -265,7 +285,7 @@ export class Trade {
     currentPools: Pool[] = [],
     originalAmountIn: CurrencyAmount = currencyAmountIn,
     bestTrades: Trade[] = []
-  ): Trade[] {
+  ): Promise<Trade[]> {
     invariant(pools.length > 0, 'POOLS')
     invariant(maxHops > 0, 'MAX_HOPS')
     invariant(originalAmountIn === currencyAmountIn || currentPools.length > 0, 'INVALID_RECURSION')
@@ -286,7 +306,7 @@ export class Trade {
 
       let amountOut: TokenAmount
       try {
-        ;[amountOut] = pool.getOutputAmount(amountIn)
+        ;[amountOut] = await pool.getOutputAmount(amountIn)
       } catch (error) {
         // input too low
         if (error.isInsufficientInputAmountError) {
@@ -298,7 +318,7 @@ export class Trade {
       if (amountOut.token.equals(tokenOut)) {
         sortedInsert(
           bestTrades,
-          new Trade(
+          await Trade.fromRoute(
             new Route([...currentPools, pool], originalAmountIn.currency, currencyOut),
             originalAmountIn,
             TradeType.EXACT_INPUT
@@ -310,7 +330,7 @@ export class Trade {
         const poolsExcludingThisPool = pools.slice(0, i).concat(pools.slice(i + 1, pools.length))
 
         // otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
-        Trade.bestTradeExactIn(
+        await Trade.bestTradeExactIn(
           poolsExcludingThisPool,
           amountOut,
           currencyOut,
@@ -343,7 +363,7 @@ export class Trade {
    * @param originalAmountOut used in recursion; the original value of the currencyAmountOut parameter
    * @param bestTrades used in recursion; the current list of best trades
    */
-  public static bestTradeExactOut(
+  public static async bestTradeExactOut(
     pools: Pool[],
     currencyIn: Currency,
     currencyAmountOut: CurrencyAmount,
@@ -352,7 +372,7 @@ export class Trade {
     currentPools: Pool[] = [],
     originalAmountOut: CurrencyAmount = currencyAmountOut,
     bestTrades: Trade[] = []
-  ): Trade[] {
+  ): Promise<Trade[]> {
     invariant(pools.length > 0, 'POOLS')
     invariant(maxHops > 0, 'MAX_HOPS')
     invariant(originalAmountOut === currencyAmountOut || currentPools.length > 0, 'INVALID_RECURSION')
@@ -373,7 +393,7 @@ export class Trade {
 
       let amountIn: TokenAmount
       try {
-        ;[amountIn] = pool.getInputAmount(amountOut)
+        ;[amountIn] = await pool.getInputAmount(amountOut)
       } catch (error) {
         // not enough liquidity in this pool
         if (error.isInsufficientReservesError) {
@@ -385,7 +405,7 @@ export class Trade {
       if (amountIn.token.equals(tokenIn)) {
         sortedInsert(
           bestTrades,
-          new Trade(
+          await Trade.fromRoute(
             new Route([pool, ...currentPools], currencyIn, originalAmountOut.currency),
             originalAmountOut,
             TradeType.EXACT_OUTPUT
@@ -397,7 +417,7 @@ export class Trade {
         const poolsExcludingThisPool = pools.slice(0, i).concat(pools.slice(i + 1, pools.length))
 
         // otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
-        Trade.bestTradeExactOut(
+        await Trade.bestTradeExactOut(
           poolsExcludingThisPool,
           currencyIn,
           amountIn,

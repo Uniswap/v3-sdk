@@ -17,7 +17,8 @@ export abstract class TickList {
    */
   private constructor() {}
 
-  public static validate(ticks: Tick[], tickSpacing: number) {
+  public static validateList(ticks: Tick[], tickSpacing: number) {
+    invariant(tickSpacing > 0, 'TICK_SPACING_NONZERO')
     // ensure ticks are spaced appropriately
     invariant(
       ticks.every(({ index }) => index % tickSpacing === 0),
@@ -36,25 +37,30 @@ export abstract class TickList {
     invariant(isSorted(ticks, tickComparator), 'SORTED')
   }
 
-  public static isBelowSmallest(ticks: Tick[], tick: number): boolean {
+  public static isBelowSmallest(ticks: readonly Tick[], tick: number): boolean {
     invariant(ticks.length > 0, 'LENGTH')
     return tick < ticks[0].index
   }
 
-  public static isAtOrAboveLargest(ticks: Tick[], tick: number): boolean {
+  public static isAtOrAboveLargest(ticks: readonly Tick[], tick: number): boolean {
     invariant(ticks.length > 0, 'LENGTH')
     return tick >= ticks[ticks.length - 1].index
   }
 
-  public static getTick(ticks: Tick[], index: number): Tick {
+  public static getTick(ticks: readonly Tick[], index: number): Tick {
     const tick = ticks[this.binarySearch(ticks, index)]
     invariant(tick.index === index, 'NOT_CONTAINED')
     return tick
   }
 
-  private static binarySearch(ticks: Tick[], tick: number): number {
+  /**
+   * Finds the largest tick in the list of ticks that is less than or equal to tick
+   * @param ticks list of ticks
+   * @param tick tick to find the largest tick that is less than or equal to tick
+   * @private
+   */
+  private static binarySearch(ticks: readonly Tick[], tick: number): number {
     invariant(!this.isBelowSmallest(ticks, tick), 'BELOW_SMALLEST')
-    invariant(!this.isAtOrAboveLargest(ticks, tick), 'AT_OR_ABOVE_LARGEST')
 
     let l = 0
     let r = ticks.length - 1
@@ -62,7 +68,7 @@ export abstract class TickList {
     while (true) {
       i = Math.floor((l + r) / 2)
 
-      if (ticks[i].index <= tick && ticks[i + 1].index > tick) {
+      if (ticks[i].index <= tick && (i === ticks.length - 1 || ticks[i + 1].index > tick)) {
         return i
       }
 
@@ -74,7 +80,7 @@ export abstract class TickList {
     }
   }
 
-  public static nextInitializedTick(ticks: Tick[], tick: number, lte: boolean): Tick {
+  public static nextInitializedTick(ticks: readonly Tick[], tick: number, lte: boolean): Tick {
     if (lte) {
       invariant(!TickList.isBelowSmallest(ticks, tick), 'BELOW_SMALLEST')
       if (TickList.isAtOrAboveLargest(ticks, tick)) {
@@ -93,7 +99,7 @@ export abstract class TickList {
   }
 
   public static nextInitializedTickWithinOneWord(
-    ticks: Tick[],
+    ticks: readonly Tick[],
     tick: number,
     lte: boolean,
     tickSpacing: number
