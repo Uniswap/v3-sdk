@@ -2,13 +2,14 @@ import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
-import { Q192, NEGATIVE_ONE, ZERO, ONE } from '../internalConstants'
+import { NEGATIVE_ONE, ONE, Q192, ZERO } from '../internalConstants'
 import { computePoolAddress } from '../utils/computePoolAddress'
 import { LiquidityMath } from '../utils/liquidityMath'
 import { SwapMath } from '../utils/swapMath'
 import { TickMath } from '../utils/tickMath'
 import { Tick, TickConstructorArgs } from './tick'
-import { TickList } from '../utils/tickList'
+import { NoTickDataProvider, TickDataProvider } from './tickDataProvider'
+import { TickListDataProvider } from './tickListDataProvider'
 
 interface StepComputations {
   sqrtPriceStartX96: JSBI
@@ -21,51 +22,8 @@ interface StepComputations {
 }
 
 /**
- * Provides information about ticks
+ * By default, pools will not allow operations that require ticks.
  */
-export interface TickDataProvider {
-  getTick(tick: number): Promise<{ liquidityNet: BigintIsh; liquidityGross: BigintIsh }>
-  nextInitializedTickWithinOneWord(tick: number, lte: boolean, tickSpacing: number): Promise<[number, boolean]>
-}
-
-/**
- * A data provider for ticks that is backed by an array of ticks
- */
-export class TickListDataProvider implements TickDataProvider {
-  private ticks: readonly Tick[]
-
-  constructor(ticks: (Tick | TickConstructorArgs)[], tickSpacing: number) {
-    const ticksMapped: Tick[] = ticks.map(t => (t instanceof Tick ? t : new Tick(t)))
-    TickList.validateList(ticksMapped, tickSpacing)
-    this.ticks = ticksMapped
-  }
-
-  async getTick(tick: number): Promise<{ liquidityNet: BigintIsh; liquidityGross: BigintIsh }> {
-    return TickList.getTick(this.ticks, tick)
-  }
-
-  async nextInitializedTickWithinOneWord(tick: number, lte: boolean, tickSpacing: number): Promise<[number, boolean]> {
-    return TickList.nextInitializedTickWithinOneWord(this.ticks, tick, lte, tickSpacing)
-  }
-}
-
-/**
- * You can use this tick data provider if you do not want to do any operations that require ticks
- */
-export class NoTickDataProvider implements TickDataProvider {
-  async getTick(_tick: number): Promise<{ liquidityNet: BigintIsh; liquidityGross: BigintIsh }> {
-    throw new Error('No tick data provider was given')
-  }
-
-  async nextInitializedTickWithinOneWord(
-    _tick: number,
-    _zeroForOne: boolean,
-    _tickSpacing: number
-  ): Promise<[number, boolean]> {
-    throw new Error('No tick data provider was given')
-  }
-}
-
 const NO_TICK_DATA_PROVIDER_DEFAULT = new NoTickDataProvider()
 
 /**

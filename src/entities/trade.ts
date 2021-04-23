@@ -330,7 +330,7 @@ export class Trade {
         const poolsExcludingThisPool = pools.slice(0, i).concat(pools.slice(i + 1, pools.length))
 
         // otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
-        Trade.bestTradeExactIn(
+        await Trade.bestTradeExactIn(
           poolsExcludingThisPool,
           amountOut,
           currencyOut,
@@ -417,7 +417,7 @@ export class Trade {
         const poolsExcludingThisPool = pools.slice(0, i).concat(pools.slice(i + 1, pools.length))
 
         // otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
-        Trade.bestTradeExactOut(
+        await Trade.bestTradeExactOut(
           poolsExcludingThisPool,
           currencyIn,
           amountIn,

@@ -89,7 +89,7 @@ describe('Trade', () => {
   })
 
   describe('#bestTradeExactIn', () => {
-    it.only('throws with empty pools', async () => {
+    it('throws with empty pools', async () => {
       await expect(Trade.bestTradeExactIn([], new TokenAmount(token0, JSBI.BigInt(10000)), token2)).rejects.toThrow(
         'POOLS'
       )
@@ -362,8 +362,8 @@ describe('Trade', () => {
       expect(result).toHaveLength(1)
     })
 
-    it('respects n', () => {
-      const result = Trade.bestTradeExactOut(
+    it('respects n', async () => {
+      const result = await Trade.bestTradeExactOut(
         [pool_0_1, pool_0_2, pool_1_2],
         token0,
         new TokenAmount(token2, JSBI.BigInt(10)),
@@ -373,8 +373,8 @@ describe('Trade', () => {
       expect(result).toHaveLength(1)
     })
 
-    it('no path', () => {
-      const result = Trade.bestTradeExactOut(
+    it('no path', async () => {
+      const result = await Trade.bestTradeExactOut(
         [pool_0_1, pool_0_3, pool_1_3],
         token0,
         new TokenAmount(token2, JSBI.BigInt(10))
