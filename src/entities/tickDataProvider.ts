@@ -24,15 +24,16 @@ export interface TickDataProvider {
  * do not need to load tick data for your use case.
  */
 export class NoTickDataProvider implements TickDataProvider {
+  private static ERROR_MESSAGE = 'No tick data provider was given'
   async getTick(_tick: number): Promise<{ liquidityNet: BigintIsh }> {
-    throw new Error('No tick data provider was given.')
+    throw new Error(NoTickDataProvider.ERROR_MESSAGE)
   }
 
   async nextInitializedTickWithinOneWord(
     _tick: number,
-    _zeroForOne: boolean,
+    _lte: boolean,
     _tickSpacing: number
   ): Promise<[number, boolean]> {
-    throw new Error('No tick data provider was given')
+    throw new Error(NoTickDataProvider.ERROR_MESSAGE)
   }
 }

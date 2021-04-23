@@ -18,6 +18,7 @@ export abstract class TickList {
   private constructor() {}
 
   public static validateList(ticks: Tick[], tickSpacing: number) {
+    invariant(tickSpacing > 0, 'TICK_SPACING_NONZERO')
     // ensure ticks are spaced appropriately
     invariant(
       ticks.every(({ index }) => index % tickSpacing === 0),
@@ -52,9 +53,14 @@ export abstract class TickList {
     return tick
   }
 
+  /**
+   * Finds the largest tick in the list of ticks that is less than or equal to tick
+   * @param ticks list of ticks
+   * @param tick tick to find the largest tick that is less than or equal to tick
+   * @private
+   */
   private static binarySearch(ticks: readonly Tick[], tick: number): number {
     invariant(!this.isBelowSmallest(ticks, tick), 'BELOW_SMALLEST')
-    invariant(!this.isAtOrAboveLargest(ticks, tick), 'AT_OR_ABOVE_LARGEST')
 
     let l = 0
     let r = ticks.length - 1
@@ -62,7 +68,7 @@ export abstract class TickList {
     while (true) {
       i = Math.floor((l + r) / 2)
 
-      if (ticks[i].index <= tick && ticks[i + 1].index > tick) {
+      if (ticks[i].index <= tick && (i === ticks.length - 1 || ticks[i + 1].index > tick)) {
         return i
       }
 
