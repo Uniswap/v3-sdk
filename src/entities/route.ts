@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 
-import { ChainId, Currency, ETHER, Price, Token, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Currency, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
 import { Pool } from './pool'
 
 export class Route {
@@ -8,7 +8,6 @@ export class Route {
   public readonly tokenPath: Token[]
   public readonly input: Currency
   public readonly output: Currency
-  // public readonly midPrice: Price
 
   public constructor(pools: Pool[], input: Currency, output?: Currency) {
     invariant(pools.length > 0, 'POOLS: none provided')
@@ -52,9 +51,5 @@ export class Route {
 
   public get chainId(): ChainId | number {
     return this.pools[0].chainId
-  }
-
-  public get midPrice(): Price {
-    throw new Error('todo')
   }
 }
