@@ -128,6 +128,12 @@ export class Trade {
     return Trade.fromRoute(route, amountOut, TradeType.EXACT_OUTPUT)
   }
 
+  /**
+   * Constructs a trade by simulating swaps through the given route
+   * @param route route to swap through
+   * @param amount the amount specified, either input or output, depending on tradeType
+   * @param tradeType whether the trade is an exact input or exact output swap
+   */
   public static async fromRoute(route: Route, amount: CurrencyAmount, tradeType: TradeType): Promise<Trade> {
     const amounts: TokenAmount[] = new Array(route.tokenPath.length)
     if (tradeType === TradeType.EXACT_INPUT) {
@@ -169,13 +175,27 @@ export class Trade {
   }
 
   /**
+   * Creates a trade without computing the result of swapping through the route. Useful when you have simulated the trade
+   * elsewhere and do not have any tick data
+   * @param constructorArguments the arguments passed to the trade constructor
+   */
+  public static createUncheckedTrade(constructorArguments: {
+    route: Route
+    inputAmount: CurrencyAmount
+    outputAmount: CurrencyAmount
+    tradeType: TradeType
+  }): Trade {
+    return new Trade(constructorArguments)
+  }
+
+  /**
    * Construct a trade by passing in the pre-computed property values
    * @param route the route through which the trade occurs
    * @param inputAmount the amount of input paid in the trade
    * @param outputAmount the amount of output received in the trade
    * @param tradeType the type of trade, exact input or exact output
    */
-  public constructor({
+  private constructor({
     route,
     inputAmount,
     outputAmount,

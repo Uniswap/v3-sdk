@@ -88,6 +88,45 @@ describe('Trade', () => {
     expect(trade.outputAmount.currency).toEqual(ETHER)
   })
 
+  describe('#createUncheckedTrade', () => {
+    it('throws if input currency does not match route', () => {
+      expect(() =>
+        Trade.createUncheckedTrade({
+          route: new Route([pool_0_1], token0),
+          inputAmount: new TokenAmount(token2, 10000),
+          outputAmount: new TokenAmount(token1, 10000),
+          tradeType: TradeType.EXACT_INPUT
+        })
+      ).toThrow('INPUT_CURRENCY_MATCH')
+    })
+    it('throws if output currency does not match route', () => {
+      expect(() =>
+        Trade.createUncheckedTrade({
+          route: new Route([pool_0_1], token0),
+          inputAmount: new TokenAmount(token0, 10000),
+          outputAmount: new TokenAmount(token2, 10000),
+          tradeType: TradeType.EXACT_INPUT
+        })
+      ).toThrow('OUTPUT_CURRENCY_MATCH')
+    })
+    it('can create an exact input trade without simulating', () => {
+      Trade.createUncheckedTrade({
+        route: new Route([pool_0_1], token0),
+        inputAmount: new TokenAmount(token0, 10000),
+        outputAmount: new TokenAmount(token1, 100000),
+        tradeType: TradeType.EXACT_INPUT
+      })
+    })
+    it('can create an exact output trade without simulating', () => {
+      Trade.createUncheckedTrade({
+        route: new Route([pool_0_1], token0),
+        inputAmount: new TokenAmount(token0, 10000),
+        outputAmount: new TokenAmount(token1, 100000),
+        tradeType: TradeType.EXACT_OUTPUT
+      })
+    })
+  })
+
   describe('#bestTradeExactIn', () => {
     it('throws with empty pools', async () => {
       await expect(Trade.bestTradeExactIn([], new TokenAmount(token0, JSBI.BigInt(10000)), token2)).rejects.toThrow(
