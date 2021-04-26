@@ -18,34 +18,15 @@ import { ONE, ZERO } from '../internalConstants'
 import { Pool } from './pool'
 import { Route } from './route'
 
-/**
- * Returns the percent difference between the mid price and the execution price, i.e. price impact.
- * @param midPrice mid price before the trade
- * @param inputAmount the input amount of the trade
- * @param outputAmount the output amount of the trade
- */
-function computePriceImpact(midPrice: Price, inputAmount: CurrencyAmount, outputAmount: CurrencyAmount): Percent {
-  const exactQuote = midPrice.raw.multiply(inputAmount.raw)
-  // calculate slippage := (exactQuote - outputAmount) / exactQuote
-  const slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote)
-  return new Percent(slippage.numerator, slippage.denominator)
-}
-
-// minimal interface so the input output comparator may be shared across types
-interface InputOutput {
-  readonly inputAmount: CurrencyAmount
-  readonly outputAmount: CurrencyAmount
-}
-
-// comparator function that allows sorting trades by their output amounts, in decreasing order, and then input amounts
-// in increasing order. i.e. the best trades have the most outputs for the least inputs and are sorted first
-export function inputOutputComparator(a: InputOutput, b: InputOutput): number {
+// extension of the input output comparator that also considers other dimensions of the trade in ranking them
+export function tradeComparator(a: Trade, b: Trade) {
   // must have same input and output token for comparison
   invariant(currencyEquals(a.inputAmount.currency, b.inputAmount.currency), 'INPUT_CURRENCY')
   invariant(currencyEquals(a.outputAmount.currency, b.outputAmount.currency), 'OUTPUT_CURRENCY')
   if (a.outputAmount.equalTo(b.outputAmount)) {
     if (a.inputAmount.equalTo(b.inputAmount)) {
-      return 0
+      // consider the number of hops since each hop costs gas
+      return a.route.tokenPath.length - b.route.tokenPath.length
     }
     // trade A requires less input than trade B, so A should come first
     if (a.inputAmount.lessThan(b.inputAmount)) {
@@ -61,24 +42,6 @@ export function inputOutputComparator(a: InputOutput, b: InputOutput): number {
       return -1
     }
   }
-}
-
-// extension of the input output comparator that also considers other dimensions of the trade in ranking them
-export function tradeComparator(a: Trade, b: Trade) {
-  const ioComp = inputOutputComparator(a, b)
-  if (ioComp !== 0) {
-    return ioComp
-  }
-
-  // consider lowest slippage next, since these are less likely to fail
-  if (a.priceImpact.lessThan(b.priceImpact)) {
-    return -1
-  } else if (a.priceImpact.greaterThan(b.priceImpact)) {
-    return 1
-  }
-
-  // finally consider the number of hops since each hop costs gas
-  return a.route.tokenPath.length - b.route.tokenPath.length
 }
 
 export interface BestTradeOptions {
@@ -126,18 +89,26 @@ export class Trade {
    * The output amount for the trade assuming no slippage.
    */
   public readonly outputAmount: CurrencyAmount
+
+  /**
+   * The cached result of the computed execution price
+   * @private
+   */
+  private _executionPrice: Price | undefined
   /**
    * The price expressed in terms of output amount/input amount.
    */
-  public readonly executionPrice: Price
-  /**
-   * The mid price after the trade executes assuming no slippage.
-   */
-  // public readonly nextMidPrice: Price
-  /**
-   * The percent difference between the mid price before the trade and the trade execution price.
-   */
-  public readonly priceImpact: Percent
+  public get executionPrice(): Price {
+    return (
+      this._executionPrice ??
+      (this._executionPrice = new Price(
+        this.inputAmount.currency,
+        this.outputAmount.currency,
+        this.inputAmount.raw,
+        this.outputAmount.raw
+      ))
+    )
+  }
 
   /**
    * Constructs an exact in trade with the given amount in and route
@@ -159,24 +130,21 @@ export class Trade {
 
   public static async fromRoute(route: Route, amount: CurrencyAmount, tradeType: TradeType): Promise<Trade> {
     const amounts: TokenAmount[] = new Array(route.tokenPath.length)
-    const nextPools: Pool[] = new Array(route.pools.length)
     if (tradeType === TradeType.EXACT_INPUT) {
       invariant(currencyEquals(amount.currency, route.input), 'INPUT')
       amounts[0] = wrappedAmount(amount, route.chainId)
       for (let i = 0; i < route.tokenPath.length - 1; i++) {
         const pool = route.pools[i]
-        const [outputAmount, nextPool] = await pool.getOutputAmount(amounts[i])
+        const [outputAmount] = await pool.getOutputAmount(amounts[i])
         amounts[i + 1] = outputAmount
-        nextPools[i] = nextPool
       }
     } else {
       invariant(currencyEquals(amount.currency, route.output), 'OUTPUT')
       amounts[amounts.length - 1] = wrappedAmount(amount, route.chainId)
       for (let i = route.tokenPath.length - 1; i > 0; i--) {
         const pool = route.pools[i - 1]
-        const [inputAmount, nextPool] = await pool.getInputAmount(amounts[i])
+        const [inputAmount] = await pool.getInputAmount(amounts[i])
         amounts[i - 1] = inputAmount
-        nextPools[i - 1] = nextPool
       }
     }
 
@@ -192,39 +160,38 @@ export class Trade {
         : route.output === ETHER
         ? CurrencyAmount.ether(amounts[amounts.length - 1].raw)
         : amounts[amounts.length - 1]
-    const executionPrice = new Price(inputAmount.currency, outputAmount.currency, inputAmount.raw, outputAmount.raw)
-    const priceImpact = computePriceImpact(/*should equal route.midPrice*/ executionPrice, inputAmount, outputAmount)
     return new Trade({
       route,
       tradeType,
       inputAmount,
-      outputAmount,
-      executionPrice,
-      priceImpact
+      outputAmount
     })
   }
 
-  private constructor({
+  /**
+   * Construct a trade by passing in the pre-computed property values
+   * @param route the route through which the trade occurs
+   * @param inputAmount the amount of input paid in the trade
+   * @param outputAmount the amount of output received in the trade
+   * @param tradeType the type of trade, exact input or exact output
+   */
+  public constructor({
     route,
     inputAmount,
-    executionPrice,
     outputAmount,
-    priceImpact,
     tradeType
   }: {
     route: Route
     inputAmount: CurrencyAmount
     outputAmount: CurrencyAmount
     tradeType: TradeType
-    executionPrice: Price
-    priceImpact: Percent
   }) {
+    invariant(currencyEquals(inputAmount.currency, route.input), 'INPUT_CURRENCY_MATCH')
+    invariant(currencyEquals(outputAmount.currency, route.output), 'OUTPUT_CURRENCY_MATCH')
     this.route = route
     this.inputAmount = inputAmount
     this.outputAmount = outputAmount
     this.tradeType = tradeType
-    this.executionPrice = executionPrice
-    this.priceImpact = priceImpact
   }
 
   /**
