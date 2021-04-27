@@ -1,4 +1,15 @@
-import { ChainId, CurrencyAmount, ETHER, Percent, sqrt, Token, TokenAmount, TradeType, WETH9 } from '@uniswap/sdk-core'
+import {
+  ChainId,
+  CurrencyAmount,
+  ETHER,
+  Percent,
+  Price,
+  sqrt,
+  Token,
+  TokenAmount,
+  TradeType,
+  WETH9
+} from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { FeeAmount, TICK_SPACINGS } from '../constants'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
@@ -123,6 +134,48 @@ describe('Trade', () => {
         inputAmount: new TokenAmount(token0, 10000),
         outputAmount: new TokenAmount(token1, 100000),
         tradeType: TradeType.EXACT_OUTPUT
+      })
+    })
+  })
+
+  describe('#worstExecutionPrice', () => {
+    describe('tradeType = EXACT_INPUT', () => {
+      const exactIn = Trade.createUncheckedTrade({
+        route: new Route([pool_0_1, pool_1_2], token0),
+        inputAmount: new TokenAmount(token0, 100),
+        outputAmount: new TokenAmount(token2, 69),
+        tradeType: TradeType.EXACT_INPUT
+      })
+      it('throws if less than 0', () => {
+        expect(() => exactIn.minimumAmountOut(new Percent(-1, 100))).toThrow('SLIPPAGE_TOLERANCE')
+      })
+      it('returns exact if 0', () => {
+        expect(exactIn.worstExecutionPrice(new Percent(0, 100))).toEqual(exactIn.executionPrice)
+      })
+      it('returns exact if nonzero', () => {
+        expect(exactIn.worstExecutionPrice(new Percent(0, 100))).toEqual(new Price(token0, token2, 100, 69))
+        expect(exactIn.worstExecutionPrice(new Percent(5, 100))).toEqual(new Price(token0, token2, 100, 65))
+        expect(exactIn.worstExecutionPrice(new Percent(200, 100))).toEqual(new Price(token0, token2, 100, 23))
+      })
+    })
+    describe('tradeType = EXACT_OUTPUT', () => {
+      const exactOut = Trade.createUncheckedTrade({
+        route: new Route([pool_0_1, pool_1_2], token0),
+        inputAmount: new TokenAmount(token0, 156),
+        outputAmount: new TokenAmount(token2, 100),
+        tradeType: TradeType.EXACT_OUTPUT
+      })
+
+      it('throws if less than 0', () => {
+        expect(() => exactOut.worstExecutionPrice(new Percent(-1, 100))).toThrow('SLIPPAGE_TOLERANCE')
+      })
+      it('returns exact if 0', () => {
+        expect(exactOut.worstExecutionPrice(new Percent(0, 100))).toEqual(exactOut.executionPrice)
+      })
+      it('returns slippage amount if nonzero', () => {
+        expect(exactOut.worstExecutionPrice(new Percent(0, 100))).toEqual(new Price(token0, token2, 156, 100))
+        expect(exactOut.worstExecutionPrice(new Percent(5, 100))).toEqual(new Price(token0, token2, 163, 100))
+        expect(exactOut.worstExecutionPrice(new Percent(200, 100))).toEqual(new Price(token0, token2, 468, 100))
       })
     })
   })
