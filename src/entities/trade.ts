@@ -250,6 +250,19 @@ export class Trade {
   }
 
   /**
+   * Return the execution price after accounting for slippage tolerance
+   * @param slippageTolerance the allowed tolerated slippage
+   */
+  public worstExecutionPrice(slippageTolerance: Percent): Price {
+    return new Price(
+      this.inputAmount.currency,
+      this.outputAmount.currency,
+      this.maximumAmountIn(slippageTolerance).raw,
+      this.minimumAmountOut(slippageTolerance).raw
+    )
+  }
+
+  /**
    * Given a list of pools, and a fixed amount in, returns the top `maxNumResults` trades that go from an input token
    * amount to an output token, making at most `maxHops` hops.
    * Note this does not consider aggregation, as routes are linear. It's possible a better route exists by splitting
