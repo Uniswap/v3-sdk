@@ -1,34 +1,13 @@
-import { BigintIsh, ChainId, Fraction, Percent, Token, WETH9 } from '@uniswap/sdk-core'
+import { BigintIsh, ChainId, Fraction, Percent, validateAndParseAddress, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
 import { Position } from './entities/position'
 import { ONE, ZERO } from './internalConstants'
-import { MethodParameters } from './utils/calldata'
+import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
-
-export interface StandardPermitArguments {
-  v: 0 | 1 | 27 | 28
-  r: string
-  s: string
-  amount: BigintIsh
-  deadline: number
-}
-
-export interface AllowedPermitArguments {
-  v: 0 | 1 | 27 | 28
-  r: string
-  s: string
-  nonce: BigintIsh
-  expiry: number
-}
-
-export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
-
-function toHex(num: BigintIsh) {
-  return typeof num === 'string' ? `0x${parseInt(num).toString(16)}` : `0x${num.toString(16)}`
-}
+import { PermitOptions, SelfPermit } from './selfPermit'
 
 const MaxUint128Hex = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
@@ -158,37 +137,21 @@ export interface ExitOptions {
   burnToken?: boolean
 }
 
-export abstract class NonfungiblePositionManager {
+export abstract class NonfungiblePositionManager extends SelfPermit {
   public static ADDRESS: string = NONFUNGIBLE_POSITION_MANAGER_ADDRESS
   public static INTERFACE: Interface = new Interface(abi)
 
   /**
    * Cannot be constructed.
    */
-  private constructor() {}
-
-  private static encodePermit(token: Token, options: PermitOptions) {
-    return 'nonce' in options
-      ? NonfungiblePositionManager.INTERFACE.encodeFunctionData('selfPermitAllowed', [
-          token.address,
-          options.nonce,
-          options.expiry,
-          options.v,
-          options.r,
-          options.s
-        ])
-      : NonfungiblePositionManager.INTERFACE.encodeFunctionData('selfPermit', [
-          token.address,
-          toHex(options.amount),
-          options.deadline,
-          options.v,
-          options.r,
-          options.s
-        ])
+  private constructor() {
+    super()
   }
 
   public static mintCallParameters(position: Position, options: MintOptions): MethodParameters {
     invariant(JSBI.greaterThan(position.liquidity, ZERO), 'LIQUIDITY')
+
+    const recipient: string = validateAndParseAddress(options.recipient)
 
     const calldatas: string[] = []
 
@@ -232,13 +195,13 @@ export abstract class NonfungiblePositionManager {
           amount1Desired: toHex(amount1Desired),
           amount0Min,
           amount1Min,
-          recipient: options.recipient,
-          deadline: options.deadline
+          recipient,
+          deadline: toHex(options.deadline)
         }
       ])
     )
 
-    let value: string = '0x0'
+    let value: string = toHex(0)
 
     if (options.useEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
@@ -254,11 +217,11 @@ export abstract class NonfungiblePositionManager {
         calldata: calldatas[0],
         value
       }
-    } else {
-      return {
-        calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-        value
-      }
+    }
+
+    return {
+      calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      value
     }
   }
 
@@ -289,17 +252,17 @@ export abstract class NonfungiblePositionManager {
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('increaseLiquidity', [
         {
-          tokenId: options.tokenId,
+          tokenId: toHex(options.tokenId),
           amount0Desired: toHex(amount0Desired),
           amount1Desired: toHex(amount1Desired),
           amount0Min,
           amount1Min,
-          deadline: options.deadline
+          deadline: toHex(options.deadline)
         }
       ])
     )
 
-    let value: string = '0x0'
+    let value: string = toHex(0)
 
     if (options.useEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
@@ -315,11 +278,11 @@ export abstract class NonfungiblePositionManager {
         calldata: calldatas[0],
         value
       }
-    } else {
-      return {
-        calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-        value
-      }
+    }
+
+    return {
+      calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      value
     }
   }
 
@@ -332,6 +295,8 @@ export abstract class NonfungiblePositionManager {
     invariant(JSBI.greaterThan(position.liquidity, ZERO), 'LIQUIDITY')
     invariant(JSBI.greaterThan(JSBI.BigInt(options.tokenId), ZERO), 'TOKEN_ID')
     if (options.burnToken === false) invariant(!options.liquidityPercentage?.equalTo(ONE), 'BURN_AMOUNT_KEEP')
+
+    const recipient: string = validateAndParseAddress(options.recipient)
 
     if (options.receiveEther) {
       const weth = WETH9[position.pool.chainId as ChainId]
@@ -351,11 +316,11 @@ export abstract class NonfungiblePositionManager {
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('decreaseLiquidity', [
         {
-          tokenId: options.tokenId,
+          tokenId: toHex(options.tokenId),
           liquidity: toHex(liquidity),
           amount0Min,
           amount1Min,
-          deadline: options.deadline
+          deadline: toHex(options.deadline)
         }
       ])
     )
@@ -363,8 +328,8 @@ export abstract class NonfungiblePositionManager {
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [
         {
-          tokenId: options.tokenId,
-          recipient: options.recipient,
+          tokenId: toHex(options.tokenId),
+          recipient,
           amount0Max: MaxUint128Hex,
           amount1Max: MaxUint128Hex
         }
@@ -376,7 +341,7 @@ export abstract class NonfungiblePositionManager {
 
     return {
       calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value: '0x0'
+      value: toHex(0)
     }
   }
 }

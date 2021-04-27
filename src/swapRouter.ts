@@ -1,8 +1,12 @@
-import { ETHER, Percent } from '@uniswap/sdk-core'
+import { Interface } from '@ethersproject/abi'
+import { BigintIsh, currencyEquals, ETHER, Percent, Token, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { SWAP_ROUTER_ADDRESS } from './constants'
 import { Trade } from './entities/trade'
-import { MethodParameters } from './utils/calldata'
+import { PermitOptions, SelfPermit } from './selfPermit'
+import { encodeRouteToPath } from './utils'
+import { MethodParameters, toHex } from './utils/calldata'
+import { abi } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
 
 /**
  * Options for producing the arguments to send call to the router.
@@ -14,87 +18,150 @@ export interface TradeOptions {
   slippageTolerance: Percent
 
   /**
+   * The account that should receive the output.
+   */
+  recipient: string
+
+  /**
    * When the transaction expires, in epoch seconds.
    */
   deadline: number
 
   /**
-   * The account that should receive the output of the swap.
+   * The optional permit parameters for spending the input.
    */
-  recipient: string
+  token0Permit?: PermitOptions
+
+  /**
+   * The optional price limit for the trade.
+   */
+  sqrtPriceLimitX96?: BigintIsh
 }
 
 /**
  * Represents the Uniswap V2 SwapRouter, and has static methods for helping execute trades.
  */
-export abstract class SwapRouter {
+export abstract class SwapRouter extends SelfPermit {
   public static ADDRESS: string = SWAP_ROUTER_ADDRESS
+  public static INTERFACE: Interface = new Interface(abi)
 
   /**
    * Cannot be constructed.
    */
-  private constructor() {}
+  private constructor() {
+    super()
+  }
+
   /**
    * Produces the on-chain method name to call and the hex encoded parameters to pass as arguments for a given trade.
    * @param trade to produce call parameters for
-   * @param _options options for the call parameters
+   * @param options options for the call parameters
    */
-  public static swapCallParameters(trade: Trade, _options: TradeOptions): MethodParameters {
-    const etherIn = trade.inputAmount.currency === ETHER
-    const etherOut = trade.outputAmount.currency === ETHER
-    // the router does not support both ether in and out
-    invariant(!(etherIn && etherOut), 'ETHER_IN_OUT')
-    //
-    // const to: string = validateAndParseAddress(options.recipient)
-    // const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance))
-    // const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance))
-    // const path: string[] = trade.route.tokenPath.map(token => token.address)
-    // const deadline = `0x${options.deadline.toString(16)}`
-    //
-    // let methodName: string
-    // let args: (string | string[])[]
-    // let value: string
-    // switch (trade.tradeType) {
-    //   case TradeType.EXACT_INPUT:
-    //     if (etherIn) {
-    //       methodName = 'swapExactETHForTokensSupportingFeeOnTransferTokens'
-    //       // (uint amountOutMin, address[] calldata path, address to, uint deadline)
-    //       args = [amountOut, path, to, deadline]
-    //       value = amountIn
-    //     } else if (etherOut) {
-    //       methodName = 'swapExactTokensForETHSupportingFeeOnTransferTokens'
-    //       // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
-    //       args = [amountIn, amountOut, path, to, deadline]
-    //       value = ZERO_HEX
-    //     } else {
-    //       methodName = 'swapExactTokensForTokens'
-    //       // (uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
-    //       args = [amountIn, amountOut, path, to, deadline]
-    //       value = ZERO_HEX
-    //     }
-    //     break
-    //   case TradeType.EXACT_OUTPUT:
-    //     if (etherIn) {
-    //       methodName = 'swapETHForExactTokens'
-    //       // (uint amountOut, address[] calldata path, address to, uint deadline)
-    //       args = [amountOut, path, to, deadline]
-    //       value = amountIn
-    //     } else if (etherOut) {
-    //       methodName = 'swapTokensForExactETH'
-    //       // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-    //       args = [amountOut, amountIn, path, to, deadline]
-    //       value = ZERO_HEX
-    //     } else {
-    //       methodName = 'swapTokensForExactTokens'
-    //       // (uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-    //       args = [amountOut, amountIn, path, to, deadline]
-    //       value = ZERO_HEX
-    //     }
-    //     break
-    //   default:
-    //     throw new Error('invalid trade type')
-    // }
+  public static swapCallParameters(trade: Trade, options: TradeOptions): MethodParameters {
+    const datas = []
 
-    throw new Error('todo')
+    // encode permit if necessary
+    if (options.token0Permit) {
+      invariant(!currencyEquals(trade.inputAmount.currency, ETHER), 'ETH_PERMIT')
+      datas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.token0Permit))
+    }
+
+    const recipient: string = validateAndParseAddress(options.recipient)
+    const deadline = toHex(options.deadline)
+
+    const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).raw)
+    const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).raw)
+
+    const singleHop = trade.route.pools.length === 1
+
+    const value = currencyEquals(trade.inputAmount.currency, ETHER) ? amountIn : toHex(0)
+    const mustRefund = currencyEquals(trade.inputAmount.currency, ETHER) && trade.tradeType === TradeType.EXACT_OUTPUT
+    const mustUnwrap = currencyEquals(trade.outputAmount.currency, ETHER)
+
+    if (singleHop) {
+      if (trade.tradeType === TradeType.EXACT_INPUT) {
+        const exactInputSingleParams = {
+          tokenIn: trade.route.tokenPath[0].address,
+          tokenOut: trade.route.tokenPath[1].address,
+          fee: trade.route.pools[0].fee,
+          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          deadline,
+          amountIn,
+          amountOutMinimum: amountOut,
+          sqrtPriceLimitX96: options.sqrtPriceLimitX96 === undefined ? 0 : toHex(options.sqrtPriceLimitX96)
+        }
+
+        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams])
+
+        datas.push(calldata)
+      } else {
+        const exactOutputSingleParams = {
+          tokenIn: trade.route.tokenPath[0].address,
+          tokenOut: trade.route.tokenPath[1].address,
+          fee: trade.route.pools[0].fee,
+          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          deadline,
+          amountOut,
+          amountInMaximum: amountIn,
+          sqrtPriceLimitX96: options.sqrtPriceLimitX96 === undefined ? 0 : toHex(options.sqrtPriceLimitX96)
+        }
+
+        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams])
+
+        datas.push(calldata)
+      }
+    } else {
+      invariant(options.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
+      const path: string = encodeRouteToPath(trade.route, trade.tradeType === TradeType.EXACT_OUTPUT)
+
+      if (trade.tradeType === TradeType.EXACT_INPUT) {
+        const exactInputParams = {
+          path,
+          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          deadline,
+          amountIn,
+          amountOutMinimum: amountOut
+        }
+
+        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactInput', [exactInputParams])
+
+        datas.push(calldata)
+      } else {
+        const exactOutputParams = {
+          path,
+          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          deadline,
+          amountOut,
+          amountInMaximum: amountIn
+        }
+
+        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactOutput', [exactOutputParams])
+
+        datas.push(calldata)
+      }
+    }
+
+    // refund
+    if (mustRefund) {
+      datas.push(SwapRouter.INTERFACE.encodeFunctionData('refundETH'))
+    }
+
+    // unwrap
+    if (mustUnwrap) {
+      datas.push(SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9', [amountOut, recipient]))
+    }
+
+    // we don't need multicall
+    if (datas.length === 1) {
+      return {
+        calldata: datas[0],
+        value
+      }
+    }
+
+    return {
+      calldata: SwapRouter.INTERFACE.encodeFunctionData('multicall', [datas]),
+      value
+    }
   }
 }
