@@ -7,7 +7,7 @@ import { encodeSqrtRatioX96 } from './utils/encodeSqrtRatioX96'
 import { Route, Trade } from './entities'
 import JSBI from 'jsbi'
 
-describe('NonfungiblePositionManager', () => {
+describe('SwapRouter', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
   const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
 
