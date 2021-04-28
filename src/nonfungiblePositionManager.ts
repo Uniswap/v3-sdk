@@ -270,6 +270,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       )
     }
 
+    // TODO this doesn't include fees already collected or earned but not yet accounted for...
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [
         {
