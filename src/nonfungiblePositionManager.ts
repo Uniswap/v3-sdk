@@ -117,6 +117,9 @@ export interface DecreaseLiquidityOptions {
    */
   burnToken?: boolean
 
+  // TODO remove after launch
+  nonfungiblePositionManagerAddressOverride: string
+
   /**
    * TODO: The optional permit of the token ID being exited, in case the exit transaction is being sent by an account that does not own the NFT
    */
@@ -271,7 +274,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [
         {
           tokenId: toHex(options.tokenId),
-          recipient: options.receiveEther ? NonfungiblePositionManager.ADDRESS : recipient,
+          recipient: options.receiveEther ? options.nonfungiblePositionManagerAddressOverride : recipient,
           amount0Max: MaxUint128Hex,
           amount1Max: MaxUint128Hex
         }

@@ -36,6 +36,9 @@ export interface TradeOptions {
    * The optional price limit for the trade.
    */
   sqrtPriceLimitX96?: BigintIsh
+
+  // TODO remove after launch
+  swapRouterAddressOverride: string
 }
 
 /**
@@ -83,7 +86,7 @@ export abstract class SwapRouter extends SelfPermit {
           tokenIn: trade.route.tokenPath[0].address,
           tokenOut: trade.route.tokenPath[1].address,
           fee: trade.route.pools[0].fee,
-          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
           deadline,
           amountIn,
           amountOutMinimum: amountOut,
@@ -98,7 +101,7 @@ export abstract class SwapRouter extends SelfPermit {
           tokenIn: trade.route.tokenPath[0].address,
           tokenOut: trade.route.tokenPath[1].address,
           fee: trade.route.pools[0].fee,
-          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
           deadline,
           amountOut,
           amountInMaximum: amountIn,
@@ -116,7 +119,7 @@ export abstract class SwapRouter extends SelfPermit {
       if (trade.tradeType === TradeType.EXACT_INPUT) {
         const exactInputParams = {
           path,
-          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
           deadline,
           amountIn,
           amountOutMinimum: amountOut
@@ -128,7 +131,7 @@ export abstract class SwapRouter extends SelfPermit {
       } else {
         const exactOutputParams = {
           path,
-          recipient: mustUnwrap ? SwapRouter.ADDRESS : recipient,
+          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
           deadline,
           amountOut,
           amountInMaximum: amountIn

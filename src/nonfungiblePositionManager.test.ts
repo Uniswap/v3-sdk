@@ -1,5 +1,5 @@
 import { ChainId, Percent, Token, WETH9 } from '@uniswap/sdk-core'
-import { FeeAmount, TICK_SPACINGS } from './constants'
+import { FeeAmount, NONFUNGIBLE_POSITION_MANAGER_ADDRESS, TICK_SPACINGS } from './constants'
 import { Pool } from './entities/pool'
 import { Position } from './entities/position'
 import { NonfungiblePositionManager } from './nonfungiblePositionManager'
@@ -189,10 +189,12 @@ describe('NonfungiblePositionManager', () => {
           }),
           {
             recipient: ADDRESS_THREE,
+            liquidityPercentage: new Percent(1),
             slippageTolerance: new Percent(1),
             receiveEther: false,
             deadline: 200,
-            tokenId: 1
+            tokenId: 1,
+            nonfungiblePositionManagerAddressOverride: NONFUNGIBLE_POSITION_MANAGER_ADDRESS
           }
         ).calldata
       ).toEqual(
@@ -212,10 +214,12 @@ describe('NonfungiblePositionManager', () => {
           }),
           {
             recipient: ADDRESS_THREE,
+            liquidityPercentage: new Percent(1),
             slippageTolerance: new Percent(1),
             receiveEther: true,
             deadline: 200,
-            tokenId: 1
+            tokenId: 1,
+            nonfungiblePositionManagerAddressOverride: NONFUNGIBLE_POSITION_MANAGER_ADDRESS
           }
         ).calldata
       ).toEqual(

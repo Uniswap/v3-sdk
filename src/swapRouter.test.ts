@@ -1,5 +1,5 @@
 import { ChainId, CurrencyAmount, ETHER, Percent, Token, TokenAmount, TradeType, WETH9 } from '@uniswap/sdk-core'
-import { FeeAmount, TICK_SPACINGS } from './constants'
+import { FeeAmount, SWAP_ROUTER_ADDRESS, TICK_SPACINGS } from './constants'
 import { Pool } from './entities/pool'
 import { SwapRouter } from './swapRouter'
 import { nearestUsableTick, TickMath } from './utils'
@@ -67,7 +67,8 @@ describe('NonfungiblePositionManager', () => {
       const { calldata, value } = SwapRouter.swapCallParameters(trade, {
         slippageTolerance: new Percent(1, 100),
         recipient: RECIPIENT,
-        deadline: 1
+        deadline: 1,
+        swapRouterAddressOverride: SWAP_ROUTER_ADDRESS
       })
 
       expect(calldata).toBe(
@@ -85,7 +86,8 @@ describe('NonfungiblePositionManager', () => {
       const { calldata, value } = SwapRouter.swapCallParameters(trade, {
         slippageTolerance: new Percent(1, 100),
         recipient: RECIPIENT,
-        deadline: 1
+        deadline: 1,
+        swapRouterAddressOverride: SWAP_ROUTER_ADDRESS
       })
 
       expect(calldata).toBe(
