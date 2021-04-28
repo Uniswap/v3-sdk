@@ -42,7 +42,7 @@ interface CommonIncreaseLiquidityOptions {
   /**
    * When the transaction expires, in epoch seconds.
    */
-  deadline: number
+  deadline: BigintIsh
 
   /**
    * Whether to spend ether. If true, one of the pool tokens must be WETH, by default false
@@ -65,7 +65,7 @@ export interface NFTPermitOptions {
   r: string
   s: string
   tokenId: BigintIsh
-  deadline: number
+  deadline: BigintIsh
   spender: string
 }
 
@@ -105,7 +105,7 @@ export interface DecreaseLiquidityOptions {
   /**
    * When the transaction expires, in epoch seconds.
    */
-  deadline: number
+  deadline: BigintIsh
 
   /**
    * Whether to receive ether. If true, one of the pool tokens must be WETH, by default false

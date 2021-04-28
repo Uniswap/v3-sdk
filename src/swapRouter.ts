@@ -25,7 +25,7 @@ export interface TradeOptions {
   /**
    * When the transaction expires, in epoch seconds.
    */
-  deadline: number
+  deadline: BigintIsh
 
   /**
    * The optional permit parameters for spending the input.
