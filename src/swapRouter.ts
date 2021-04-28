@@ -58,12 +58,11 @@ export abstract class SwapRouter extends SelfPermit {
    * @param options options for the call parameters
    */
   public static swapCallParameters(trade: Trade, options: TradeOptions): MethodParameters {
-    const datas = []
+    const calldatas: string[] = []
 
     // encode permit if necessary
     if (options.token0Permit) {
-      invariant(!currencyEquals(trade.inputAmount.currency, ETHER), 'ETH_PERMIT')
-      datas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.token0Permit))
+      calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.token0Permit))
     }
 
     const recipient: string = validateAndParseAddress(options.recipient)
@@ -93,7 +92,7 @@ export abstract class SwapRouter extends SelfPermit {
 
         const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams])
 
-        datas.push(calldata)
+        calldatas.push(calldata)
       } else {
         const exactOutputSingleParams = {
           tokenIn: trade.route.tokenPath[0].address,
@@ -108,7 +107,7 @@ export abstract class SwapRouter extends SelfPermit {
 
         const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams])
 
-        datas.push(calldata)
+        calldatas.push(calldata)
       }
     } else {
       invariant(options.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
@@ -125,7 +124,7 @@ export abstract class SwapRouter extends SelfPermit {
 
         const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactInput', [exactInputParams])
 
-        datas.push(calldata)
+        calldatas.push(calldata)
       } else {
         const exactOutputParams = {
           path,
@@ -137,30 +136,30 @@ export abstract class SwapRouter extends SelfPermit {
 
         const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactOutput', [exactOutputParams])
 
-        datas.push(calldata)
+        calldatas.push(calldata)
       }
     }
 
     // refund
     if (mustRefund) {
-      datas.push(SwapRouter.INTERFACE.encodeFunctionData('refundETH'))
+      calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('refundETH'))
     }
 
     // unwrap
     if (mustUnwrap) {
-      datas.push(SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9', [amountOut, recipient]))
+      calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9', [amountOut, recipient]))
     }
 
     // we don't need multicall
-    if (datas.length === 1) {
+    if (calldatas.length === 1) {
       return {
-        calldata: datas[0],
+        calldata: calldatas[0],
         value
       }
     }
 
     return {
-      calldata: SwapRouter.INTERFACE.encodeFunctionData('multicall', [datas]),
+      calldata: SwapRouter.INTERFACE.encodeFunctionData('multicall', [calldatas]),
       value
     }
   }

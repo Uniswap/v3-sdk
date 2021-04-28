@@ -13,10 +13,10 @@ describe('NonfungiblePositionManager', () => {
   const pool_0_1 = new Pool(token0, token1, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, [])
   const pool_weth_0 = new Pool(WETH9[ChainId.MAINNET], token0, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, [])
 
-  describe('#mintCallParameters', () => {
+  describe('#increaseCallParameters', () => {
     it('throws if liquidity is 0', () => {
       expect(() =>
-        NonfungiblePositionManager.mintCallParameters(
+        NonfungiblePositionManager.increaseCallParameters(
           Position.fromAmounts({
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -30,7 +30,7 @@ describe('NonfungiblePositionManager', () => {
     })
     it('throws if pool does not involve ether and useEther is true', () => {
       expect(() =>
-        NonfungiblePositionManager.mintCallParameters(
+        NonfungiblePositionManager.increaseCallParameters(
           Position.fromAmounts({
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -44,7 +44,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('succeeds for just mint', () => {
-      const callInfo = NonfungiblePositionManager.mintCallParameters(
+      const callInfo = NonfungiblePositionManager.increaseCallParameters(
         Position.fromAmounts({
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -61,7 +61,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('succeeds for mint and create', () => {
-      const { calldata, value } = NonfungiblePositionManager.mintCallParameters(
+      const { calldata, value } = NonfungiblePositionManager.increaseCallParameters(
         Position.fromAmounts({
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -85,7 +85,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('succeeds for mint and create using ether', () => {
-      const { calldata, value } = NonfungiblePositionManager.mintCallParameters(
+      const { calldata, value } = NonfungiblePositionManager.increaseCallParameters(
         Position.fromAmounts({
           pool: pool_weth_0,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -112,7 +112,7 @@ describe('NonfungiblePositionManager', () => {
   describe('#increaseLiquidityParameters', () => {
     it('throws if liquidity is 0', () => {
       expect(() =>
-        NonfungiblePositionManager.increaseLiquidityCallParameters(
+        NonfungiblePositionManager.increaseCallParameters(
           Position.fromAmounts({
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -126,7 +126,7 @@ describe('NonfungiblePositionManager', () => {
     })
     it('throws if pool does not involve ether and useEther is true', () => {
       expect(() =>
-        NonfungiblePositionManager.increaseLiquidityCallParameters(
+        NonfungiblePositionManager.increaseCallParameters(
           Position.fromAmounts({
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -140,7 +140,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('succeeds for increase liquidity', () => {
-      const { calldata, value } = NonfungiblePositionManager.increaseLiquidityCallParameters(
+      const { calldata, value } = NonfungiblePositionManager.increaseCallParameters(
         Position.fromAmounts({
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -158,7 +158,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('succeeds for increase liquidity with ether', () => {
-      const { calldata, value } = NonfungiblePositionManager.increaseLiquidityCallParameters(
+      const { calldata, value } = NonfungiblePositionManager.increaseCallParameters(
         Position.fromAmounts({
           pool: pool_weth_0,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -176,10 +176,10 @@ describe('NonfungiblePositionManager', () => {
     })
   })
 
-  describe('#exitCallParameters', () => {
+  describe('#decreaseCallParameters', () => {
     it('works for the simple case', () => {
       expect(
-        NonfungiblePositionManager.exitCallParameters(
+        NonfungiblePositionManager.decreaseCallParameters(
           Position.fromAmounts({
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -196,7 +196,30 @@ describe('NonfungiblePositionManager', () => {
           }
         ).calldata
       ).toEqual(
-        '0xac9650d80000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000a40c49ccbe000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000082690000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000084fc6f78650000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002442966c68000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000'
+        '0xac9650d8000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000000a40c49ccbe000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000082690000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000084fc6f78650000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000'
+      )
+    })
+
+    it('works for ETH', () => {
+      expect(
+        NonfungiblePositionManager.decreaseCallParameters(
+          Position.fromAmounts({
+            pool: pool_weth_0,
+            tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
+            tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
+            amount0: 100,
+            amount1: 100
+          }),
+          {
+            recipient: ADDRESS_THREE,
+            slippageTolerance: new Percent(1),
+            receiveEther: true,
+            deadline: 200,
+            tokenId: 1
+          }
+        ).calldata
+      ).toEqual(
+        '0xac9650d80000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000002a000000000000000000000000000000000000000000000000000000000000000a40c49ccbe000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000082690000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000084fc6f786500000000000000000000000000000000000000000000000000000000000000010000000000000000000000001f98431c8ad98523631ae4a59f267346ea31f98400000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000ffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004449404b7c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064df2ab5bb00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000'
       )
     })
   })
