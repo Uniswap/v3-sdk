@@ -3,7 +3,7 @@ import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/ISelfPermit.sol/ISelfPermit.json'
 import { toHex } from './utils'
 
-interface StandardPermitArguments {
+export interface StandardPermitArguments {
   v: 0 | 1 | 27 | 28
   r: string
   s: string
@@ -11,7 +11,7 @@ interface StandardPermitArguments {
   deadline: BigintIsh
 }
 
-interface AllowedPermitArguments {
+export interface AllowedPermitArguments {
   v: 0 | 1 | 27 | 28
   r: string
   s: string
@@ -31,7 +31,7 @@ export abstract class SelfPermit {
 
   protected constructor() {}
 
-  public static encodePermit(token: Token, options: PermitOptions) {
+  protected static encodePermit(token: Token, options: PermitOptions) {
     return isAllowedPermit(options)
       ? SelfPermit.INTERFACE.encodeFunctionData('selfPermitAllowed', [
           token.address,

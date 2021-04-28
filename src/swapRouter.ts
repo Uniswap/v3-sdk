@@ -8,10 +8,22 @@ import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
 
+export interface FeeOptions {
+  /**
+   * The percent of the output that will be taken as a fee.
+   */
+  fee: Percent
+
+  /**
+   * The recipient of the fee.
+   */
+  recipient: string
+}
+
 /**
- * Options for producing the arguments to send call to the router.
+ * Options for producing the arguments to send calls to the router.
  */
-export interface TradeOptions {
+export interface SwapOptions {
   /**
    * How much the execution price is allowed to move unfavorably from the trade execution price.
    */
@@ -37,8 +49,15 @@ export interface TradeOptions {
    */
   sqrtPriceLimitX96?: BigintIsh
 
-  // TODO remove after launch
-  swapRouterAddressOverride: string
+  /**
+   * Optional information for taking a fee on output.
+   */
+  fee?: FeeOptions
+
+  /**
+   * Optional override for the default swap router address.
+   */
+  swapRouterAddressOverride?: string
 }
 
 /**
@@ -60,7 +79,7 @@ export abstract class SwapRouter extends SelfPermit {
    * @param trade to produce call parameters for
    * @param options options for the call parameters
    */
-  public static swapCallParameters(trade: Trade, options: TradeOptions): MethodParameters {
+  public static swapCallParameters(trade: Trade, options: SwapOptions): MethodParameters {
     const calldatas: string[] = []
 
     // encode permit if necessary
@@ -68,17 +87,26 @@ export abstract class SwapRouter extends SelfPermit {
       calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.inputTokenPermit))
     }
 
+    const swapRouterAddress: string = options.swapRouterAddressOverride
+      ? validateAndParseAddress(options.swapRouterAddressOverride)
+      : SwapRouter.ADDRESS
     const recipient: string = validateAndParseAddress(options.recipient)
+
     const deadline = toHex(options.deadline)
 
     const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).raw)
     const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).raw)
+    const value: string = currencyEquals(trade.inputAmount.currency, ETHER) ? amountIn : toHex(0)
 
+    // flag for whether the trade is single hop or not
     const singleHop = trade.route.pools.length === 1
 
-    const value = currencyEquals(trade.inputAmount.currency, ETHER) ? amountIn : toHex(0)
+    // flag for whether a refund needs to happen
     const mustRefund = currencyEquals(trade.inputAmount.currency, ETHER) && trade.tradeType === TradeType.EXACT_OUTPUT
-    const mustUnwrap = currencyEquals(trade.outputAmount.currency, ETHER)
+
+    // flags for whether funds should be send first to the router
+    const outputIsETHER = currencyEquals(trade.outputAmount.currency, ETHER)
+    const routerMustCustody = outputIsETHER || !!options.fee
 
     if (singleHop) {
       if (trade.tradeType === TradeType.EXACT_INPUT) {
@@ -86,60 +114,53 @@ export abstract class SwapRouter extends SelfPermit {
           tokenIn: trade.route.tokenPath[0].address,
           tokenOut: trade.route.tokenPath[1].address,
           fee: trade.route.pools[0].fee,
-          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
+          recipient: routerMustCustody ? swapRouterAddress : recipient,
           deadline,
           amountIn,
           amountOutMinimum: amountOut,
-          sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 === undefined ? 0 : options.sqrtPriceLimitX96)
+          sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
         }
 
-        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams])
-
-        calldatas.push(calldata)
+        calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams]))
       } else {
         const exactOutputSingleParams = {
           tokenIn: trade.route.tokenPath[0].address,
           tokenOut: trade.route.tokenPath[1].address,
           fee: trade.route.pools[0].fee,
-          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
+          recipient: routerMustCustody ? swapRouterAddress : recipient,
           deadline,
           amountOut,
           amountInMaximum: amountIn,
-          sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 === undefined ? 0 : options.sqrtPriceLimitX96)
+          sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
         }
 
-        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams])
-
-        calldatas.push(calldata)
+        calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams]))
       }
     } else {
       invariant(options.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
+
       const path: string = encodeRouteToPath(trade.route, trade.tradeType === TradeType.EXACT_OUTPUT)
 
       if (trade.tradeType === TradeType.EXACT_INPUT) {
         const exactInputParams = {
           path,
-          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
+          recipient: routerMustCustody ? swapRouterAddress : recipient,
           deadline,
           amountIn,
           amountOutMinimum: amountOut
         }
 
-        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactInput', [exactInputParams])
-
-        calldatas.push(calldata)
+        calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInput', [exactInputParams]))
       } else {
         const exactOutputParams = {
           path,
-          recipient: mustUnwrap ? options.swapRouterAddressOverride : recipient,
+          recipient: routerMustCustody ? swapRouterAddress : recipient,
           deadline,
           amountOut,
           amountInMaximum: amountIn
         }
 
-        const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactOutput', [exactOutputParams])
-
-        calldatas.push(calldata)
+        calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutput', [exactOutputParams]))
       }
     }
 
@@ -149,20 +170,34 @@ export abstract class SwapRouter extends SelfPermit {
     }
 
     // unwrap
-    if (mustUnwrap) {
-      calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9', [amountOut, recipient]))
-    }
+    if (routerMustCustody) {
+      if (!!options.fee) {
+        const feeRecipient: string = validateAndParseAddress(options.fee.recipient)
+        const fee = toHex(options.fee.fee.multiply(10_000).quotient)
 
-    // we don't need multicall
-    if (calldatas.length === 1) {
-      return {
-        calldata: calldatas[0],
-        value
+        if (outputIsETHER) {
+          calldatas.push(
+            SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9WithFee', [amountOut, recipient, fee, feeRecipient])
+          )
+        } else {
+          calldatas.push(
+            SwapRouter.INTERFACE.encodeFunctionData('sweepTokenWithFee', [
+              trade.route.tokenPath[trade.route.tokenPath.length - 1].address,
+              amountOut,
+              recipient,
+              fee,
+              feeRecipient
+            ])
+          )
+        }
+      } else {
+        calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9', [amountOut, recipient]))
       }
     }
 
     return {
-      calldata: SwapRouter.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      calldata:
+        calldatas.length === 1 ? calldatas[0] : SwapRouter.INTERFACE.encodeFunctionData('multicall', [calldatas]),
       value
     }
   }
