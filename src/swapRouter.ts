@@ -30,7 +30,7 @@ export interface TradeOptions {
   /**
    * The optional permit parameters for spending the input.
    */
-  token0Permit?: PermitOptions
+  inputTokenPermit?: PermitOptions
 
   /**
    * The optional price limit for the trade.
@@ -61,8 +61,8 @@ export abstract class SwapRouter extends SelfPermit {
     const calldatas: string[] = []
 
     // encode permit if necessary
-    if (options.token0Permit) {
-      calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.token0Permit))
+    if (options.inputTokenPermit) {
+      calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.inputTokenPermit))
     }
 
     const recipient: string = validateAndParseAddress(options.recipient)
@@ -87,7 +87,7 @@ export abstract class SwapRouter extends SelfPermit {
           deadline,
           amountIn,
           amountOutMinimum: amountOut,
-          sqrtPriceLimitX96: options.sqrtPriceLimitX96 === undefined ? 0 : toHex(options.sqrtPriceLimitX96)
+          sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 === undefined ? 0 : options.sqrtPriceLimitX96)
         }
 
         const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams])
@@ -102,7 +102,7 @@ export abstract class SwapRouter extends SelfPermit {
           deadline,
           amountOut,
           amountInMaximum: amountIn,
-          sqrtPriceLimitX96: options.sqrtPriceLimitX96 === undefined ? 0 : toHex(options.sqrtPriceLimitX96)
+          sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 === undefined ? 0 : options.sqrtPriceLimitX96)
         }
 
         const calldata = SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams])

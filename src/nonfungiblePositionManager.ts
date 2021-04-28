@@ -11,24 +11,33 @@ import { PermitOptions, SelfPermit } from './selfPermit'
 
 const MaxUint128Hex = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
-/**
- * Options for producing the calldata to mint a position or add to one.
- */
-export interface IncreaseLiquidityOptions {
+interface MintOptions {
+  /**
+   * The account that should receive the minted NFT. Only needs to be present if tokenId is not.
+   */
+  recipient: string
+
+  /**
+   * Creates pool if not initialized before mint.
+   */
+  createPool?: boolean
+}
+
+interface IncreaseOptions {
   /**
    * If present, indicates the ID of the position to increase liquidity for. Otherwise, a new position will be created.
    */
-  tokenId?: BigintIsh
+  tokenId: BigintIsh
+}
 
+/**
+ * Options for producing the calldata to mint a position or add to one.
+ */
+interface CommonIncreaseLiquidityOptions {
   /**
    * How much the pool price is allowed to move.
    */
   slippageTolerance: Percent
-
-  /**
-   * The account that should receive the minted NFT. Only needs to be present if tokenId is not.
-   */
-  recipient?: string
 
   /**
    * When the transaction expires, in epoch seconds.
@@ -36,9 +45,9 @@ export interface IncreaseLiquidityOptions {
   deadline: number
 
   /**
-   * Whether to spend ether. If true, one of the pool tokens must be WETH
+   * Whether to spend ether. If true, one of the pool tokens must be WETH, by default false
    */
-  useEther: boolean
+  useEther?: boolean
 
   /**
    * The optional permit parameters for spending token0
@@ -49,11 +58,6 @@ export interface IncreaseLiquidityOptions {
    * The optional permit parameters for spending token1
    */
   token1Permit?: PermitOptions
-
-  /**
-   * Creates pool if not initialized before mint. Cannot be true if tokenId is present.
-   */
-  createPool?: boolean
 }
 
 export interface NFTPermitOptions {
@@ -63,6 +67,15 @@ export interface NFTPermitOptions {
   tokenId: BigintIsh
   deadline: number
   spender: string
+}
+
+export type IncreaseLiquidityOptions =
+  | (CommonIncreaseLiquidityOptions & MintOptions)
+  | (CommonIncreaseLiquidityOptions & IncreaseOptions)
+
+// type guard
+function isMint(options: IncreaseLiquidityOptions): options is CommonIncreaseLiquidityOptions & MintOptions {
+  return Object.keys(options).some(k => k === 'recipient')
 }
 
 /**
@@ -77,7 +90,7 @@ export interface DecreaseLiquidityOptions {
   /**
    * The percentage of position liquidity to exit. Optional--if not specified, exit the entire position
    */
-  liquidityPercentage?: Percent
+  liquidityPercentage: Percent
 
   /**
    * How much the pool price is allowed to move.
@@ -95,9 +108,9 @@ export interface DecreaseLiquidityOptions {
   deadline: number
 
   /**
-   * Whether to receive ether. If true, one of the pool tokens must be WETH
+   * Whether to receive ether. If true, one of the pool tokens must be WETH, by default false
    */
-  receiveEther: boolean
+  receiveEther?: boolean
 
   /**
    * Whether the NFT should be burned after exiting the entire position, by default true
@@ -134,9 +147,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     const amount1Min = toHex(ONE_LESS_TOLERANCE.multiply(amount1Desired).quotient)
 
     // create pool if needed
-    if (options.createPool) {
-      invariant(options.tokenId === undefined, 'CREATE_POOL')
-
+    if (isMint(options) && options.createPool) {
       calldatas.push(
         NonfungiblePositionManager.INTERFACE.encodeFunctionData('createAndInitializePoolIfNecessary', [
           position.pool.token0.address,
@@ -156,9 +167,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     }
 
     // mint
-    if (options.tokenId === undefined) {
-      invariant(options.recipient !== undefined, 'RECIPIENT')
-
+    if (isMint(options)) {
       const recipient: string = validateAndParseAddress(options.recipient)
 
       calldatas.push(
