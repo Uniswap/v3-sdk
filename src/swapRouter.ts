@@ -1,8 +1,8 @@
 import { Interface } from '@ethersproject/abi'
 import { BigintIsh, currencyEquals, ETHER, Percent, Token, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
-import { SWAP_ROUTER_ADDRESS } from './constants'
 import { Trade } from './entities/trade'
+import { ADDRESS_ZERO } from './constants'
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
@@ -53,18 +53,12 @@ export interface SwapOptions {
    * Optional information for taking a fee on output.
    */
   fee?: FeeOptions
-
-  /**
-   * Optional override for the default swap router address.
-   */
-  swapRouterAddressOverride?: string
 }
 
 /**
  * Represents the Uniswap V2 SwapRouter, and has static methods for helping execute trades.
  */
 export abstract class SwapRouter extends SelfPermit {
-  public static ADDRESS: string = SWAP_ROUTER_ADDRESS
   public static INTERFACE: Interface = new Interface(abi)
 
   /**
@@ -87,9 +81,6 @@ export abstract class SwapRouter extends SelfPermit {
       calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.inputTokenPermit))
     }
 
-    const swapRouterAddress: string = options.swapRouterAddressOverride
-      ? validateAndParseAddress(options.swapRouterAddressOverride)
-      : SwapRouter.ADDRESS
     const recipient: string = validateAndParseAddress(options.recipient)
 
     const deadline = toHex(options.deadline)
@@ -114,7 +105,7 @@ export abstract class SwapRouter extends SelfPermit {
           tokenIn: trade.route.tokenPath[0].address,
           tokenOut: trade.route.tokenPath[1].address,
           fee: trade.route.pools[0].fee,
-          recipient: routerMustCustody ? swapRouterAddress : recipient,
+          recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
           deadline,
           amountIn,
           amountOutMinimum: amountOut,
@@ -127,7 +118,7 @@ export abstract class SwapRouter extends SelfPermit {
           tokenIn: trade.route.tokenPath[0].address,
           tokenOut: trade.route.tokenPath[1].address,
           fee: trade.route.pools[0].fee,
-          recipient: routerMustCustody ? swapRouterAddress : recipient,
+          recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
           deadline,
           amountOut,
           amountInMaximum: amountIn,
@@ -144,7 +135,7 @@ export abstract class SwapRouter extends SelfPermit {
       if (trade.tradeType === TradeType.EXACT_INPUT) {
         const exactInputParams = {
           path,
-          recipient: routerMustCustody ? swapRouterAddress : recipient,
+          recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
           deadline,
           amountIn,
           amountOutMinimum: amountOut
@@ -154,7 +145,7 @@ export abstract class SwapRouter extends SelfPermit {
       } else {
         const exactOutputParams = {
           path,
-          recipient: routerMustCustody ? swapRouterAddress : recipient,
+          recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
           deadline,
           amountOut,
           amountInMaximum: amountIn

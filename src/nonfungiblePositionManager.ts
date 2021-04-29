@@ -13,13 +13,13 @@ import {
 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
 import { Position } from './entities/position'
 import { ONE, ZERO } from './internalConstants'
 import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { PermitOptions, SelfPermit } from './selfPermit'
+import { ADDRESS_ZERO } from './constants'
 
 const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
@@ -102,11 +102,6 @@ export interface CollectOptions {
    * The account that should receive the tokens.
    */
   recipient: string
-
-  /**
-   * Optional override for the default position manager address.
-   */
-  nonfungiblePositionManagerAddressOverride?: string
 }
 
 export interface NFTPermitOptions {
@@ -158,7 +153,6 @@ export interface RemoveLiquidityOptions {
 }
 
 export abstract class NonfungiblePositionManager extends SelfPermit {
-  public static ADDRESS: string = NONFUNGIBLE_POSITION_MANAGER_ADDRESS
   public static INTERFACE: Interface = new Interface(abi)
 
   /**
@@ -269,16 +263,14 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       currencyEquals(options.expectedCurrencyOwed0.currency, ETHER) ||
       currencyEquals(options.expectedCurrencyOwed1.currency, ETHER)
 
+    const recipient = validateAndParseAddress(options.recipient)
+
     // collect
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [
         {
           tokenId,
-          recipient: validateAndParseAddress(
-            involvesETH
-              ? options.nonfungiblePositionManagerAddressOverride ?? NonfungiblePositionManager.ADDRESS
-              : options.recipient
-          ),
+          recipient: involvesETH ? ADDRESS_ZERO : recipient,
           amount0Max: MaxUint128,
           amount1Max: MaxUint128
         }
@@ -297,20 +289,15 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
         : options.expectedCurrencyOwed0.raw
 
       calldatas.push(
-        NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [
-          toHex(ethAmount),
-          validateAndParseAddress(options.recipient)
-        ])
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(ethAmount), recipient])
       )
       calldatas.push(
         NonfungiblePositionManager.INTERFACE.encodeFunctionData('sweepToken', [
           token.address,
           toHex(tokenAmount),
-          validateAndParseAddress(options.recipient)
+          recipient
         ])
       )
-    } else {
-      invariant(options.nonfungiblePositionManagerAddressOverride === undefined, 'UNNECESSARY_OVERRIDE')
     }
 
     return calldatas
