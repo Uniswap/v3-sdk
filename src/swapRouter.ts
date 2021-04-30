@@ -78,7 +78,8 @@ export abstract class SwapRouter extends SelfPermit {
 
     // encode permit if necessary
     if (options.inputTokenPermit) {
-      calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency as Token, options.inputTokenPermit))
+      invariant(trade.inputAmount.currency instanceof Token, 'NON_TOKEN_PERMIT')
+      calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency, options.inputTokenPermit))
     }
 
     const recipient: string = validateAndParseAddress(options.recipient)

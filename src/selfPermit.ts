@@ -23,7 +23,7 @@ export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
 
 // type guard
 function isAllowedPermit(permitOptions: PermitOptions): permitOptions is AllowedPermitArguments {
-  return Object.keys(permitOptions).some(k => k === 'nonce')
+  return 'nonce' in permitOptions
 }
 
 export abstract class SelfPermit {
