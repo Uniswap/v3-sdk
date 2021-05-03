@@ -20,5 +20,15 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true
+  },
+  "typedocOptions": {
+    "entryPoints": ["./src/"],
+    "out": "../uniswap-sdk-docs/docs",
+    "excludePrivate": "false",
+    "excludeExternals": "true",
+    "excludeInternal": "true",
+    "hideInPageTOC": "true",
+    "allReflectionsHaveOwnDocument": "false",
+    "exclude": "**/*.test.ts"
   }
 }
