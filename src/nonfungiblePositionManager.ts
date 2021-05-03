@@ -1,19 +1,31 @@
-import { BigintIsh, ChainId, Fraction, Percent, validateAndParseAddress, WETH9 } from '@uniswap/sdk-core'
+import {
+  BigintIsh,
+  ChainId,
+  CurrencyAmount,
+  currencyEquals,
+  ETHER,
+  Fraction,
+  Percent,
+  Token,
+  TokenAmount,
+  validateAndParseAddress,
+  WETH9
+} from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESS } from './constants'
 import { Position } from './entities/position'
 import { ONE, ZERO } from './internalConstants'
 import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { PermitOptions, SelfPermit } from './selfPermit'
+import { ADDRESS_ZERO } from './constants'
 
-const MaxUint128Hex = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
+const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
-interface MintOptions {
+export interface MintSpecificOptions {
   /**
-   * The account that should receive the minted NFT. Only needs to be present if tokenId is not.
+   * The account that should receive the minted NFT.
    */
   recipient: string
 
@@ -23,17 +35,17 @@ interface MintOptions {
   createPool?: boolean
 }
 
-interface IncreaseOptions {
+export interface IncreaseSpecificOptions {
   /**
-   * If present, indicates the ID of the position to increase liquidity for. Otherwise, a new position will be created.
+   * Indicates the ID of the position to increase liquidity for.
    */
   tokenId: BigintIsh
 }
 
 /**
- * Options for producing the calldata to mint a position or add to one.
+ * Options for producing the calldata to add liquidity.
  */
-interface CommonIncreaseLiquidityOptions {
+export interface CommonAddLiquidityOptions {
   /**
    * How much the pool price is allowed to move.
    */
@@ -60,35 +72,57 @@ interface CommonIncreaseLiquidityOptions {
   token1Permit?: PermitOptions
 }
 
+export type MintOptions = CommonAddLiquidityOptions & MintSpecificOptions
+export type IncreaseOptions = CommonAddLiquidityOptions & IncreaseSpecificOptions
+
+export type AddLiquidityOptions = MintOptions | IncreaseOptions
+
+// type guard
+function isMint(options: AddLiquidityOptions): options is MintOptions {
+  return Object.keys(options).some(k => k === 'recipient')
+}
+
+export interface CollectOptions {
+  /**
+   * Indicates the ID of the position to collect for.
+   */
+  tokenId: BigintIsh
+
+  /**
+   * Expected value of tokensOwed0, including as-of-yet-unaccounted-for fees/liquidity value to be burned
+   */
+  expectedCurrencyOwed0: CurrencyAmount
+
+  /**
+   * Expected value of tokensOwed1, including as-of-yet-unaccounted-for fees/liquidity value to be burned
+   */
+  expectedCurrencyOwed1: CurrencyAmount
+
+  /**
+   * The account that should receive the tokens.
+   */
+  recipient: string
+}
+
 export interface NFTPermitOptions {
   v: 0 | 1 | 27 | 28
   r: string
   s: string
-  tokenId: BigintIsh
   deadline: BigintIsh
   spender: string
-}
-
-export type IncreaseLiquidityOptions =
-  | (CommonIncreaseLiquidityOptions & MintOptions)
-  | (CommonIncreaseLiquidityOptions & IncreaseOptions)
-
-// type guard
-function isMint(options: IncreaseLiquidityOptions): options is CommonIncreaseLiquidityOptions & MintOptions {
-  return Object.keys(options).some(k => k === 'recipient')
 }
 
 /**
  * Options for producing the calldata to exit a position.
  */
-export interface DecreaseLiquidityOptions {
+export interface RemoveLiquidityOptions {
   /**
    * The ID of the token to exit
    */
   tokenId: BigintIsh
 
   /**
-   * The percentage of position liquidity to exit. Optional--if not specified, exit the entire position
+   * The percentage of position liquidity to exit.
    */
   liquidityPercentage: Percent
 
@@ -98,36 +132,27 @@ export interface DecreaseLiquidityOptions {
   slippageTolerance: Percent
 
   /**
-   * The account that should receive the tokens.
-   */
-  recipient: string
-
-  /**
    * When the transaction expires, in epoch seconds.
    */
   deadline: BigintIsh
 
   /**
-   * Whether to receive ether. If true, one of the pool tokens must be WETH, by default false
-   */
-  receiveEther?: boolean
-
-  /**
-   * Whether the NFT should be burned after exiting the entire position, by default true
+   * Whether the NFT should be burned if the entire position is being exited, by default true.
    */
   burnToken?: boolean
 
-  // TODO remove after launch
-  nonfungiblePositionManagerAddressOverride: string
+  /**
+   * The optional permit of the token ID being exited, in case the exit transaction is being sent by an account that does not own the NFT
+   */
+  permit?: NFTPermitOptions
 
   /**
-   * TODO: The optional permit of the token ID being exited, in case the exit transaction is being sent by an account that does not own the NFT
+   * Parameters to be passed on to collect
    */
-  // permit?: NFTPermitOptions
+  collectOptions: Omit<CollectOptions, 'tokenId'>
 }
 
 export abstract class NonfungiblePositionManager extends SelfPermit {
-  public static ADDRESS: string = NONFUNGIBLE_POSITION_MANAGER_ADDRESS
   public static INTERFACE: Interface = new Interface(abi)
 
   /**
@@ -137,17 +162,20 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     super()
   }
 
-  public static increaseCallParameters(position: Position, options: IncreaseLiquidityOptions): MethodParameters {
-    invariant(JSBI.greaterThan(position.liquidity, ZERO), 'LIQUIDITY')
+  public static addCallParameters(position: Position, options: AddLiquidityOptions): MethodParameters {
+    invariant(JSBI.greaterThan(position.liquidity, ZERO), 'ZERO_LIQUIDITY')
 
     const calldatas: string[] = []
 
+    // get amounts
     const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmounts
 
-    // we adjust the amounts, not the price of the pool, because the user likely does not want to add the other asset
+    // adjust for slippage
     const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
     const amount0Min = toHex(ONE_LESS_TOLERANCE.multiply(amount0Desired).quotient)
     const amount1Min = toHex(ONE_LESS_TOLERANCE.multiply(amount1Desired).quotient)
+
+    const deadline = toHex(options.deadline)
 
     // create pool if needed
     if (isMint(options) && options.createPool) {
@@ -161,7 +189,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       )
     }
 
-    // permits if possible
+    // permits if necessary
     if (options.token0Permit) {
       calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token0, options.token0Permit))
     }
@@ -186,13 +214,12 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
             amount0Min,
             amount1Min,
             recipient,
-            deadline: toHex(options.deadline)
+            deadline
           }
         ])
       )
     } else {
-      invariant(JSBI.greaterThan(JSBI.BigInt(options.tokenId), ZERO), 'TOKEN_ID')
-
+      // increase
       calldatas.push(
         NonfungiblePositionManager.INTERFACE.encodeFunctionData('increaseLiquidity', [
           {
@@ -201,7 +228,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
             amount1Desired: toHex(amount1Desired),
             amount0Min,
             amount1Min,
-            deadline: toHex(options.deadline)
+            deadline
           }
         ])
       )
@@ -218,16 +245,73 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
     }
 
-    if (calldatas.length === 1) {
-      return {
-        calldata: calldatas[0],
-        value
-      }
+    return {
+      calldata:
+        calldatas.length === 1
+          ? calldatas[0]
+          : NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      value
+    }
+  }
+
+  private static encodeCollect(options: CollectOptions): string[] {
+    const calldatas: string[] = []
+
+    const tokenId = toHex(options.tokenId)
+
+    const involvesETH =
+      currencyEquals(options.expectedCurrencyOwed0.currency, ETHER) ||
+      currencyEquals(options.expectedCurrencyOwed1.currency, ETHER)
+
+    const recipient = validateAndParseAddress(options.recipient)
+
+    // collect
+    calldatas.push(
+      NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [
+        {
+          tokenId,
+          recipient: involvesETH ? ADDRESS_ZERO : recipient,
+          amount0Max: MaxUint128,
+          amount1Max: MaxUint128
+        }
+      ])
+    )
+
+    if (involvesETH) {
+      const ethAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
+        ? options.expectedCurrencyOwed0.raw
+        : options.expectedCurrencyOwed1.raw
+      const token = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
+        ? (options.expectedCurrencyOwed1.currency as Token)
+        : (options.expectedCurrencyOwed0.currency as Token)
+      const tokenAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
+        ? options.expectedCurrencyOwed1.raw
+        : options.expectedCurrencyOwed0.raw
+
+      calldatas.push(
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(ethAmount), recipient])
+      )
+      calldatas.push(
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('sweepToken', [
+          token.address,
+          toHex(tokenAmount),
+          recipient
+        ])
+      )
     }
 
+    return calldatas
+  }
+
+  public static collectCallParameters(options: CollectOptions): MethodParameters {
+    const calldatas: string[] = NonfungiblePositionManager.encodeCollect(options)
+
     return {
-      calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value
+      calldata:
+        calldatas.length === 1
+          ? calldatas[0]
+          : NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      value: toHex(0)
     }
   }
 
@@ -236,69 +320,77 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
    * @param position the position to exit
    * @param options additional information necessary for generating the calldata
    */
-  public static decreaseCallParameters(position: Position, options: DecreaseLiquidityOptions): MethodParameters {
-    invariant(JSBI.greaterThan(position.liquidity, ZERO), 'LIQUIDITY')
-    invariant(JSBI.greaterThan(JSBI.BigInt(options.tokenId), ZERO), 'TOKEN_ID')
-
-    if (options.receiveEther) {
-      const weth = WETH9[position.pool.chainId as ChainId]
-      invariant(weth && (position.pool.token0.equals(weth) || position.pool.token1.equals(weth)), 'NO_WETH')
-    }
-
-    const recipient = validateAndParseAddress(options.recipient)
-
-    const liquidityPercentage = options.liquidityPercentage ?? new Percent(1)
-    const liquidity = liquidityPercentage.multiply(position.liquidity).quotient
-
-    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = toHex(liquidityPercentage.multiply(ONE_LESS_TOLERANCE).multiply(position.amount0.raw).quotient)
-    const amount1Min = toHex(liquidityPercentage.multiply(ONE_LESS_TOLERANCE).multiply(position.amount1.raw).quotient)
-
+  public static removeCallParameters(position: Position, options: RemoveLiquidityOptions): MethodParameters {
     const calldatas: string[] = []
 
-    if (JSBI.greaterThan(liquidity, ZERO)) {
+    const deadline = toHex(options.deadline)
+    const tokenId = toHex(options.tokenId)
+
+    // construct a partial position with a percentage of liquidity
+    const partialPosition = new Position({
+      pool: position.pool,
+      liquidity: options.liquidityPercentage.multiply(position.liquidity).quotient,
+      tickLower: position.tickLower,
+      tickUpper: position.tickUpper
+    })
+    invariant(JSBI.greaterThan(partialPosition.liquidity, ZERO), 'ZERO_LIQUIDITY')
+
+    // slippage-adjusted underlying amounts
+    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
+    const amount0Min = ONE_LESS_TOLERANCE.multiply(partialPosition.amount0.raw).quotient
+    const amount1Min = ONE_LESS_TOLERANCE.multiply(partialPosition.amount1.raw).quotient
+
+    if (options.permit) {
       calldatas.push(
-        NonfungiblePositionManager.INTERFACE.encodeFunctionData('decreaseLiquidity', [
-          {
-            tokenId: toHex(options.tokenId),
-            liquidity: toHex(liquidity),
-            amount0Min,
-            amount1Min,
-            deadline: toHex(options.deadline)
-          }
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('permit', [
+          validateAndParseAddress(options.permit.spender),
+          tokenId,
+          toHex(options.permit.deadline),
+          options.permit.v,
+          options.permit.r,
+          options.permit.s
         ])
       )
     }
 
-    // TODO this doesn't include fees already collected or earned but not yet accounted for...
+    // remove liquidity
     calldatas.push(
-      NonfungiblePositionManager.INTERFACE.encodeFunctionData('collect', [
+      NonfungiblePositionManager.INTERFACE.encodeFunctionData('decreaseLiquidity', [
         {
-          tokenId: toHex(options.tokenId),
-          recipient: options.receiveEther ? options.nonfungiblePositionManagerAddressOverride : recipient,
-          amount0Max: MaxUint128Hex,
-          amount1Max: MaxUint128Hex
+          tokenId,
+          liquidity: toHex(partialPosition.liquidity),
+          amount0Min: toHex(amount0Min),
+          amount1Min: toHex(amount1Min),
+          deadline
         }
       ])
     )
 
-    if (options.receiveEther) {
-      // unwrap
-      const weth = WETH9[position.pool.chainId as ChainId]
-      const wethAmount = position.pool.token0.equals(weth) ? amount0Min : amount1Min
-      calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [wethAmount, recipient]))
+    const { expectedCurrencyOwed0, expectedCurrencyOwed1, ...rest } = options.collectOptions
+    calldatas.push(
+      ...NonfungiblePositionManager.encodeCollect({
+        tokenId: options.tokenId,
+        // add the underlying value to the expected currency already owed
+        expectedCurrencyOwed0: expectedCurrencyOwed0.add(
+          currencyEquals(expectedCurrencyOwed0.currency, ETHER)
+            ? CurrencyAmount.ether(amount0Min)
+            : new TokenAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
+        ),
+        expectedCurrencyOwed1: expectedCurrencyOwed1.add(
+          currencyEquals(expectedCurrencyOwed1.currency, ETHER)
+            ? CurrencyAmount.ether(amount1Min)
+            : new TokenAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
+        ),
+        ...rest
+      })
+    )
 
-      // sweep
-      const token = position.pool.token0.equals(weth) ? position.pool.token1 : position.pool.token0
-      const tokenAmount = position.pool.token0.equals(weth) ? amount1Min : amount0Min
-      calldatas.push(
-        NonfungiblePositionManager.INTERFACE.encodeFunctionData('sweepToken', [token.address, tokenAmount, recipient])
-      )
-    }
-
-    if (options.burnToken) {
-      invariant(liquidityPercentage.equalTo(ONE), 'BURN_TOKEN')
-      calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [options.tokenId]))
+    if (options.liquidityPercentage.equalTo(ONE)) {
+      if (options.burnToken !== false) {
+        calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [tokenId]))
+      }
+    } else {
+      invariant(options.burnToken !== true, 'CANNOT_BURN')
     }
 
     return {
