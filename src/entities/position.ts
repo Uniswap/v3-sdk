@@ -99,7 +99,7 @@ export class Position {
   public get amount1(): TokenAmount {
     if (this._token1Amount === null) {
       if (this.pool.tickCurrent < this.tickLower) {
-        this._token1Amount = new TokenAmount(this.pool.token0, ZERO)
+        this._token1Amount = new TokenAmount(this.pool.token1, ZERO)
       } else if (this.pool.tickCurrent < this.tickUpper) {
         this._token1Amount = new TokenAmount(
           this.pool.token1,
