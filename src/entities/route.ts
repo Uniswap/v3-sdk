@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 
-import { ChainId, Currency, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Currency, ETHER, Price, Token, WETH9 } from '@uniswap/sdk-core'
 import { Pool } from './pool'
 
 /**
@@ -11,6 +11,8 @@ export class Route {
   public readonly tokenPath: Token[]
   public readonly input: Currency
   public readonly output: Currency
+
+  private _midPrice: Price | null = null
 
   public constructor(pools: Pool[], input: Currency, output?: Currency) {
     invariant(pools.length > 0, 'POOLS')
@@ -51,5 +53,55 @@ export class Route {
 
   public get chainId(): ChainId | number {
     return this.pools[0].chainId
+  }
+
+  /**
+   * Returns the token representation of the input currency. If the input currency is Ether, returns the wrapped ether token.
+   */
+  public get inputToken(): Token {
+    if (this.input instanceof Token) return this.input
+    invariant(this.input === Currency.ETHER, 'ETHER')
+    return WETH9[this.chainId as ChainId]
+  }
+
+  /**
+   * Returns the token representation of the output currency. If the output currency is Ether, returns the wrapped ether token.
+   */
+  public get outputToken(): Token {
+    if (this.output instanceof Token) return this.output
+    invariant(this.output === Currency.ETHER, 'ETHER')
+    return WETH9[this.chainId as ChainId]
+  }
+
+  /**
+   * Returns the mid price of the route
+   */
+  public get midPrice(): Price {
+    if (this._midPrice !== null) return this.midPrice
+
+    const price = this.pools.slice(1).reduce(
+      ({ nextInput, price }, pool) => {
+        return nextInput.equals(pool.token0)
+          ? {
+              nextInput: pool.token1,
+              price: price.multiply(pool.token0Price)
+            }
+          : {
+              nextInput: pool.token0,
+              price: price.multiply(pool.token1Price)
+            }
+      },
+      this.pools[0].token0.equals(this.inputToken)
+        ? {
+            nextInput: this.pools[0].token1,
+            price: this.pools[0].token0Price
+          }
+        : {
+            nextInput: this.pools[0].token0,
+            price: this.pools[0].token1Price
+          }
+    ).price
+
+    return (this._midPrice = new Price(this.input, this.output, price.denominator, price.numerator))
   }
 }
