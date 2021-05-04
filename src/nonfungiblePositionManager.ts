@@ -137,7 +137,7 @@ export interface RemoveLiquidityOptions {
   deadline: BigintIsh
 
   /**
-   * Whether the NFT should be burned if the entire position is being exited, by default true.
+   * Whether the NFT should be burned if the entire position is being exited, by default false.
    */
   burnToken?: boolean
 
@@ -240,9 +240,14 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       const weth = WETH9[position.pool.chainId as ChainId]
       invariant(weth && (position.pool.token0.equals(weth) || position.pool.token1.equals(weth)), 'NO_WETH')
 
-      value = toHex(position.pool.token0.equals(weth) ? amount0Desired : amount1Desired)
+      const wethValue = position.pool.token0.equals(weth) ? amount0Desired : amount1Desired
 
-      calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
+      // we only need to refund if we're actually sending ETH
+      if (JSBI.greaterThan(wethValue, ZERO)) {
+        calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
+      }
+
+      value = toHex(wethValue)
     }
 
     return {
@@ -386,7 +391,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     )
 
     if (options.liquidityPercentage.equalTo(ONE)) {
-      if (options.burnToken !== false) {
+      if (options.burnToken) {
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [tokenId]))
       }
     } else {
