@@ -98,6 +98,11 @@ describe('Route', () => {
       expect(currencyEquals(price.quoteCurrency, token1)).toEqual(true)
     })
 
+    it('is cached', () => {
+      const route = new Route([pool_0_1], token0)
+      expect(route.midPrice).toStrictEqual(route.midPrice)
+    })
+
     it('correct for 1 -> 0', () => {
       const price = new Route([pool_0_1], token1).midPrice
       expect(price.toFixed(4)).toEqual('5.0000')

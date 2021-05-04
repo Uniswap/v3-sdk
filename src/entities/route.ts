@@ -77,7 +77,7 @@ export class Route {
    * Returns the mid price of the route
    */
   public get midPrice(): Price {
-    if (this._midPrice !== null) return this.midPrice
+    if (this._midPrice !== null) return this._midPrice
 
     const price = this.pools.slice(1).reduce(
       ({ nextInput, price }, pool) => {
