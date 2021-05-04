@@ -129,8 +129,8 @@ describe('Route', () => {
     it('correct for 1 -> weth', () => {
       const price = new Route([pool_1_weth], token1).midPrice
       expect(price.toFixed(4)).toEqual('0.1429')
-      expect(currencyEquals(price.baseCurrency, ETHER)).toEqual(true)
-      expect(currencyEquals(price.quoteCurrency, token0)).toEqual(true)
+      expect(currencyEquals(price.baseCurrency, token1)).toEqual(true)
+      expect(currencyEquals(price.quoteCurrency, weth)).toEqual(true)
     })
 
     it('correct for ether -> 0 -> 1 -> weth', () => {
