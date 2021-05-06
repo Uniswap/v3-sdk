@@ -4,7 +4,6 @@ import {
   CurrencyAmount,
   currencyEquals,
   ETHER,
-  Fraction,
   Percent,
   Token,
   TokenAmount,
@@ -171,9 +170,9 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmounts
 
     // adjust for slippage
-    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = toHex(ONE_LESS_TOLERANCE.multiply(amount0Desired).quotient)
-    const amount1Min = toHex(ONE_LESS_TOLERANCE.multiply(amount1Desired).quotient)
+    const minimumAmounts = position.minimumAmounts(options.slippageTolerance)
+    const amount0Min = toHex(minimumAmounts.amount0)
+    const amount1Min = toHex(minimumAmounts.amount1)
 
     const deadline = toHex(options.deadline)
 
@@ -341,9 +340,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     invariant(JSBI.greaterThan(partialPosition.liquidity, ZERO), 'ZERO_LIQUIDITY')
 
     // slippage-adjusted underlying amounts
-    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = ONE_LESS_TOLERANCE.multiply(partialPosition.amount0.raw).quotient
-    const amount1Min = ONE_LESS_TOLERANCE.multiply(partialPosition.amount1.raw).quotient
+    const { amount0: amount0Min, amount1: amount1Min } = position.minimumAmounts(options.slippageTolerance)
 
     if (options.permit) {
       calldatas.push(
