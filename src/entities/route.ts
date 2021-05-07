@@ -23,13 +23,13 @@ export class Route {
 
     const weth: Token | undefined = WETH9[chainId as ChainId]
 
-    const inputTokenIsInFirstPool = input instanceof Token && pools[0].involvesToken(input)
+    const inputTokenIsInFirstPool = input.isToken && pools[0].involvesToken(input)
     const inputWethIsInFirstPool = input === ETHER && weth && pools[0].involvesToken(weth)
     const inputIsValid = inputTokenIsInFirstPool || inputWethIsInFirstPool
     invariant(inputIsValid, 'INPUT')
 
     const noOutput = typeof output === 'undefined'
-    const outputTokenIsInLastPool = output instanceof Token && pools[pools.length - 1].involvesToken(output)
+    const outputTokenIsInLastPool = output?.isToken && pools[pools.length - 1].involvesToken(output)
     const outputWethIsInLastPool = output === ETHER && weth && pools[pools.length - 1].involvesToken(weth)
     const outputIsValid = noOutput || outputTokenIsInLastPool || outputWethIsInLastPool
     invariant(outputIsValid, 'OUTPUT')
@@ -37,7 +37,7 @@ export class Route {
     /**
      * Normalizes token0-token1 order and selects the next token/fee step to add to the path
      * */
-    const tokenPath: Token[] = [input instanceof Token ? input : weth]
+    const tokenPath: Token[] = [input.isToken ? input : weth]
     for (const [i, pool] of pools.entries()) {
       const currentInputToken = tokenPath[i]
       invariant(currentInputToken.equals(pool.token0) || currentInputToken.equals(pool.token1), 'PATH')
@@ -59,7 +59,7 @@ export class Route {
    * Returns the token representation of the input currency. If the input currency is Ether, returns the wrapped ether token.
    */
   public get inputToken(): Token {
-    if (this.input instanceof Token) return this.input
+    if (this.input.isToken) return this.input
     invariant(this.input === ETHER, 'ETHER')
     return WETH9[this.chainId as ChainId]
   }
@@ -68,7 +68,7 @@ export class Route {
    * Returns the token representation of the output currency. If the output currency is Ether, returns the wrapped ether token.
    */
   public get outputToken(): Token {
-    if (this.output instanceof Token) return this.output
+    if (this.output.isToken) return this.output
     invariant(this.output === ETHER, 'ETHER')
     return WETH9[this.chainId as ChainId]
   }

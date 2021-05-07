@@ -28,7 +28,7 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
  * i.e. the price of the returned tick is less than or equal to the input price
  */
 export function priceToClosestTick(price: Price): number {
-  invariant(price.baseCurrency instanceof Token && price.quoteCurrency instanceof Token, 'TOKENS')
+  invariant(price.baseCurrency.isToken && price.quoteCurrency.isToken, 'TOKENS')
 
   const sorted = price.baseCurrency.sortsBefore(price.quoteCurrency)
 

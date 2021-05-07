@@ -62,7 +62,7 @@ function wrappedAmount(currencyAmount: CurrencyAmount, chainId: ChainId): Curren
 }
 
 function wrappedCurrency(currency: Currency, chainId: ChainId): Token {
-  if (currency instanceof Token) return currency
+  if (currency.isToken) return currency
   if (currency === ETHER) return WETH9[chainId]
   invariant(false, 'CURRENCY')
 }
@@ -226,9 +226,7 @@ export class Trade {
         .add(slippageTolerance)
         .invert()
         .multiply(this.outputAmount.raw).quotient
-      return this.outputAmount instanceof CurrencyAmount
-        ? new CurrencyAmount(this.outputAmount.currency, slippageAdjustedAmountOut)
-        : CurrencyAmount.ether(slippageAdjustedAmountOut)
+      return new CurrencyAmount(this.outputAmount.currency, slippageAdjustedAmountOut)
     }
   }
 
@@ -242,9 +240,7 @@ export class Trade {
       return this.inputAmount
     } else {
       const slippageAdjustedAmountIn = new Fraction(ONE).add(slippageTolerance).multiply(this.inputAmount.raw).quotient
-      return this.inputAmount instanceof CurrencyAmount
-        ? new CurrencyAmount(this.inputAmount.currency, slippageAdjustedAmountIn)
-        : CurrencyAmount.ether(slippageAdjustedAmountIn)
+      return new CurrencyAmount(this.inputAmount.currency, slippageAdjustedAmountIn)
     }
   }
 
