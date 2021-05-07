@@ -1529,10 +1529,10 @@
   resolved "https://registry.yarnpkg.com/@uniswap/lib/-/lib-4.0.1-alpha.tgz#2881008e55f075344675b3bca93f020b028fbd02"
   integrity sha512-f6UIliwBbRsgVLxIaBANF6w09tYqc6Y/qXdsrbEmXHyFA7ILiKrIwRFXe1yOg8M3cksgVsO9N7yuL2DdCGQKBA==
 
-"@uniswap/sdk-core@^1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.10.tgz#a30118ac29319bd83113f9c90eab99f803ec9267"
-  integrity sha512-8aD3xkzNDI3Ffh7PdLIcmraZr/6knqQuamVOv96EN8lhouEYH2ZuRbBWb7eZa/W7NwOLjlXM7XHi5gWJKzvbkg==
+"@uniswap/sdk-core@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.11.tgz#f135a06696dc7cef0886e4f2edb1ce484a2cc4b7"
+  integrity sha512-fFfFBaum4AKYyaGbDc9b8hyW/2NEK1tH+bqewyJaY6QTAc4Q2snwcYFvreD+cgo1kGXj4L4XPrP6MdZr4uuBUQ==
   dependencies:
     "@ethersproject/address" "^5.0.2"
     big.js "^5.2.2"
