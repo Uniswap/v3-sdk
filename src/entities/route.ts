@@ -60,7 +60,7 @@ export class Route {
    */
   public get inputToken(): Token {
     if (this.input instanceof Token) return this.input
-    invariant(this.input === Currency.ETHER, 'ETHER')
+    invariant(this.input === ETHER, 'ETHER')
     return WETH9[this.chainId as ChainId]
   }
 
@@ -69,7 +69,7 @@ export class Route {
    */
   public get outputToken(): Token {
     if (this.output instanceof Token) return this.output
-    invariant(this.output === Currency.ETHER, 'ETHER')
+    invariant(this.output === ETHER, 'ETHER')
     return WETH9[this.chainId as ChainId]
   }
 

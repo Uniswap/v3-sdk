@@ -1,4 +1,4 @@
-import { ChainId, CurrencyAmount, Percent, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Percent, Token, CurrencyAmount, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from './constants'
 import { Pool } from './entities/pool'
 import { Position } from './entities/position'
@@ -121,8 +121,8 @@ describe('NonfungiblePositionManager', () => {
     it('works', () => {
       const { calldata, value } = NonfungiblePositionManager.collectCallParameters({
         tokenId,
-        expectedCurrencyOwed0: new TokenAmount(token0, 0),
-        expectedCurrencyOwed1: new TokenAmount(token1, 0),
+        expectedCurrencyOwed0: new CurrencyAmount(token0, 0),
+        expectedCurrencyOwed1: new CurrencyAmount(token1, 0),
         recipient
       })
 
@@ -135,7 +135,7 @@ describe('NonfungiblePositionManager', () => {
     it('works with eth', () => {
       const { calldata, value } = NonfungiblePositionManager.collectCallParameters({
         tokenId,
-        expectedCurrencyOwed0: new TokenAmount(token1, 0),
+        expectedCurrencyOwed0: new CurrencyAmount(token1, 0),
         expectedCurrencyOwed1: CurrencyAmount.ether(0),
         recipient
       })
@@ -163,8 +163,8 @@ describe('NonfungiblePositionManager', () => {
             slippageTolerance,
             deadline,
             collectOptions: {
-              expectedCurrencyOwed0: new TokenAmount(token0, 0),
-              expectedCurrencyOwed1: new TokenAmount(token1, 0),
+              expectedCurrencyOwed0: new CurrencyAmount(token0, 0),
+              expectedCurrencyOwed1: new CurrencyAmount(token1, 0),
               recipient
             }
           }
@@ -187,8 +187,8 @@ describe('NonfungiblePositionManager', () => {
             slippageTolerance,
             deadline,
             collectOptions: {
-              expectedCurrencyOwed0: new TokenAmount(token0, 0),
-              expectedCurrencyOwed1: new TokenAmount(token1, 0),
+              expectedCurrencyOwed0: new CurrencyAmount(token0, 0),
+              expectedCurrencyOwed1: new CurrencyAmount(token1, 0),
               recipient
             }
           }
@@ -212,8 +212,8 @@ describe('NonfungiblePositionManager', () => {
             deadline,
             burnToken: true,
             collectOptions: {
-              expectedCurrencyOwed0: new TokenAmount(token0, 0),
-              expectedCurrencyOwed1: new TokenAmount(token1, 0),
+              expectedCurrencyOwed0: new CurrencyAmount(token0, 0),
+              expectedCurrencyOwed1: new CurrencyAmount(token1, 0),
               recipient
             }
           }
@@ -235,8 +235,8 @@ describe('NonfungiblePositionManager', () => {
           slippageTolerance,
           deadline,
           collectOptions: {
-            expectedCurrencyOwed0: new TokenAmount(token0, 0),
-            expectedCurrencyOwed1: new TokenAmount(token1, 0),
+            expectedCurrencyOwed0: new CurrencyAmount(token0, 0),
+            expectedCurrencyOwed1: new CurrencyAmount(token1, 0),
             recipient
           }
         }
@@ -250,7 +250,7 @@ describe('NonfungiblePositionManager', () => {
 
     it('works with eth', () => {
       const ethAmount = CurrencyAmount.ether(0)
-      const tokenAmount = new TokenAmount(token1, 0)
+      const tokenAmount = new CurrencyAmount(token1, 0)
 
       const { calldata, value } = NonfungiblePositionManager.removeCallParameters(
         new Position({

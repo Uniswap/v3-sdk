@@ -1,4 +1,4 @@
-import { BigintIsh, ChainId, Price, Token, TokenAmount } from '@uniswap/sdk-core'
+import { BigintIsh, ChainId, Price, Token, CurrencyAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
@@ -140,10 +140,10 @@ export class Pool {
    * Given an input amount of a token, return the computed output amount and a pool with state updated after the trade
    * @param inputAmount the input amount for which to quote the output amount
    */
-  public async getOutputAmount(inputAmount: TokenAmount): Promise<[TokenAmount, Pool]> {
-    invariant(this.involvesToken(inputAmount.token), 'TOKEN')
+  public async getOutputAmount(inputAmount: CurrencyAmount): Promise<[CurrencyAmount, Pool]> {
+    invariant(inputAmount.currency.isToken && this.involvesToken(inputAmount.currency), 'TOKEN')
 
-    const zeroForOne = inputAmount.token.equals(this.token0)
+    const zeroForOne = inputAmount.currency.equals(this.token0)
 
     const { amountCalculated: outputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
       zeroForOne,
@@ -151,7 +151,7 @@ export class Pool {
     )
     const outputToken = zeroForOne ? this.token1 : this.token0
     return [
-      new TokenAmount(outputToken, JSBI.multiply(outputAmount, NEGATIVE_ONE)),
+      new CurrencyAmount(outputToken, JSBI.multiply(outputAmount, NEGATIVE_ONE)),
       new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider)
     ]
   }
@@ -160,10 +160,10 @@ export class Pool {
    * Given a desired output amount of a token, return the computed input amount and a pool with state updated after the trade
    * @param outputAmount the output amount for which to quote the input amount
    */
-  public async getInputAmount(outputAmount: TokenAmount): Promise<[TokenAmount, Pool]> {
-    invariant(this.involvesToken(outputAmount.token), 'TOKEN')
+  public async getInputAmount(outputAmount: CurrencyAmount): Promise<[CurrencyAmount, Pool]> {
+    invariant(outputAmount.currency.isToken && this.involvesToken(outputAmount.currency), 'TOKEN')
 
-    const zeroForOne = outputAmount.token.equals(this.token1)
+    const zeroForOne = outputAmount.currency.equals(this.token1)
 
     const { amountCalculated: inputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
       zeroForOne,
@@ -171,7 +171,7 @@ export class Pool {
     )
     const inputToken = zeroForOne ? this.token0 : this.token1
     return [
-      new TokenAmount(inputToken, inputAmount),
+      new CurrencyAmount(inputToken, inputAmount),
       new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider)
     ]
   }

@@ -1,4 +1,4 @@
-import { BigintIsh, MaxUint256, Percent, Price, TokenAmount } from '@uniswap/sdk-core'
+import { BigintIsh, MaxUint256, Percent, Price, CurrencyAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { ZERO } from '../internalConstants'
@@ -26,8 +26,8 @@ export class Position {
   public readonly liquidity: JSBI
 
   // cached resuts for the getters
-  private _token0Amount: TokenAmount | null = null
-  private _token1Amount: TokenAmount | null = null
+  private _token0Amount: CurrencyAmount | null = null
+  private _token1Amount: CurrencyAmount | null = null
   private _mintAmounts: Readonly<{ amount0: JSBI; amount1: JSBI }> | null = null
 
   /**
@@ -65,10 +65,10 @@ export class Position {
   /**
    * Returns the amount of token0 that this position's liquidity could be burned for at the current pool price
    */
-  public get amount0(): TokenAmount {
+  public get amount0(): CurrencyAmount {
     if (this._token0Amount === null) {
       if (this.pool.tickCurrent < this.tickLower) {
-        this._token0Amount = new TokenAmount(
+        this._token0Amount = new CurrencyAmount(
           this.pool.token0,
           SqrtPriceMath.getAmount0Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -78,7 +78,7 @@ export class Position {
           )
         )
       } else if (this.pool.tickCurrent < this.tickUpper) {
-        this._token0Amount = new TokenAmount(
+        this._token0Amount = new CurrencyAmount(
           this.pool.token0,
           SqrtPriceMath.getAmount0Delta(
             this.pool.sqrtRatioX96,
@@ -88,7 +88,7 @@ export class Position {
           )
         )
       } else {
-        this._token0Amount = new TokenAmount(this.pool.token0, ZERO)
+        this._token0Amount = new CurrencyAmount(this.pool.token0, ZERO)
       }
     }
     return this._token0Amount
@@ -97,12 +97,12 @@ export class Position {
   /**
    * Returns the amount of token1 that this position's liquidity could be burned for at the current pool price
    */
-  public get amount1(): TokenAmount {
+  public get amount1(): CurrencyAmount {
     if (this._token1Amount === null) {
       if (this.pool.tickCurrent < this.tickLower) {
-        this._token1Amount = new TokenAmount(this.pool.token1, ZERO)
+        this._token1Amount = new CurrencyAmount(this.pool.token1, ZERO)
       } else if (this.pool.tickCurrent < this.tickUpper) {
-        this._token1Amount = new TokenAmount(
+        this._token1Amount = new CurrencyAmount(
           this.pool.token1,
           SqrtPriceMath.getAmount1Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -112,7 +112,7 @@ export class Position {
           )
         )
       } else {
-        this._token1Amount = new TokenAmount(
+        this._token1Amount = new CurrencyAmount(
           this.pool.token1,
           SqrtPriceMath.getAmount1Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),

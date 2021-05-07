@@ -1,12 +1,11 @@
 import {
   BigintIsh,
   ChainId,
-  CurrencyAmount,
   currencyEquals,
   ETHER,
   Percent,
   Token,
-  TokenAmount,
+  CurrencyAmount,
   validateAndParseAddress,
   WETH9
 } from '@uniswap/sdk-core'
@@ -376,12 +375,12 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
         expectedCurrencyOwed0: expectedCurrencyOwed0.add(
           currencyEquals(expectedCurrencyOwed0.currency, ETHER)
             ? CurrencyAmount.ether(amount0Min)
-            : new TokenAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
+            : new CurrencyAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
         ),
         expectedCurrencyOwed1: expectedCurrencyOwed1.add(
           currencyEquals(expectedCurrencyOwed1.currency, ETHER)
             ? CurrencyAmount.ether(amount1Min)
-            : new TokenAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
+            : new CurrencyAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
         ),
         ...rest
       })
