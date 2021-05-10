@@ -262,8 +262,8 @@ describe('NonfungiblePositionManager', () => {
           slippageTolerance,
           deadline,
           collectOptions: {
-            expectedCurrencyOwed0: new CurrencyAmount(token0, 0),
-            expectedCurrencyOwed1: new CurrencyAmount(token1, 0),
+            expectedCurrencyOwed0: new TokenAmount(token0, 0),
+            expectedCurrencyOwed1: new TokenAmount(token1, 0),
             recipient
           }
         }
@@ -307,7 +307,7 @@ describe('NonfungiblePositionManager', () => {
 
     it('works for partial with eth', () => {
       const ethAmount = CurrencyAmount.ether(0)
-      const tokenAmount = new CurrencyAmount(token1, 0)
+      const tokenAmount = new TokenAmount(token1, 0)
 
       const { calldata, value } = NonfungiblePositionManager.removeCallParameters(
         new Position({
