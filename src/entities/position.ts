@@ -127,10 +127,60 @@ export class Position {
   }
 
   /**
-   * Get the minimum amounts that must be spent to safely create this position, for the given slippage tolerance
+   * Returns the minimum amounts that must be sent in order to safely mint the amount of liquidity held by the position
+   * with the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the current price
    */
-  public minimumAmounts(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
+  public mintAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
+    // get lower/upper prices
+    const priceLower = this.pool.token0Price.raw.multiply(new Percent(1).subtract(slippageTolerance))
+    const priceUpper = this.pool.token0Price.raw.multiply(slippageTolerance.add(1))
+    const sqrtRatioX96Lower = encodeSqrtRatioX96(priceLower.numerator, priceLower.denominator)
+    const sqrtRatioX96Upper = encodeSqrtRatioX96(priceUpper.numerator, priceUpper.denominator)
+
+    // construct counterfactual pools
+    const poolLower = new Pool(
+      this.pool.token0,
+      this.pool.token1,
+      this.pool.fee,
+      sqrtRatioX96Lower,
+      0 /* liquidity doesn't matter */,
+      TickMath.getTickAtSqrtRatio(sqrtRatioX96Lower)
+    )
+    const poolUpper = new Pool(
+      this.pool.token0,
+      this.pool.token1,
+      this.pool.fee,
+      sqrtRatioX96Upper,
+      0 /* liquidity doesn't matter */,
+      TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper)
+    )
+
+    // we want the smaller amounts...
+    // ...which occurs at the upper price for amount0...
+    const { amount0 } = new Position({
+      pool: poolUpper,
+      liquidity: this.liquidity,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper
+    }).mintAmounts
+    // ...and the lower for amount1
+    const { amount1 } = new Position({
+      pool: poolLower,
+      liquidity: this.liquidity,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper
+    }).mintAmounts
+
+    return { amount0, amount1 }
+  }
+
+  /**
+   * Returns the minimum amounts that should be requested in order to safely burn the amount of liquidity held by the
+   * position with the given slippage tolerance
+   * @param slippageTolerance tolerance of unfavorable slippage from the current price
+   */
+  public burnAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
     const priceLower = this.pool.token0Price.raw.multiply(new Percent(1).subtract(slippageTolerance))
     const priceUpper = this.pool.token0Price.raw.multiply(slippageTolerance.add(1))
@@ -175,7 +225,7 @@ export class Position {
   }
 
   /**
-   * Returns the minimum amount that must be sent in order to mint the amount of liquidity held by the position at
+   * Returns the minimum amounts that must be sent in order to mint the amount of liquidity held by the position at
    * the current price for the pool
    */
   public get mintAmounts(): Readonly<{ amount0: JSBI; amount1: JSBI }> {
