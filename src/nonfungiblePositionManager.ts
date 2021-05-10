@@ -170,7 +170,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmounts
 
     // adjust for slippage
-    const minimumAmounts = position.minimumAmounts(options.slippageTolerance)
+    const minimumAmounts = position.mintAmountsWithSlippage(options.slippageTolerance)
     const amount0Min = toHex(minimumAmounts.amount0)
     const amount1Min = toHex(minimumAmounts.amount1)
 
@@ -340,7 +340,9 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     invariant(JSBI.greaterThan(partialPosition.liquidity, ZERO), 'ZERO_LIQUIDITY')
 
     // slippage-adjusted underlying amounts
-    const { amount0: amount0Min, amount1: amount1Min } = position.minimumAmounts(options.slippageTolerance)
+    const { amount0: amount0Min, amount1: amount1Min } = partialPosition.burnAmountsWithSlippage(
+      options.slippageTolerance
+    )
 
     if (options.permit) {
       calldatas.push(
