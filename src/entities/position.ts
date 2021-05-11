@@ -133,8 +133,8 @@ export class Position {
    */
   public mintAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
-    const priceLower = this.pool.token0Price.raw.multiply(new Percent(1).subtract(slippageTolerance))
-    const priceUpper = this.pool.token0Price.raw.multiply(slippageTolerance.add(1))
+    const priceLower = this.pool.token0Price.asFraction.multiply(new Percent(1).subtract(slippageTolerance))
+    const priceUpper = this.pool.token0Price.asFraction.multiply(slippageTolerance.add(1))
     const sqrtRatioX96Lower = encodeSqrtRatioX96(priceLower.numerator, priceLower.denominator)
     const sqrtRatioX96Upper = encodeSqrtRatioX96(priceUpper.numerator, priceUpper.denominator)
 
