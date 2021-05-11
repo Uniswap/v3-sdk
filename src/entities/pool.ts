@@ -38,8 +38,8 @@ export class Pool {
   public readonly tickCurrent: number
   public readonly tickDataProvider: TickDataProvider
 
-  private _token0Price?: Price
-  private _token1Price?: Price
+  private _token0Price?: Price<Token, Token>
+  private _token1Price?: Price<Token, Token>
 
   public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount): string {
     return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB })
@@ -93,7 +93,7 @@ export class Pool {
   /**
    * Returns the current mid price of the pool in terms of token0, i.e. the ratio of token1 over token0
    */
-  public get token0Price(): Price {
+  public get token0Price(): Price<Token, Token> {
     return (
       this._token0Price ??
       (this._token0Price = new Price(
@@ -108,7 +108,7 @@ export class Pool {
   /**
    * Returns the current mid price of the pool in terms of token1, i.e. the ratio of token0 over token1
    */
-  public get token1Price(): Price {
+  public get token1Price(): Price<Token, Token> {
     return (
       this._token1Price ??
       (this._token1Price = new Price(
@@ -124,7 +124,7 @@ export class Pool {
    * Return the price of the given token in terms of the other token in the pool.
    * @param token token to return price of
    */
-  public priceOf(token: Token): Price {
+  public priceOf(token: Token): Price<Token, Token> {
     invariant(this.involvesToken(token), 'TOKEN')
     return token.equals(this.token0) ? this.token0Price : this.token1Price
   }
@@ -140,18 +140,18 @@ export class Pool {
    * Given an input amount of a token, return the computed output amount and a pool with state updated after the trade
    * @param inputAmount the input amount for which to quote the output amount
    */
-  public async getOutputAmount(inputAmount: CurrencyAmount): Promise<[CurrencyAmount, Pool]> {
-    invariant(inputAmount.currency.isToken && this.involvesToken(inputAmount.currency), 'TOKEN')
+  public async getOutputAmount(inputAmount: CurrencyAmount<Token>): Promise<[CurrencyAmount<Token>, Pool]> {
+    invariant(this.involvesToken(inputAmount.currency), 'TOKEN')
 
     const zeroForOne = inputAmount.currency.equals(this.token0)
 
     const { amountCalculated: outputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
       zeroForOne,
-      inputAmount.raw
+      inputAmount.quotient
     )
     const outputToken = zeroForOne ? this.token1 : this.token0
     return [
-      new CurrencyAmount(outputToken, JSBI.multiply(outputAmount, NEGATIVE_ONE)),
+      CurrencyAmount.fromRawAmount(outputToken, JSBI.multiply(outputAmount, NEGATIVE_ONE)),
       new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider)
     ]
   }
@@ -160,18 +160,18 @@ export class Pool {
    * Given a desired output amount of a token, return the computed input amount and a pool with state updated after the trade
    * @param outputAmount the output amount for which to quote the input amount
    */
-  public async getInputAmount(outputAmount: CurrencyAmount): Promise<[CurrencyAmount, Pool]> {
+  public async getInputAmount(outputAmount: CurrencyAmount<Token>): Promise<[CurrencyAmount<Token>, Pool]> {
     invariant(outputAmount.currency.isToken && this.involvesToken(outputAmount.currency), 'TOKEN')
 
     const zeroForOne = outputAmount.currency.equals(this.token1)
 
     const { amountCalculated: inputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
       zeroForOne,
-      JSBI.multiply(outputAmount.raw, NEGATIVE_ONE)
+      JSBI.multiply(outputAmount.quotient, NEGATIVE_ONE)
     )
     const inputToken = zeroForOne ? this.token0 : this.token1
     return [
-      new CurrencyAmount(inputToken, inputAmount),
+      CurrencyAmount.fromRawAmount(inputToken, inputAmount),
       new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider)
     ]
   }

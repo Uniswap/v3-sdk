@@ -1,4 +1,4 @@
-import { BigintIsh, MaxUint256, Percent, Price, CurrencyAmount } from '@uniswap/sdk-core'
+import { BigintIsh, MaxUint256, Percent, Price, CurrencyAmount, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { ZERO } from '../internalConstants'
@@ -26,8 +26,8 @@ export class Position {
   public readonly liquidity: JSBI
 
   // cached resuts for the getters
-  private _token0Amount: CurrencyAmount | null = null
-  private _token1Amount: CurrencyAmount | null = null
+  private _token0Amount: CurrencyAmount<Token> | null = null
+  private _token1Amount: CurrencyAmount<Token> | null = null
   private _mintAmounts: Readonly<{ amount0: JSBI; amount1: JSBI }> | null = null
 
   /**
@@ -51,24 +51,24 @@ export class Position {
   /**
    * Returns the price of token0 at the lower tick
    */
-  public get token0PriceLower(): Price {
+  public get token0PriceLower(): Price<Token, Token> {
     return tickToPrice(this.pool.token0, this.pool.token1, this.tickLower)
   }
 
   /**
    * Returns the price of token0 at the upper tick
    */
-  public get token0PriceUpper(): Price {
+  public get token0PriceUpper(): Price<Token, Token> {
     return tickToPrice(this.pool.token0, this.pool.token1, this.tickUpper)
   }
 
   /**
    * Returns the amount of token0 that this position's liquidity could be burned for at the current pool price
    */
-  public get amount0(): CurrencyAmount {
+  public get amount0(): CurrencyAmount<Token> {
     if (this._token0Amount === null) {
       if (this.pool.tickCurrent < this.tickLower) {
-        this._token0Amount = new CurrencyAmount(
+        this._token0Amount = CurrencyAmount.fromRawAmount(
           this.pool.token0,
           SqrtPriceMath.getAmount0Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -78,7 +78,7 @@ export class Position {
           )
         )
       } else if (this.pool.tickCurrent < this.tickUpper) {
-        this._token0Amount = new CurrencyAmount(
+        this._token0Amount = CurrencyAmount.fromRawAmount(
           this.pool.token0,
           SqrtPriceMath.getAmount0Delta(
             this.pool.sqrtRatioX96,
@@ -88,7 +88,7 @@ export class Position {
           )
         )
       } else {
-        this._token0Amount = new CurrencyAmount(this.pool.token0, ZERO)
+        this._token0Amount = CurrencyAmount.fromRawAmount(this.pool.token0, ZERO)
       }
     }
     return this._token0Amount
@@ -97,12 +97,12 @@ export class Position {
   /**
    * Returns the amount of token1 that this position's liquidity could be burned for at the current pool price
    */
-  public get amount1(): CurrencyAmount {
+  public get amount1(): CurrencyAmount<Token> {
     if (this._token1Amount === null) {
       if (this.pool.tickCurrent < this.tickLower) {
-        this._token1Amount = new CurrencyAmount(this.pool.token1, ZERO)
+        this._token1Amount = CurrencyAmount.fromRawAmount(this.pool.token1, ZERO)
       } else if (this.pool.tickCurrent < this.tickUpper) {
-        this._token1Amount = new CurrencyAmount(
+        this._token1Amount = CurrencyAmount.fromRawAmount(
           this.pool.token1,
           SqrtPriceMath.getAmount1Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -112,7 +112,7 @@ export class Position {
           )
         )
       } else {
-        this._token1Amount = new CurrencyAmount(
+        this._token1Amount = CurrencyAmount.fromRawAmount(
           this.pool.token1,
           SqrtPriceMath.getAmount1Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -182,8 +182,8 @@ export class Position {
    */
   public burnAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
-    const priceLower = this.pool.token0Price.raw.multiply(new Percent(1).subtract(slippageTolerance))
-    const priceUpper = this.pool.token0Price.raw.multiply(slippageTolerance.add(1))
+    const priceLower = this.pool.token0Price.asFraction.multiply(new Percent(1).subtract(slippageTolerance))
+    const priceUpper = this.pool.token0Price.asFraction.multiply(slippageTolerance.add(1))
     const sqrtRatioX96Lower = encodeSqrtRatioX96(priceLower.numerator, priceLower.denominator)
     const sqrtRatioX96Upper = encodeSqrtRatioX96(priceUpper.numerator, priceUpper.denominator)
 
@@ -221,7 +221,7 @@ export class Position {
       tickUpper: this.tickUpper
     }).amount1
 
-    return { amount0: amount0.raw, amount1: amount1.raw }
+    return { amount0: amount0.quotient, amount1: amount1.quotient }
   }
 
   /**

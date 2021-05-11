@@ -115,7 +115,7 @@ describe('Position', () => {
           liquidity: 100e12,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
           tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
-        }).amount0.raw.toString()
+        }).amount0.quotient.toString()
       ).toEqual('49949961958869841')
     })
     it('is correct for price below', () => {
@@ -125,7 +125,7 @@ describe('Position', () => {
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
           tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
-        }).amount0.raw.toString()
+        }).amount0.quotient.toString()
       ).toEqual('0')
     })
     it('is correct for in-range position', () => {
@@ -135,7 +135,7 @@ describe('Position', () => {
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
           tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
-        }).amount0.raw.toString()
+        }).amount0.quotient.toString()
       ).toEqual('120054069145287995769396')
     })
   })
@@ -148,7 +148,7 @@ describe('Position', () => {
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
           tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
-        }).amount1.raw.toString()
+        }).amount1.quotient.toString()
       ).toEqual('0')
     })
     it('is correct for price below', () => {
@@ -158,7 +158,7 @@ describe('Position', () => {
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
           tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
-        }).amount1.raw.toString()
+        }).amount1.quotient.toString()
       ).toEqual('49970077052')
     })
     it('is correct for in-range position', () => {
@@ -168,7 +168,7 @@ describe('Position', () => {
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
           tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
-        }).amount1.raw.toString()
+        }).amount1.quotient.toString()
       ).toEqual('79831926242')
     })
   })

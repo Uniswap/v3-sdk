@@ -17,7 +17,7 @@ describe('Route', () => {
 
   describe('path', () => {
     it('constructs a path from the tokens', () => {
-      const route = new Route([pool_0_1], token0)
+      const route = new Route([pool_0_1], token0, token1)
       expect(route.pools).toEqual([pool_0_1])
       expect(route.tokenPath).toEqual([token0, token1])
       expect(route.input).toEqual(token0)
@@ -25,7 +25,7 @@ describe('Route', () => {
       expect(route.chainId).toEqual(ChainId.MAINNET)
     })
     it('should fail if the input is not in the first pool', () => {
-      expect(() => new Route([pool_0_1], weth)).toThrow()
+      expect(() => new Route([pool_0_1], weth, token1)).toThrow()
     })
     it('should fail if output is not in the last pool', () => {
       expect(() => new Route([pool_0_1], token0, weth)).toThrow()
@@ -33,14 +33,14 @@ describe('Route', () => {
   })
 
   it('can have a token as both input and output', () => {
-    const route = new Route([pool_0_weth, pool_0_1, pool_1_weth], weth)
+    const route = new Route([pool_0_weth, pool_0_1, pool_1_weth], weth, weth)
     expect(route.pools).toEqual([pool_0_weth, pool_0_1, pool_1_weth])
     expect(route.input).toEqual(weth)
     expect(route.output).toEqual(weth)
   })
 
   it('supports ether input', () => {
-    const route = new Route([pool_0_weth], ETHER)
+    const route = new Route([pool_0_weth], ETHER, token0)
     expect(route.pools).toEqual([pool_0_weth])
     expect(route.input).toEqual(ETHER)
     expect(route.output).toEqual(token0)
@@ -92,54 +92,54 @@ describe('Route', () => {
     )
 
     it('correct for 0 -> 1', () => {
-      const price = new Route([pool_0_1], token0).midPrice
+      const price = new Route([pool_0_1], token0, token1).midPrice
       expect(price.toFixed(4)).toEqual('0.2000')
       expect(currencyEquals(price.baseCurrency, token0)).toEqual(true)
       expect(currencyEquals(price.quoteCurrency, token1)).toEqual(true)
     })
 
     it('is cached', () => {
-      const route = new Route([pool_0_1], token0)
+      const route = new Route([pool_0_1], token0, token1)
       expect(route.midPrice).toStrictEqual(route.midPrice)
     })
 
     it('correct for 1 -> 0', () => {
-      const price = new Route([pool_0_1], token1).midPrice
+      const price = new Route([pool_0_1], token1, token0).midPrice
       expect(price.toFixed(4)).toEqual('5.0000')
       expect(currencyEquals(price.baseCurrency, token1)).toEqual(true)
       expect(currencyEquals(price.quoteCurrency, token0)).toEqual(true)
     })
 
     it('correct for 0 -> 1 -> 2', () => {
-      const price = new Route([pool_0_1, pool_1_2], token0).midPrice
+      const price = new Route([pool_0_1, pool_1_2], token0, token2).midPrice
       expect(price.toFixed(4)).toEqual('0.1000')
       expect(currencyEquals(price.baseCurrency, token0)).toEqual(true)
       expect(currencyEquals(price.quoteCurrency, token2)).toEqual(true)
     })
 
     it('correct for 2 -> 1 -> 0', () => {
-      const price = new Route([pool_1_2, pool_0_1], token2).midPrice
+      const price = new Route([pool_1_2, pool_0_1], token2, token0).midPrice
       expect(price.toFixed(4)).toEqual('10.0000')
       expect(currencyEquals(price.baseCurrency, token2)).toEqual(true)
       expect(currencyEquals(price.quoteCurrency, token0)).toEqual(true)
     })
 
     it('correct for ether -> 0', () => {
-      const price = new Route([pool_0_weth], ETHER).midPrice
+      const price = new Route([pool_0_weth], ETHER, token0).midPrice
       expect(price.toFixed(4)).toEqual('0.3333')
       expect(currencyEquals(price.baseCurrency, ETHER)).toEqual(true)
       expect(currencyEquals(price.quoteCurrency, token0)).toEqual(true)
     })
 
     it('correct for 1 -> weth', () => {
-      const price = new Route([pool_1_weth], token1).midPrice
+      const price = new Route([pool_1_weth], token1, weth).midPrice
       expect(price.toFixed(4)).toEqual('0.1429')
       expect(currencyEquals(price.baseCurrency, token1)).toEqual(true)
       expect(currencyEquals(price.quoteCurrency, weth)).toEqual(true)
     })
 
     it('correct for ether -> 0 -> 1 -> weth', () => {
-      const price = new Route([pool_0_weth, pool_0_1, pool_1_weth], ETHER).midPrice
+      const price = new Route([pool_0_weth, pool_0_1, pool_1_weth], ETHER, weth).midPrice
       expect(price.toSignificant(4)).toEqual('0.009524')
       expect(currencyEquals(price.baseCurrency, ETHER)).toEqual(true)
       expect(currencyEquals(price.quoteCurrency, weth)).toEqual(true)

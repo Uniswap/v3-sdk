@@ -1,43 +1,35 @@
 import invariant from 'tiny-invariant'
 
-import { ChainId, Currency, ETHER, Price, Token, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Currency, Price, Token, wrappedCurrency } from '@uniswap/sdk-core'
 import { Pool } from './pool'
 
 /**
  * Represents a list of pools through which a swap can occur
  */
-export class Route {
+export class Route<TInput extends Currency, TOutput extends Currency> {
   public readonly pools: Pool[]
   public readonly tokenPath: Token[]
-  public readonly input: Currency
-  public readonly output: Currency
+  public readonly input: TInput
+  public readonly output: TOutput
 
-  private _midPrice: Price | null = null
+  private _midPrice: Price<TInput, TOutput> | null = null
 
-  public constructor(pools: Pool[], input: Currency, output?: Currency) {
+  public constructor(pools: Pool[], input: TInput, output: TOutput) {
     invariant(pools.length > 0, 'POOLS')
 
     const chainId = pools[0].chainId
     const allOnSameChain = pools.every(pool => pool.chainId === chainId)
     invariant(allOnSameChain, 'CHAIN_IDS')
 
-    const weth: Token | undefined = WETH9[chainId as ChainId]
+    const wrappedInput = wrappedCurrency(input, chainId)
+    invariant(pools[0].involvesToken(wrappedInput), 'INPUT')
 
-    const inputTokenIsInFirstPool = input.isToken && pools[0].involvesToken(input)
-    const inputWethIsInFirstPool = input === ETHER && weth && pools[0].involvesToken(weth)
-    const inputIsValid = inputTokenIsInFirstPool || inputWethIsInFirstPool
-    invariant(inputIsValid, 'INPUT')
-
-    const noOutput = typeof output === 'undefined'
-    const outputTokenIsInLastPool = output?.isToken && pools[pools.length - 1].involvesToken(output)
-    const outputWethIsInLastPool = output === ETHER && weth && pools[pools.length - 1].involvesToken(weth)
-    const outputIsValid = noOutput || outputTokenIsInLastPool || outputWethIsInLastPool
-    invariant(outputIsValid, 'OUTPUT')
+    invariant(pools[pools.length - 1].involvesToken(wrappedCurrency(output, chainId)), 'OUTPUT')
 
     /**
      * Normalizes token0-token1 order and selects the next token/fee step to add to the path
      * */
-    const tokenPath: Token[] = [input.isToken ? input : weth]
+    const tokenPath: Token[] = [wrappedInput]
     for (const [i, pool] of pools.entries()) {
       const currentInputToken = tokenPath[i]
       invariant(currentInputToken.equals(pool.token0) || currentInputToken.equals(pool.token1), 'PATH')
@@ -59,24 +51,20 @@ export class Route {
    * Returns the token representation of the input currency. If the input currency is Ether, returns the wrapped ether token.
    */
   public get inputToken(): Token {
-    if (this.input.isToken) return this.input
-    invariant(this.input === ETHER, 'ETHER')
-    return WETH9[this.chainId as ChainId]
+    return wrappedCurrency(this.input, this.chainId)
   }
 
   /**
    * Returns the token representation of the output currency. If the output currency is Ether, returns the wrapped ether token.
    */
   public get outputToken(): Token {
-    if (this.output.isToken) return this.output
-    invariant(this.output === ETHER, 'ETHER')
-    return WETH9[this.chainId as ChainId]
+    return wrappedCurrency(this.output, this.chainId)
   }
 
   /**
    * Returns the mid price of the route
    */
-  public get midPrice(): Price {
+  public get midPrice(): Price<TInput, TOutput> {
     if (this._midPrice !== null) return this._midPrice
 
     const price = this.pools.slice(1).reduce(

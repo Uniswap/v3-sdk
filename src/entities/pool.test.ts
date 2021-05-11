@@ -194,33 +194,33 @@ describe('Pool', () => {
 
     describe('#getOutputAmount', () => {
       it('USDC -> DAI', async () => {
-        const inputAmount = new CurrencyAmount(USDC, 100)
+        const inputAmount = CurrencyAmount.fromRawAmount(USDC, 100)
         const [outputAmount] = await pool.getOutputAmount(inputAmount)
         expect(currencyEquals(outputAmount.currency, DAI)).toBe(true)
-        expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
+        expect(outputAmount.quotient).toEqual(JSBI.BigInt(98))
       })
 
       it('DAI -> USDC', async () => {
-        const inputAmount = new CurrencyAmount(DAI, 100)
+        const inputAmount = CurrencyAmount.fromRawAmount(DAI, 100)
         const [outputAmount] = await pool.getOutputAmount(inputAmount)
         expect(currencyEquals(outputAmount.currency, USDC)).toBe(true)
-        expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
+        expect(outputAmount.quotient).toEqual(JSBI.BigInt(98))
       })
     })
 
     describe('#getInputAmount', () => {
       it('USDC -> DAI', async () => {
-        const outputAmount = new CurrencyAmount(DAI, 98)
+        const outputAmount = CurrencyAmount.fromRawAmount(DAI, 98)
         const [inputAmount] = await pool.getInputAmount(outputAmount)
         expect(currencyEquals(inputAmount.currency, USDC)).toBe(true)
-        expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
+        expect(inputAmount.quotient).toEqual(JSBI.BigInt(100))
       })
 
       it('DAI -> USDC', async () => {
-        const outputAmount = new CurrencyAmount(USDC, 98)
+        const outputAmount = CurrencyAmount.fromRawAmount(USDC, 98)
         const [inputAmount] = await pool.getInputAmount(outputAmount)
         expect(currencyEquals(inputAmount.currency, DAI)).toBe(true)
-        expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
+        expect(inputAmount.quotient).toEqual(JSBI.BigInt(100))
       })
     })
   })

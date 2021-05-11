@@ -1,5 +1,14 @@
 import { Interface } from '@ethersproject/abi'
-import { BigintIsh, currencyEquals, ETHER, Percent, Token, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
+import {
+  BigintIsh,
+  Currency,
+  currencyEquals,
+  ETHER,
+  Percent,
+  Token,
+  TradeType,
+  validateAndParseAddress
+} from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { Trade } from './entities/trade'
 import { ADDRESS_ZERO } from './constants'
@@ -73,7 +82,10 @@ export abstract class SwapRouter extends SelfPermit {
    * @param trade to produce call parameters for
    * @param options options for the call parameters
    */
-  public static swapCallParameters(trade: Trade, options: SwapOptions): MethodParameters {
+  public static swapCallParameters(
+    trade: Trade<Currency, Currency, TradeType>,
+    options: SwapOptions
+  ): MethodParameters {
     const calldatas: string[] = []
 
     // encode permit if necessary
@@ -86,8 +98,8 @@ export abstract class SwapRouter extends SelfPermit {
 
     const deadline = toHex(options.deadline)
 
-    const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).raw)
-    const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).raw)
+    const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).quotient)
+    const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).quotient)
     const value: string = currencyEquals(trade.inputAmount.currency, ETHER) ? amountIn : toHex(0)
 
     // flag for whether the trade is single hop or not

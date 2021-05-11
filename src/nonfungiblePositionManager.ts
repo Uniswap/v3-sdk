@@ -7,7 +7,8 @@ import {
   Token,
   CurrencyAmount,
   validateAndParseAddress,
-  WETH9
+  WETH9,
+  Currency
 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
@@ -89,12 +90,12 @@ export interface CollectOptions {
   /**
    * Expected value of tokensOwed0, including as-of-yet-unaccounted-for fees/liquidity value to be burned
    */
-  expectedCurrencyOwed0: CurrencyAmount
+  expectedCurrencyOwed0: CurrencyAmount<Currency>
 
   /**
    * Expected value of tokensOwed1, including as-of-yet-unaccounted-for fees/liquidity value to be burned
    */
-  expectedCurrencyOwed1: CurrencyAmount
+  expectedCurrencyOwed1: CurrencyAmount<Currency>
 
   /**
    * The account that should receive the tokens.
@@ -282,14 +283,14 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     if (involvesETH) {
       const ethAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
-        ? options.expectedCurrencyOwed0.raw
-        : options.expectedCurrencyOwed1.raw
+        ? options.expectedCurrencyOwed0.quotient
+        : options.expectedCurrencyOwed1.quotient
       const token = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
         ? (options.expectedCurrencyOwed1.currency as Token)
         : (options.expectedCurrencyOwed0.currency as Token)
       const tokenAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
-        ? options.expectedCurrencyOwed1.raw
-        : options.expectedCurrencyOwed0.raw
+        ? options.expectedCurrencyOwed1.quotient
+        : options.expectedCurrencyOwed0.quotient
 
       calldatas.push(
         NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(ethAmount), recipient])
@@ -377,12 +378,12 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
         expectedCurrencyOwed0: expectedCurrencyOwed0.add(
           currencyEquals(expectedCurrencyOwed0.currency, ETHER)
             ? CurrencyAmount.ether(amount0Min)
-            : new CurrencyAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
+            : CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
         ),
         expectedCurrencyOwed1: expectedCurrencyOwed1.add(
           currencyEquals(expectedCurrencyOwed1.currency, ETHER)
             ? CurrencyAmount.ether(amount1Min)
-            : new CurrencyAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
+            : CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
         ),
         ...rest
       })

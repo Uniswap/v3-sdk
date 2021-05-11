@@ -1,5 +1,5 @@
 import { pack } from '@ethersproject/solidity'
-import { ChainId, Token, WETH9 } from '@uniswap/sdk-core'
+import { Currency, Token, wrappedCurrency } from '@uniswap/sdk-core'
 import { Pool } from '../entities/pool'
 import { Route } from '../entities/route'
 
@@ -8,14 +8,8 @@ import { Route } from '../entities/route'
  * @param route the v3 path to convert to an encoded path
  * @param exactOutput whether the route should be encoded in reverse, for making exact output swaps
  */
-export function encodeRouteToPath(route: Route, exactOutput: boolean): string {
-  const firstInputToken: Token | undefined = route.input.isToken
-    ? route.input
-    : route.input.isEther
-    ? WETH9[route.chainId as ChainId]
-    : undefined
-
-  if (!firstInputToken) throw new Error('Could not wrap input currency')
+export function encodeRouteToPath(route: Route<Currency, Currency>, exactOutput: boolean): string {
+  const firstInputToken: Token = wrappedCurrency(route.input, route.chainId)
 
   const { path, types } = route.pools.reduce(
     (
