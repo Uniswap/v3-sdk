@@ -5,7 +5,6 @@ import {
   currencyEquals,
   ETHER,
   Percent,
-  Token,
   TradeType,
   validateAndParseAddress
 } from '@uniswap/sdk-core'
@@ -90,7 +89,7 @@ export abstract class SwapRouter extends SelfPermit {
 
     // encode permit if necessary
     if (options.inputTokenPermit) {
-      invariant(trade.inputAmount.currency instanceof Token, 'NON_TOKEN_PERMIT')
+      invariant(trade.inputAmount.currency.isToken, 'NON_TOKEN_PERMIT')
       calldatas.push(SwapRouter.encodePermit(trade.inputAmount.currency, options.inputTokenPermit))
     }
 
