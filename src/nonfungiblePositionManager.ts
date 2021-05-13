@@ -1,8 +1,6 @@
 import {
   BigintIsh,
   ChainId,
-  currencyEquals,
-  ETHER,
   Percent,
   Token,
   CurrencyAmount,
@@ -263,9 +261,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     const tokenId = toHex(options.tokenId)
 
-    const involvesETH =
-      currencyEquals(options.expectedCurrencyOwed0.currency, ETHER) ||
-      currencyEquals(options.expectedCurrencyOwed1.currency, ETHER)
+    const involvesETH = options.expectedCurrencyOwed0.currency.isEther || options.expectedCurrencyOwed1.currency.isEther
 
     const recipient = validateAndParseAddress(options.recipient)
 
@@ -282,13 +278,13 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     )
 
     if (involvesETH) {
-      const ethAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
+      const ethAmount = options.expectedCurrencyOwed0.currency.isEther
         ? options.expectedCurrencyOwed0.quotient
         : options.expectedCurrencyOwed1.quotient
-      const token = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
+      const token = options.expectedCurrencyOwed0.currency.isEther
         ? (options.expectedCurrencyOwed1.currency as Token)
         : (options.expectedCurrencyOwed0.currency as Token)
-      const tokenAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
+      const tokenAmount = options.expectedCurrencyOwed0.currency.isEther
         ? options.expectedCurrencyOwed1.quotient
         : options.expectedCurrencyOwed0.quotient
 
@@ -376,12 +372,12 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
         tokenId: options.tokenId,
         // add the underlying value to the expected currency already owed
         expectedCurrencyOwed0: expectedCurrencyOwed0.add(
-          currencyEquals(expectedCurrencyOwed0.currency, ETHER)
+          expectedCurrencyOwed0.currency.isEther
             ? CurrencyAmount.ether(amount0Min)
             : CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
         ),
         expectedCurrencyOwed1: expectedCurrencyOwed1.add(
-          currencyEquals(expectedCurrencyOwed1.currency, ETHER)
+          expectedCurrencyOwed1.currency.isEther
             ? CurrencyAmount.ether(amount1Min)
             : CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
         ),

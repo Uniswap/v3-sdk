@@ -1,13 +1,5 @@
 import { Interface } from '@ethersproject/abi'
-import {
-  BigintIsh,
-  Currency,
-  currencyEquals,
-  ETHER,
-  Percent,
-  TradeType,
-  validateAndParseAddress
-} from '@uniswap/sdk-core'
+import { BigintIsh, Currency, Percent, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { Trade } from './entities/trade'
 import { ADDRESS_ZERO } from './constants'
@@ -99,17 +91,17 @@ export abstract class SwapRouter extends SelfPermit {
 
     const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).quotient)
     const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).quotient)
-    const value: string = currencyEquals(trade.inputAmount.currency, ETHER) ? amountIn : toHex(0)
+    const value: string = trade.inputAmount.currency.isEther ? amountIn : toHex(0)
 
     // flag for whether the trade is single hop or not
     const singleHop = trade.route.pools.length === 1
 
     // flag for whether a refund needs to happen
-    const mustRefund = currencyEquals(trade.inputAmount.currency, ETHER) && trade.tradeType === TradeType.EXACT_OUTPUT
+    const mustRefund = trade.inputAmount.currency.isEther && trade.tradeType === TradeType.EXACT_OUTPUT
 
     // flags for whether funds should be send first to the router
-    const outputIsETHER = currencyEquals(trade.outputAmount.currency, ETHER)
-    const routerMustCustody = outputIsETHER || !!options.fee
+    const outputIsEther = trade.outputAmount.currency.isEther
+    const routerMustCustody = outputIsEther || !!options.fee
 
     if (singleHop) {
       if (trade.tradeType === TradeType.EXACT_INPUT) {
@@ -178,7 +170,7 @@ export abstract class SwapRouter extends SelfPermit {
         const feeRecipient: string = validateAndParseAddress(options.fee.recipient)
         const fee = toHex(options.fee.fee.multiply(10_000).quotient)
 
-        if (outputIsETHER) {
+        if (outputIsEther) {
           calldatas.push(
             SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9WithFee', [amountOut, recipient, fee, feeRecipient])
           )
