@@ -140,14 +140,18 @@ export class Pool {
    * Given an input amount of a token, return the computed output amount and a pool with state updated after the trade
    * @param inputAmount the input amount for which to quote the output amount
    */
-  public async getOutputAmount(inputAmount: CurrencyAmount<Token>): Promise<[CurrencyAmount<Token>, Pool]> {
+  public async getOutputAmount(
+    inputAmount: CurrencyAmount<Token>,
+    sqrtPriceLimitX96?: JSBI
+  ): Promise<[CurrencyAmount<Token>, Pool]> {
     invariant(this.involvesToken(inputAmount.currency), 'TOKEN')
 
     const zeroForOne = inputAmount.currency.equals(this.token0)
 
     const { amountCalculated: outputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
       zeroForOne,
-      inputAmount.quotient
+      inputAmount.quotient,
+      sqrtPriceLimitX96
     )
     const outputToken = zeroForOne ? this.token1 : this.token0
     return [
@@ -160,14 +164,18 @@ export class Pool {
    * Given a desired output amount of a token, return the computed input amount and a pool with state updated after the trade
    * @param outputAmount the output amount for which to quote the input amount
    */
-  public async getInputAmount(outputAmount: CurrencyAmount<Token>): Promise<[CurrencyAmount<Token>, Pool]> {
+  public async getInputAmount(
+    outputAmount: CurrencyAmount<Token>,
+    sqrtPriceLimitX96?: JSBI
+  ): Promise<[CurrencyAmount<Token>, Pool]> {
     invariant(outputAmount.currency.isToken && this.involvesToken(outputAmount.currency), 'TOKEN')
 
     const zeroForOne = outputAmount.currency.equals(this.token1)
 
     const { amountCalculated: inputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
       zeroForOne,
-      JSBI.multiply(outputAmount.quotient, NEGATIVE_ONE)
+      JSBI.multiply(outputAmount.quotient, NEGATIVE_ONE),
+      sqrtPriceLimitX96
     )
     const inputToken = zeroForOne ? this.token0 : this.token1
     return [
