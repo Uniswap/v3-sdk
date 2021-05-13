@@ -296,7 +296,7 @@ describe('Trade', () => {
 
   describe('#maximumAmountIn', () => {
     describe('tradeType = EXACT_INPUT', () => {
-      let exactIn: Trade
+      let exactIn: Trade<Token, Token, TradeType.EXACT_INPUT>
       beforeEach(async () => {
         exactIn = await Trade.fromRoute(
           new Route([pool_0_1, pool_1_2], token0, token2),
@@ -326,7 +326,7 @@ describe('Trade', () => {
     })
 
     describe('tradeType = EXACT_OUTPUT', () => {
-      let exactOut: Trade
+      let exactOut: Trade<Token, Token, TradeType.EXACT_OUTPUT>
       beforeEach(async () => {
         exactOut = await Trade.fromRoute(
           new Route([pool_0_1, pool_1_2], token0, token2),
@@ -359,7 +359,7 @@ describe('Trade', () => {
 
   describe('#minimumAmountOut', () => {
     describe('tradeType = EXACT_INPUT', () => {
-      let exactIn: Trade
+      let exactIn: Trade<Token, Token, TradeType.EXACT_INPUT>
       beforeEach(
         async () =>
           (exactIn = await Trade.fromRoute(
@@ -390,7 +390,7 @@ describe('Trade', () => {
       })
     })
     describe('tradeType = EXACT_OUTPUT', () => {
-      let exactOut: Trade
+      let exactOut: Trade<Token, Token, TradeType.EXACT_OUTPUT>
       beforeEach(async () => {
         exactOut = await Trade.fromRoute(
           new Route([pool_0_1, pool_1_2], token0, token2),
