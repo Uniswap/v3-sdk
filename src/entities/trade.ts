@@ -10,7 +10,8 @@ import {
   TradeType,
   wrappedCurrency,
   wrappedCurrencyAmount,
-  Token
+  Token,
+  computePriceImpact
 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { ONE, ZERO } from '../internalConstants'
@@ -92,6 +93,22 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
         this.inputAmount.quotient,
         this.outputAmount.quotient
       ))
+    )
+  }
+
+  /**
+   * The cached result of the price impact computation
+   * @private
+   */
+  private _priceImpact: Percent | undefined
+
+  /**
+   * Returns the percent difference between the route's mid price and the price impact
+   */
+  public get priceImpact(): Percent {
+    return (
+      this._priceImpact ??
+      (this._priceImpact = computePriceImpact(this.route.midPrice, this.inputAmount, this.outputAmount))
     )
   }
 

@@ -188,6 +188,38 @@ describe('Trade', () => {
     })
   })
 
+  describe('#priceImpact', () => {
+    describe('tradeType = EXACT_INPUT', () => {
+      const exactIn = Trade.createUncheckedTrade({
+        route: new Route([pool_0_1, pool_1_2], token0, token2),
+        inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
+        outputAmount: CurrencyAmount.fromRawAmount(token2, 69),
+        tradeType: TradeType.EXACT_INPUT
+      })
+      it('is cached', () => {
+        expect(exactIn.priceImpact === exactIn.priceImpact).toStrictEqual(true)
+      })
+      it('is correct', () => {
+        expect(exactIn.priceImpact.toSignificant(3)).toEqual('17.2')
+      })
+    })
+    describe('tradeType = EXACT_OUTPUT', () => {
+      const exactOut = Trade.createUncheckedTrade({
+        route: new Route([pool_0_1, pool_1_2], token0, token2),
+        inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
+        outputAmount: CurrencyAmount.fromRawAmount(token2, 100),
+        tradeType: TradeType.EXACT_OUTPUT
+      })
+
+      it('is cached', () => {
+        expect(exactOut.priceImpact === exactOut.priceImpact).toStrictEqual(true)
+      })
+      it('is correct', () => {
+        expect(exactOut.priceImpact.toSignificant(3)).toEqual('23.1')
+      })
+    })
+  })
+
   describe('#bestTradeExactIn', () => {
     it('throws with empty pools', async () => {
       await expect(
