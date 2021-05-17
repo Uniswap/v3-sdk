@@ -36,7 +36,7 @@ function maxLiquidityForAmount1(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount
  * @param sqrtRatioBX96 price at upper boundary
  * @param amount0 token0 amount
  * @param amount1 token1 amount
- * @param useFullPrecision if true, liquidity will be maximized according to what the router can calculate,
+ * @param useFullPrecision if false, liquidity will be maximized according to what the router can calculate,
  * not what core can theoretically support
  */
 export function maxLiquidityForAmounts(

@@ -287,7 +287,7 @@ export class Position {
    * @param tickUpper the upper tick of the position
    * @param amount0 token0 amount
    * @param amount1 token1 amount
-   * @param useFullPrecision if true, liquidity will be maximized according to what the router can calculate,
+   * @param useFullPrecision if false, liquidity will be maximized according to what the router can calculate,
    * not what core can theoretically support
    */
   public static fromAmounts({
