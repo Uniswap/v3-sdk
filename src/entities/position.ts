@@ -156,18 +156,27 @@ export class Position {
       TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper)
     )
 
+    // because the router is imprecise, we need to calculate the position that will be created (assuming no slippage)
+    const positionThatWillBeCreated = Position.fromAmounts({
+      pool: this.pool,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper,
+      ...this.mintAmounts, // the mint amounts are what will be passed as calldata
+      useFullPrecision: false
+    })
+
     // we want the smaller amounts...
     // ...which occurs at the upper price for amount0...
     const { amount0 } = new Position({
       pool: poolUpper,
-      liquidity: this.liquidity,
+      liquidity: positionThatWillBeCreated.liquidity,
       tickLower: this.tickLower,
       tickUpper: this.tickUpper
     }).mintAmounts
     // ...and the lower for amount1
     const { amount1 } = new Position({
       pool: poolLower,
-      liquidity: this.liquidity,
+      liquidity: positionThatWillBeCreated.liquidity,
       tickLower: this.tickLower,
       tickUpper: this.tickUpper
     }).mintAmounts
@@ -278,19 +287,23 @@ export class Position {
    * @param tickUpper the upper tick of the position
    * @param amount0 token0 amount
    * @param amount1 token1 amount
+   * @param useFullPrecision if false, liquidity will be maximized according to what the router can calculate,
+   * not what core can theoretically support
    */
   public static fromAmounts({
     pool,
     tickLower,
     tickUpper,
     amount0,
-    amount1
+    amount1,
+    useFullPrecision
   }: {
     pool: Pool
     tickLower: number
     tickUpper: number
     amount0: BigintIsh
     amount1: BigintIsh
+    useFullPrecision: boolean
   }) {
     const sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower)
     const sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper)
@@ -298,7 +311,14 @@ export class Position {
       pool,
       tickLower,
       tickUpper,
-      liquidity: maxLiquidityForAmounts(pool.sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1)
+      liquidity: maxLiquidityForAmounts(
+        pool.sqrtRatioX96,
+        sqrtRatioAX96,
+        sqrtRatioBX96,
+        amount0,
+        amount1,
+        useFullPrecision
+      )
     })
   }
 
@@ -308,19 +328,23 @@ export class Position {
    * @param tickLower the lower tick
    * @param tickUpper the upper tick
    * @param amount0 the desired amount of token0
+   * @param useFullPrecision if true, liquidity will be maximized according to what the router can calculate,
+   * not what core can theoretically support
    */
   public static fromAmount0({
     pool,
     tickLower,
     tickUpper,
-    amount0
+    amount0,
+    useFullPrecision
   }: {
     pool: Pool
     tickLower: number
     tickUpper: number
     amount0: BigintIsh
+    useFullPrecision: boolean
   }) {
-    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0, amount1: MaxUint256 })
+    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0, amount1: MaxUint256, useFullPrecision })
   }
 
   /**
@@ -341,6 +365,7 @@ export class Position {
     tickUpper: number
     amount1: BigintIsh
   }) {
-    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0: MaxUint256, amount1 })
+    // this function always uses full precision,
+    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0: MaxUint256, amount1, useFullPrecision: true })
   }
 }

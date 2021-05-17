@@ -186,7 +186,7 @@ describe('Position', () => {
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
-        expect(amount0.toString()).toEqual('49949961958869841754182')
+        expect(amount0.toString()).toEqual('49949961958869841738198')
         expect(amount1.toString()).toEqual('0')
       })
 
@@ -212,7 +212,7 @@ describe('Position', () => {
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
-        expect(amount0.toString()).toEqual('120054069145287995769397')
+        expect(amount0.toString()).toEqual('120054069145287995740584')
         expect(amount1.toString()).toEqual('79831926243')
       })
     })
@@ -229,7 +229,7 @@ describe('Position', () => {
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
-        expect(amount0.toString()).toEqual('49949961958869841754182')
+        expect(amount0.toString()).toEqual('49949961958869841738198')
         expect(amount1.toString()).toEqual('0')
       })
 
@@ -255,7 +255,7 @@ describe('Position', () => {
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
-        expect(amount0.toString()).toEqual('95063440240746211454823')
+        expect(amount0.toString()).toEqual('95063440240746211432007')
         expect(amount1.toString()).toEqual('54828800461')
       })
     })
