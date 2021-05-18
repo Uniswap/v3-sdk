@@ -1529,10 +1529,10 @@
   resolved "https://registry.yarnpkg.com/@uniswap/lib/-/lib-4.0.1-alpha.tgz#2881008e55f075344675b3bca93f020b028fbd02"
   integrity sha512-f6UIliwBbRsgVLxIaBANF6w09tYqc6Y/qXdsrbEmXHyFA7ILiKrIwRFXe1yOg8M3cksgVsO9N7yuL2DdCGQKBA==
 
-"@uniswap/sdk-core@^1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-1.0.10.tgz#a30118ac29319bd83113f9c90eab99f803ec9267"
-  integrity sha512-8aD3xkzNDI3Ffh7PdLIcmraZr/6knqQuamVOv96EN8lhouEYH2ZuRbBWb7eZa/W7NwOLjlXM7XHi5gWJKzvbkg==
+"@uniswap/sdk-core@^3.0.0-alpha.1":
+  version "3.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@uniswap/sdk-core/-/sdk-core-3.0.0-alpha.1.tgz#8d735755818658fd4a6113cb6d30ed637f9e8347"
+  integrity sha512-dCRBMKtmVmQCoG6sju3j/ki81e82zyqcWm0g+eU3JU0hzbSo6i31wzkOQPHMRO6FcYIJ6+9qx3Sy0B7VoZ6t9g==
   dependencies:
     "@ethersproject/address" "^5.0.2"
     big.js "^5.2.2"
@@ -1546,20 +1546,20 @@
   resolved "https://registry.yarnpkg.com/@uniswap/v2-core/-/v2-core-1.0.1.tgz#af8f508bf183204779938969e2e54043e147d425"
   integrity sha512-MtybtkUPSyysqLY2U210NBDeCHX+ltHt3oADGdjqoThZaFRDKwM6k1Nb3F0A3hk5hwuQvytFWhrWHOEq6nVJ8Q==
 
-"@uniswap/v3-core@1.0.0-rc.2", "@uniswap/v3-core@^1.0.0-rc.2":
-  version "1.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-core/-/v3-core-1.0.0-rc.2.tgz#a1afb3253a7295bec6165ad1d960121e6851a576"
-  integrity sha512-vsqkqAHPCKsVi0nWwWeX+mHnSTJ8ZUdu1zAVXB9Mj9A+aeBQGV9foRKs9ufDGJq7S1nqmz+7FdjSOcVoeiUqgQ==
+"@uniswap/v3-core@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-core/-/v3-core-1.0.0.tgz#6c24adacc4c25dceee0ba3ca142b35adbd7e359d"
+  integrity sha512-kSC4djMGKMHj7sLMYVnn61k9nu+lHjMIxgg9CDQT+s2QYLoA56GbSK9Oxr+qJXzzygbkrmuY6cwgP6cW2JXPFA==
 
-"@uniswap/v3-periphery@^1.0.0-beta.23":
-  version "1.0.0-beta.23"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.0.0-beta.23.tgz#d8f55136b894a6101e050205f0d6a61bb8d28f67"
-  integrity sha512-5cvK8/ITIVql+iZdPd0TR5EiNNm55ejAspjIxcsnGKyflaeQb+ePw6X4HTruTPGvPoaFvk+UirYeezUspXhlcg==
+"@uniswap/v3-periphery@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery/-/v3-periphery-1.0.0.tgz#8e789dcd70bdd06e01e21dd75372dc76ab38ea47"
+  integrity sha512-kRqUrjnyh+X1wJdSENPDFr9sjRVebv2KyLtfqDOPij0dXJ69GspFU2qrZXjouc6LYdkWG7x3fagiTlw0eGniYQ==
   dependencies:
     "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
     "@uniswap/lib" "^4.0.1-alpha"
     "@uniswap/v2-core" "1.0.1"
-    "@uniswap/v3-core" "1.0.0-rc.2"
+    "@uniswap/v3-core" "1.0.0"
     base64-sol "1.0.1"
 
 abab@^2.0.0:

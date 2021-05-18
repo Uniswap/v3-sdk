@@ -1,4 +1,4 @@
-import { ChainId, Token, TokenAmount, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Token, CurrencyAmount, WETH9, currencyEquals } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from '../constants'
 import { nearestUsableTick } from '../utils/nearestUsableTick'
 import { TickMath } from '../utils/tickMath'
@@ -71,7 +71,7 @@ describe('Pool', () => {
   describe('#getAddress', () => {
     it('matches an example', () => {
       const result = Pool.getAddress(USDC, DAI, FeeAmount.LOW)
-      expect(result).toEqual('0x760E81283C2eb407D3307D5cAd5B5Ee8972CB84a')
+      expect(result).toEqual('0x6c6Bc977E13Df9b0de53b251522280BB72383700')
     })
   })
 
@@ -194,33 +194,33 @@ describe('Pool', () => {
 
     describe('#getOutputAmount', () => {
       it('USDC -> DAI', async () => {
-        const inputAmount = new TokenAmount(USDC, 100)
+        const inputAmount = CurrencyAmount.fromRawAmount(USDC, 100)
         const [outputAmount] = await pool.getOutputAmount(inputAmount)
-        expect(outputAmount.token.equals(DAI)).toBe(true)
-        expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
+        expect(currencyEquals(outputAmount.currency, DAI)).toBe(true)
+        expect(outputAmount.quotient).toEqual(JSBI.BigInt(98))
       })
 
       it('DAI -> USDC', async () => {
-        const inputAmount = new TokenAmount(DAI, 100)
+        const inputAmount = CurrencyAmount.fromRawAmount(DAI, 100)
         const [outputAmount] = await pool.getOutputAmount(inputAmount)
-        expect(outputAmount.token.equals(USDC)).toBe(true)
-        expect(outputAmount.raw).toEqual(JSBI.BigInt(98))
+        expect(currencyEquals(outputAmount.currency, USDC)).toBe(true)
+        expect(outputAmount.quotient).toEqual(JSBI.BigInt(98))
       })
     })
 
     describe('#getInputAmount', () => {
       it('USDC -> DAI', async () => {
-        const outputAmount = new TokenAmount(DAI, 98)
+        const outputAmount = CurrencyAmount.fromRawAmount(DAI, 98)
         const [inputAmount] = await pool.getInputAmount(outputAmount)
-        expect(inputAmount.token.equals(USDC)).toBe(true)
-        expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
+        expect(currencyEquals(inputAmount.currency, USDC)).toBe(true)
+        expect(inputAmount.quotient).toEqual(JSBI.BigInt(100))
       })
 
       it('DAI -> USDC', async () => {
-        const outputAmount = new TokenAmount(USDC, 98)
+        const outputAmount = CurrencyAmount.fromRawAmount(USDC, 98)
         const [inputAmount] = await pool.getInputAmount(outputAmount)
-        expect(inputAmount.token.equals(DAI)).toBe(true)
-        expect(inputAmount.raw).toEqual(JSBI.BigInt(100))
+        expect(currencyEquals(inputAmount.currency, DAI)).toBe(true)
+        expect(inputAmount.quotient).toEqual(JSBI.BigInt(100))
       })
     })
   })

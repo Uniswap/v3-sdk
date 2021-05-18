@@ -1,4 +1,4 @@
-import { ChainId, Currency, Token, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount } from '../constants'
 import { Pool } from '../entities/pool'
 import { Route } from '../entities/route'
@@ -18,13 +18,13 @@ describe('#encodeRouteToPath', () => {
   const pool_0_weth = new Pool(token0, weth, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, [])
   const pool_1_weth = new Pool(token1, weth, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, [])
 
-  const route_0_1 = new Route([pool_0_1_medium], token0)
-  const route_0_1_2 = new Route([pool_0_1_medium, pool_1_2_low], token0)
+  const route_0_1 = new Route([pool_0_1_medium], token0, token1)
+  const route_0_1_2 = new Route([pool_0_1_medium, pool_1_2_low], token0, token2)
 
-  const route_0_weth = new Route([pool_0_weth], token0, Currency.ETHER)
-  const route_0_1_weth = new Route([pool_0_1_medium, pool_1_weth], token0, Currency.ETHER)
-  const route_weth_0 = new Route([pool_0_weth], Currency.ETHER)
-  const route_weth_0_1 = new Route([pool_0_weth, pool_0_1_medium], Currency.ETHER)
+  const route_0_weth = new Route([pool_0_weth], token0, ETHER)
+  const route_0_1_weth = new Route([pool_0_1_medium, pool_1_weth], token0, ETHER)
+  const route_weth_0 = new Route([pool_0_weth], ETHER, token0)
+  const route_weth_0_1 = new Route([pool_0_weth, pool_0_1_medium], ETHER, token1)
 
   it('packs them for exact input single hop', () => {
     expect(encodeRouteToPath(route_0_1, false)).toEqual(

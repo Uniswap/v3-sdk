@@ -1,15 +1,12 @@
 import {
   BigintIsh,
   ChainId,
-  CurrencyAmount,
-  currencyEquals,
-  ETHER,
-  Fraction,
   Percent,
   Token,
-  TokenAmount,
+  CurrencyAmount,
   validateAndParseAddress,
-  WETH9
+  WETH9,
+  Currency
 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
@@ -91,12 +88,12 @@ export interface CollectOptions {
   /**
    * Expected value of tokensOwed0, including as-of-yet-unaccounted-for fees/liquidity value to be burned
    */
-  expectedCurrencyOwed0: CurrencyAmount
+  expectedCurrencyOwed0: CurrencyAmount<Currency>
 
   /**
    * Expected value of tokensOwed1, including as-of-yet-unaccounted-for fees/liquidity value to be burned
    */
-  expectedCurrencyOwed1: CurrencyAmount
+  expectedCurrencyOwed1: CurrencyAmount<Currency>
 
   /**
    * The account that should receive the tokens.
@@ -137,7 +134,7 @@ export interface RemoveLiquidityOptions {
   deadline: BigintIsh
 
   /**
-   * Whether the NFT should be burned if the entire position is being exited, by default true.
+   * Whether the NFT should be burned if the entire position is being exited, by default false.
    */
   burnToken?: boolean
 
@@ -171,9 +168,9 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmounts
 
     // adjust for slippage
-    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = toHex(ONE_LESS_TOLERANCE.multiply(amount0Desired).quotient)
-    const amount1Min = toHex(ONE_LESS_TOLERANCE.multiply(amount1Desired).quotient)
+    const minimumAmounts = position.mintAmountsWithSlippage(options.slippageTolerance)
+    const amount0Min = toHex(minimumAmounts.amount0)
+    const amount1Min = toHex(minimumAmounts.amount1)
 
     const deadline = toHex(options.deadline)
 
@@ -240,9 +237,14 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       const weth = WETH9[position.pool.chainId as ChainId]
       invariant(weth && (position.pool.token0.equals(weth) || position.pool.token1.equals(weth)), 'NO_WETH')
 
-      value = toHex(position.pool.token0.equals(weth) ? amount0Desired : amount1Desired)
+      const wethValue = position.pool.token0.equals(weth) ? amount0Desired : amount1Desired
 
-      calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
+      // we only need to refund if we're actually sending ETH
+      if (JSBI.greaterThan(wethValue, ZERO)) {
+        calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
+      }
+
+      value = toHex(wethValue)
     }
 
     return {
@@ -259,9 +261,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     const tokenId = toHex(options.tokenId)
 
-    const involvesETH =
-      currencyEquals(options.expectedCurrencyOwed0.currency, ETHER) ||
-      currencyEquals(options.expectedCurrencyOwed1.currency, ETHER)
+    const involvesETH = options.expectedCurrencyOwed0.currency.isEther || options.expectedCurrencyOwed1.currency.isEther
 
     const recipient = validateAndParseAddress(options.recipient)
 
@@ -278,15 +278,15 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     )
 
     if (involvesETH) {
-      const ethAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
-        ? options.expectedCurrencyOwed0.raw
-        : options.expectedCurrencyOwed1.raw
-      const token = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
+      const ethAmount = options.expectedCurrencyOwed0.currency.isEther
+        ? options.expectedCurrencyOwed0.quotient
+        : options.expectedCurrencyOwed1.quotient
+      const token = options.expectedCurrencyOwed0.currency.isEther
         ? (options.expectedCurrencyOwed1.currency as Token)
         : (options.expectedCurrencyOwed0.currency as Token)
-      const tokenAmount = currencyEquals(options.expectedCurrencyOwed0.currency, ETHER)
-        ? options.expectedCurrencyOwed1.raw
-        : options.expectedCurrencyOwed0.raw
+      const tokenAmount = options.expectedCurrencyOwed0.currency.isEther
+        ? options.expectedCurrencyOwed1.quotient
+        : options.expectedCurrencyOwed0.quotient
 
       calldatas.push(
         NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(ethAmount), recipient])
@@ -336,9 +336,9 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     invariant(JSBI.greaterThan(partialPosition.liquidity, ZERO), 'ZERO_LIQUIDITY')
 
     // slippage-adjusted underlying amounts
-    const ONE_LESS_TOLERANCE = new Fraction(ONE).subtract(options.slippageTolerance)
-    const amount0Min = ONE_LESS_TOLERANCE.multiply(partialPosition.amount0.raw).quotient
-    const amount1Min = ONE_LESS_TOLERANCE.multiply(partialPosition.amount1.raw).quotient
+    const { amount0: amount0Min, amount1: amount1Min } = partialPosition.burnAmountsWithSlippage(
+      options.slippageTolerance
+    )
 
     if (options.permit) {
       calldatas.push(
@@ -372,21 +372,21 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
         tokenId: options.tokenId,
         // add the underlying value to the expected currency already owed
         expectedCurrencyOwed0: expectedCurrencyOwed0.add(
-          currencyEquals(expectedCurrencyOwed0.currency, ETHER)
+          expectedCurrencyOwed0.currency.isEther
             ? CurrencyAmount.ether(amount0Min)
-            : new TokenAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
+            : CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
         ),
         expectedCurrencyOwed1: expectedCurrencyOwed1.add(
-          currencyEquals(expectedCurrencyOwed1.currency, ETHER)
+          expectedCurrencyOwed1.currency.isEther
             ? CurrencyAmount.ether(amount1Min)
-            : new TokenAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
+            : CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
         ),
         ...rest
       })
     )
 
     if (options.liquidityPercentage.equalTo(ONE)) {
-      if (options.burnToken !== false) {
+      if (options.burnToken) {
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [tokenId]))
       }
     } else {

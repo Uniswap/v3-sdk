@@ -1,4 +1,4 @@
-import { BigintIsh, MaxUint256, Price, TokenAmount } from '@uniswap/sdk-core'
+import { BigintIsh, MaxUint256, Percent, Price, CurrencyAmount, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { ZERO } from '../internalConstants'
@@ -6,6 +6,7 @@ import { maxLiquidityForAmounts } from '../utils/maxLiquidityForAmounts'
 import { tickToPrice } from '../utils/priceTickConversions'
 import { SqrtPriceMath } from '../utils/sqrtPriceMath'
 import { TickMath } from '../utils/tickMath'
+import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
 import { Pool } from './pool'
 
 interface PositionConstructorArgs {
@@ -25,8 +26,8 @@ export class Position {
   public readonly liquidity: JSBI
 
   // cached resuts for the getters
-  private _token0Amount: TokenAmount | null = null
-  private _token1Amount: TokenAmount | null = null
+  private _token0Amount: CurrencyAmount<Token> | null = null
+  private _token1Amount: CurrencyAmount<Token> | null = null
   private _mintAmounts: Readonly<{ amount0: JSBI; amount1: JSBI }> | null = null
 
   /**
@@ -50,24 +51,24 @@ export class Position {
   /**
    * Returns the price of token0 at the lower tick
    */
-  public get token0PriceLower(): Price {
+  public get token0PriceLower(): Price<Token, Token> {
     return tickToPrice(this.pool.token0, this.pool.token1, this.tickLower)
   }
 
   /**
    * Returns the price of token0 at the upper tick
    */
-  public get token0PriceUpper(): Price {
+  public get token0PriceUpper(): Price<Token, Token> {
     return tickToPrice(this.pool.token0, this.pool.token1, this.tickUpper)
   }
 
   /**
    * Returns the amount of token0 that this position's liquidity could be burned for at the current pool price
    */
-  public get amount0(): TokenAmount {
+  public get amount0(): CurrencyAmount<Token> {
     if (this._token0Amount === null) {
       if (this.pool.tickCurrent < this.tickLower) {
-        this._token0Amount = new TokenAmount(
+        this._token0Amount = CurrencyAmount.fromRawAmount(
           this.pool.token0,
           SqrtPriceMath.getAmount0Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -77,7 +78,7 @@ export class Position {
           )
         )
       } else if (this.pool.tickCurrent < this.tickUpper) {
-        this._token0Amount = new TokenAmount(
+        this._token0Amount = CurrencyAmount.fromRawAmount(
           this.pool.token0,
           SqrtPriceMath.getAmount0Delta(
             this.pool.sqrtRatioX96,
@@ -87,7 +88,7 @@ export class Position {
           )
         )
       } else {
-        this._token0Amount = new TokenAmount(this.pool.token0, ZERO)
+        this._token0Amount = CurrencyAmount.fromRawAmount(this.pool.token0, ZERO)
       }
     }
     return this._token0Amount
@@ -96,12 +97,12 @@ export class Position {
   /**
    * Returns the amount of token1 that this position's liquidity could be burned for at the current pool price
    */
-  public get amount1(): TokenAmount {
+  public get amount1(): CurrencyAmount<Token> {
     if (this._token1Amount === null) {
       if (this.pool.tickCurrent < this.tickLower) {
-        this._token1Amount = new TokenAmount(this.pool.token0, ZERO)
+        this._token1Amount = CurrencyAmount.fromRawAmount(this.pool.token1, ZERO)
       } else if (this.pool.tickCurrent < this.tickUpper) {
-        this._token1Amount = new TokenAmount(
+        this._token1Amount = CurrencyAmount.fromRawAmount(
           this.pool.token1,
           SqrtPriceMath.getAmount1Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -111,7 +112,7 @@ export class Position {
           )
         )
       } else {
-        this._token1Amount = new TokenAmount(
+        this._token1Amount = CurrencyAmount.fromRawAmount(
           this.pool.token1,
           SqrtPriceMath.getAmount1Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -126,7 +127,114 @@ export class Position {
   }
 
   /**
-   * Returns the minimum amount that must be sent in order to mint the amount of liquidity held by the position at
+   * Returns the minimum amounts that must be sent in order to safely mint the amount of liquidity held by the position
+   * with the given slippage tolerance
+   * @param slippageTolerance tolerance of unfavorable slippage from the current price
+   */
+  public mintAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
+    // get lower/upper prices
+    const priceLower = this.pool.token0Price.asFraction.multiply(new Percent(1).subtract(slippageTolerance))
+    const priceUpper = this.pool.token0Price.asFraction.multiply(slippageTolerance.add(1))
+    const sqrtRatioX96Lower = encodeSqrtRatioX96(priceLower.numerator, priceLower.denominator)
+    const sqrtRatioX96Upper = encodeSqrtRatioX96(priceUpper.numerator, priceUpper.denominator)
+
+    // construct counterfactual pools
+    const poolLower = new Pool(
+      this.pool.token0,
+      this.pool.token1,
+      this.pool.fee,
+      sqrtRatioX96Lower,
+      0 /* liquidity doesn't matter */,
+      TickMath.getTickAtSqrtRatio(sqrtRatioX96Lower)
+    )
+    const poolUpper = new Pool(
+      this.pool.token0,
+      this.pool.token1,
+      this.pool.fee,
+      sqrtRatioX96Upper,
+      0 /* liquidity doesn't matter */,
+      TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper)
+    )
+
+    // because the router is imprecise, we need to calculate the position that will be created (assuming no slippage)
+    const positionThatWillBeCreated = Position.fromAmounts({
+      pool: this.pool,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper,
+      ...this.mintAmounts, // the mint amounts are what will be passed as calldata
+      useFullPrecision: false
+    })
+
+    // we want the smaller amounts...
+    // ...which occurs at the upper price for amount0...
+    const { amount0 } = new Position({
+      pool: poolUpper,
+      liquidity: positionThatWillBeCreated.liquidity,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper
+    }).mintAmounts
+    // ...and the lower for amount1
+    const { amount1 } = new Position({
+      pool: poolLower,
+      liquidity: positionThatWillBeCreated.liquidity,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper
+    }).mintAmounts
+
+    return { amount0, amount1 }
+  }
+
+  /**
+   * Returns the minimum amounts that should be requested in order to safely burn the amount of liquidity held by the
+   * position with the given slippage tolerance
+   * @param slippageTolerance tolerance of unfavorable slippage from the current price
+   */
+  public burnAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
+    // get lower/upper prices
+    const priceLower = this.pool.token0Price.asFraction.multiply(new Percent(1).subtract(slippageTolerance))
+    const priceUpper = this.pool.token0Price.asFraction.multiply(slippageTolerance.add(1))
+    const sqrtRatioX96Lower = encodeSqrtRatioX96(priceLower.numerator, priceLower.denominator)
+    const sqrtRatioX96Upper = encodeSqrtRatioX96(priceUpper.numerator, priceUpper.denominator)
+
+    // construct counterfactual pools
+    const poolLower = new Pool(
+      this.pool.token0,
+      this.pool.token1,
+      this.pool.fee,
+      sqrtRatioX96Lower,
+      0 /* liquidity doesn't matter */,
+      TickMath.getTickAtSqrtRatio(sqrtRatioX96Lower)
+    )
+    const poolUpper = new Pool(
+      this.pool.token0,
+      this.pool.token1,
+      this.pool.fee,
+      sqrtRatioX96Upper,
+      0 /* liquidity doesn't matter */,
+      TickMath.getTickAtSqrtRatio(sqrtRatioX96Upper)
+    )
+
+    // we want the smaller amounts...
+    // ...which occurs at the upper price for amount0...
+    const amount0 = new Position({
+      pool: poolUpper,
+      liquidity: this.liquidity,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper
+    }).amount0
+    // ...and the lower for amount1
+    const amount1 = new Position({
+      pool: poolLower,
+      liquidity: this.liquidity,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper
+    }).amount1
+
+    return { amount0: amount0.quotient, amount1: amount1.quotient }
+  }
+
+  /**
+   * Returns the minimum amounts that must be sent in order to mint the amount of liquidity held by the position at
    * the current price for the pool
    */
   public get mintAmounts(): Readonly<{ amount0: JSBI; amount1: JSBI }> {
@@ -179,19 +287,23 @@ export class Position {
    * @param tickUpper the upper tick of the position
    * @param amount0 token0 amount
    * @param amount1 token1 amount
+   * @param useFullPrecision if false, liquidity will be maximized according to what the router can calculate,
+   * not what core can theoretically support
    */
   public static fromAmounts({
     pool,
     tickLower,
     tickUpper,
     amount0,
-    amount1
+    amount1,
+    useFullPrecision
   }: {
     pool: Pool
     tickLower: number
     tickUpper: number
     amount0: BigintIsh
     amount1: BigintIsh
+    useFullPrecision: boolean
   }) {
     const sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLower)
     const sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickUpper)
@@ -199,7 +311,14 @@ export class Position {
       pool,
       tickLower,
       tickUpper,
-      liquidity: maxLiquidityForAmounts(pool.sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1)
+      liquidity: maxLiquidityForAmounts(
+        pool.sqrtRatioX96,
+        sqrtRatioAX96,
+        sqrtRatioBX96,
+        amount0,
+        amount1,
+        useFullPrecision
+      )
     })
   }
 
@@ -209,19 +328,23 @@ export class Position {
    * @param tickLower the lower tick
    * @param tickUpper the upper tick
    * @param amount0 the desired amount of token0
+   * @param useFullPrecision if true, liquidity will be maximized according to what the router can calculate,
+   * not what core can theoretically support
    */
   public static fromAmount0({
     pool,
     tickLower,
     tickUpper,
-    amount0
+    amount0,
+    useFullPrecision
   }: {
     pool: Pool
     tickLower: number
     tickUpper: number
     amount0: BigintIsh
+    useFullPrecision: boolean
   }) {
-    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0, amount1: MaxUint256 })
+    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0, amount1: MaxUint256, useFullPrecision })
   }
 
   /**
@@ -242,6 +365,7 @@ export class Position {
     tickUpper: number
     amount1: BigintIsh
   }) {
-    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0: MaxUint256, amount1 })
+    // this function always uses full precision,
+    return Position.fromAmounts({ pool, tickLower, tickUpper, amount0: MaxUint256, amount1, useFullPrecision: true })
   }
 }
