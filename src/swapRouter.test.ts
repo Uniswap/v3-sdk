@@ -1,15 +1,16 @@
-import { ChainId, CurrencyAmount, ETHER, Percent, Token, TradeType, WETH9 } from '@uniswap/sdk-core'
+import JSBI from 'jsbi'
+import { CurrencyAmount, Ether, Percent, Token, TradeType, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from './constants'
 import { Pool } from './entities/pool'
 import { SwapRouter } from './swapRouter'
 import { nearestUsableTick, TickMath } from './utils'
 import { encodeSqrtRatioX96 } from './utils/encodeSqrtRatioX96'
 import { Route, Trade } from './entities'
-import JSBI from 'jsbi'
 
 describe('SwapRouter', () => {
-  const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
-  const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
+  const ETHER = Ether.onChain(1)
+  const token0 = new Token(1, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
+  const token1 = new Token(1, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
 
   const feeAmount = FeeAmount.MEDIUM
   const sqrtRatioX96 = encodeSqrtRatioX96(1, 1)
@@ -35,7 +36,7 @@ describe('SwapRouter', () => {
       }
     ]
   )
-  const WETH = WETH9[ChainId.MAINNET]
+  const WETH = WETH9[1]
   const pool_1_weth = new Pool(
     token1,
     WETH,
@@ -137,7 +138,7 @@ describe('SwapRouter', () => {
     it('ETH in exact input', async () => {
       const trade = await Trade.fromRoute(
         new Route([pool_1_weth], ETHER, token1),
-        CurrencyAmount.ether(100),
+        CurrencyAmount.ether(1, 100),
         TradeType.EXACT_INPUT
       )
       const { calldata, value } = SwapRouter.swapCallParameters(trade, {
@@ -191,7 +192,7 @@ describe('SwapRouter', () => {
     it('ETH out exact output', async () => {
       const trade = await Trade.fromRoute(
         new Route([pool_1_weth], token1, ETHER),
-        CurrencyAmount.ether(100),
+        CurrencyAmount.ether(1, 100),
         TradeType.EXACT_OUTPUT
       )
       const { calldata, value } = SwapRouter.swapCallParameters(trade, {

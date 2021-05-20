@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 
-import { ChainId, Currency, Price, Token, wrappedCurrency } from '@uniswap/sdk-core'
+import { Currency, Price, Token } from '@uniswap/sdk-core'
 import { Pool } from './pool'
 
 /**
@@ -21,10 +21,10 @@ export class Route<TInput extends Currency, TOutput extends Currency> {
     const allOnSameChain = pools.every(pool => pool.chainId === chainId)
     invariant(allOnSameChain, 'CHAIN_IDS')
 
-    const wrappedInput = wrappedCurrency(input, chainId)
+    const wrappedInput = input.wrapped
     invariant(pools[0].involvesToken(wrappedInput), 'INPUT')
 
-    invariant(pools[pools.length - 1].involvesToken(wrappedCurrency(output, chainId)), 'OUTPUT')
+    invariant(pools[pools.length - 1].involvesToken(output.wrapped), 'OUTPUT')
 
     /**
      * Normalizes token0-token1 order and selects the next token/fee step to add to the path
@@ -43,22 +43,8 @@ export class Route<TInput extends Currency, TOutput extends Currency> {
     this.output = output ?? tokenPath[tokenPath.length - 1]
   }
 
-  public get chainId(): ChainId | number {
+  public get chainId(): number {
     return this.pools[0].chainId
-  }
-
-  /**
-   * Returns the token representation of the input currency. If the input currency is Ether, returns the wrapped ether token.
-   */
-  public get inputToken(): Token {
-    return wrappedCurrency(this.input, this.chainId)
-  }
-
-  /**
-   * Returns the token representation of the output currency. If the output currency is Ether, returns the wrapped ether token.
-   */
-  public get outputToken(): Token {
-    return wrappedCurrency(this.output, this.chainId)
   }
 
   /**
@@ -79,7 +65,7 @@ export class Route<TInput extends Currency, TOutput extends Currency> {
               price: price.multiply(pool.token1Price)
             }
       },
-      this.pools[0].token0.equals(this.inputToken)
+      this.pools[0].token0.equals(this.input.wrapped)
         ? {
             nextInput: this.pools[0].token1,
             price: this.pools[0].token0Price

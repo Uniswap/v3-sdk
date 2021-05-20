@@ -1,13 +1,4 @@
-import {
-  BigintIsh,
-  ChainId,
-  Percent,
-  Token,
-  CurrencyAmount,
-  validateAndParseAddress,
-  WETH9,
-  Currency
-} from '@uniswap/sdk-core'
+import { BigintIsh, Percent, Token, CurrencyAmount, validateAndParseAddress, WETH9, Currency } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { Position } from './entities/position'
@@ -234,7 +225,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     let value: string = toHex(0)
 
     if (options.useEther) {
-      const weth = WETH9[position.pool.chainId as ChainId]
+      const weth = WETH9[position.pool.chainId]
       invariant(weth && (position.pool.token0.equals(weth) || position.pool.token1.equals(weth)), 'NO_WETH')
 
       const wethValue = position.pool.token0.equals(weth) ? amount0Desired : amount1Desired
@@ -261,7 +252,8 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     const tokenId = toHex(options.tokenId)
 
-    const involvesETH = options.expectedCurrencyOwed0.currency.isEther || options.expectedCurrencyOwed1.currency.isEther
+    const involvesETH =
+      options.expectedCurrencyOwed0.currency.isNative || options.expectedCurrencyOwed1.currency.isNative
 
     const recipient = validateAndParseAddress(options.recipient)
 
@@ -278,13 +270,13 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     )
 
     if (involvesETH) {
-      const ethAmount = options.expectedCurrencyOwed0.currency.isEther
+      const ethAmount = options.expectedCurrencyOwed0.currency.isNative
         ? options.expectedCurrencyOwed0.quotient
         : options.expectedCurrencyOwed1.quotient
-      const token = options.expectedCurrencyOwed0.currency.isEther
+      const token = options.expectedCurrencyOwed0.currency.isNative
         ? (options.expectedCurrencyOwed1.currency as Token)
         : (options.expectedCurrencyOwed0.currency as Token)
-      const tokenAmount = options.expectedCurrencyOwed0.currency.isEther
+      const tokenAmount = options.expectedCurrencyOwed0.currency.isNative
         ? options.expectedCurrencyOwed1.quotient
         : options.expectedCurrencyOwed0.quotient
 
@@ -372,14 +364,10 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
         tokenId: options.tokenId,
         // add the underlying value to the expected currency already owed
         expectedCurrencyOwed0: expectedCurrencyOwed0.add(
-          expectedCurrencyOwed0.currency.isEther
-            ? CurrencyAmount.ether(amount0Min)
-            : CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency as Token, amount0Min)
+          CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency, amount0Min)
         ),
         expectedCurrencyOwed1: expectedCurrencyOwed1.add(
-          expectedCurrencyOwed1.currency.isEther
-            ? CurrencyAmount.ether(amount1Min)
-            : CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency as Token, amount1Min)
+          CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency, amount1Min)
         ),
         ...rest
       })

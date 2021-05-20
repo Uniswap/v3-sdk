@@ -1,4 +1,4 @@
-import { ChainId, ETHER, Token, WETH9 } from '@uniswap/sdk-core'
+import { Ether, Token, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount } from '../constants'
 import { Pool } from '../entities/pool'
 import { Route } from '../entities/route'
@@ -6,12 +6,13 @@ import { encodeRouteToPath } from './encodeRouteToPath'
 import { encodeSqrtRatioX96 } from './encodeSqrtRatioX96'
 
 describe('#encodeRouteToPath', () => {
-  const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
-  const token1 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
-  const token2 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000003', 18, 't2', 'token2')
-  // const token3 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000004', 18, 't3', 'token3')
+  const ETHER = Ether.onChain(1)
+  const token0 = new Token(1, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
+  const token1 = new Token(1, '0x0000000000000000000000000000000000000002', 18, 't1', 'token1')
+  const token2 = new Token(1, '0x0000000000000000000000000000000000000003', 18, 't2', 'token2')
+  // const token3 = new Token(1, '0x0000000000000000000000000000000000000004', 18, 't3', 'token3')
 
-  const weth = WETH9[ChainId.MAINNET]
+  const weth = WETH9[1]
 
   const pool_0_1_medium = new Pool(token0, token1, FeeAmount.MEDIUM, encodeSqrtRatioX96(1, 1), 0, 0, [])
   const pool_1_2_low = new Pool(token1, token2, FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, [])

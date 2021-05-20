@@ -1,4 +1,4 @@
-import { BigintIsh, ChainId, Price, Token, CurrencyAmount } from '@uniswap/sdk-core'
+import { BigintIsh, Price, Token, CurrencyAmount } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
@@ -132,7 +132,7 @@ export class Pool {
   /**
    * Returns the chain ID of the tokens in the pool.
    */
-  public get chainId(): ChainId | number {
+  public get chainId(): number {
     return this.token0.chainId
   }
 
