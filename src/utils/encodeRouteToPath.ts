@@ -1,5 +1,5 @@
 import { pack } from '@ethersproject/solidity'
-import { Currency, Token, wrappedCurrency } from '@uniswap/sdk-core'
+import { Currency, Token } from '@uniswap/sdk-core'
 import { Pool } from '../entities/pool'
 import { Route } from '../entities/route'
 
@@ -9,7 +9,7 @@ import { Route } from '../entities/route'
  * @param exactOutput whether the route should be encoded in reverse, for making exact output swaps
  */
 export function encodeRouteToPath(route: Route<Currency, Currency>, exactOutput: boolean): string {
-  const firstInputToken: Token = wrappedCurrency(route.input, route.chainId)
+  const firstInputToken: Token = route.input.wrapped
 
   const { path, types } = route.pools.reduce(
     (

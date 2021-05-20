@@ -1,4 +1,4 @@
-import { ChainId, Price, Token } from '@uniswap/sdk-core'
+import { Price, Token } from '@uniswap/sdk-core'
 import { tickToPrice } from './index'
 import { priceToClosestTick } from './priceTickConversions'
 
@@ -9,11 +9,11 @@ describe('priceTickConversions', () => {
   function token({
     sortOrder,
     decimals = 18,
-    chainId = ChainId.MAINNET
+    chainId = 1
   }: {
     sortOrder: number
     decimals?: number
-    chainId?: ChainId
+    chainId?: number
   }): Token {
     if (sortOrder > 9 || sortOrder % 1 !== 0) throw new Error('invalid sort order')
     return new Token(

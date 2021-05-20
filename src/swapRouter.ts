@@ -91,16 +91,16 @@ export abstract class SwapRouter extends SelfPermit {
 
     const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).quotient)
     const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).quotient)
-    const value: string = trade.inputAmount.currency.isEther ? amountIn : toHex(0)
+    const value: string = trade.inputAmount.currency.isNative ? amountIn : toHex(0)
 
     // flag for whether the trade is single hop or not
     const singleHop = trade.route.pools.length === 1
 
     // flag for whether a refund needs to happen
-    const mustRefund = trade.inputAmount.currency.isEther && trade.tradeType === TradeType.EXACT_OUTPUT
+    const mustRefund = trade.inputAmount.currency.isNative && trade.tradeType === TradeType.EXACT_OUTPUT
 
     // flags for whether funds should be send first to the router
-    const outputIsEther = trade.outputAmount.currency.isEther
+    const outputIsEther = trade.outputAmount.currency.isNative
     const routerMustCustody = outputIsEther || !!options.fee
 
     if (singleHop) {

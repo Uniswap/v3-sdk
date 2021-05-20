@@ -1,4 +1,4 @@
-import { ChainId, Percent, Token } from '@uniswap/sdk-core'
+import { Percent, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { FeeAmount, TICK_SPACINGS } from '../constants'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
@@ -8,8 +8,8 @@ import { Pool } from './pool'
 import { Position } from './position'
 
 describe('Position', () => {
-  const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
-  const DAI = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
+  const USDC = new Token(1, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
+  const DAI = new Token(1, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
   const POOL_SQRT_RATIO_START = encodeSqrtRatioX96(100e6, 100e18)
   const POOL_TICK_CURRENT = TickMath.getTickAtSqrtRatio(POOL_SQRT_RATIO_START)
   const TICK_SPACING = TICK_SPACINGS[FeeAmount.LOW]
@@ -259,6 +259,44 @@ describe('Position', () => {
         expect(amount1.toString()).toEqual('54828800461')
       })
     })
+
+    describe('5% slippage tolerance', () => {
+      const slippageTolerance = new Percent(5, 100)
+
+      it('is correct for pool at min price', () => {
+        const position = new Position({
+          pool: new Pool(DAI, USDC, FeeAmount.LOW, TickMath.MIN_SQRT_RATIO, 0, TickMath.MIN_TICK, []),
+          liquidity: 100e18,
+          tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+        })
+
+        const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
+        expect(amount0.toString()).toEqual('49949961958869841754181')
+        expect(amount1.toString()).toEqual('0')
+      })
+
+      it('is correct for pool at max price', () => {
+        const position = new Position({
+          pool: new Pool(
+            DAI,
+            USDC,
+            FeeAmount.LOW,
+            JSBI.subtract(TickMath.MAX_SQRT_RATIO, JSBI.BigInt(1)),
+            0,
+            TickMath.MAX_TICK - 1,
+            []
+          ),
+          liquidity: 100e18,
+          tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+        })
+
+        const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
+        expect(amount0.toString()).toEqual('0')
+        expect(amount1.toString()).toEqual('50045084659')
+      })
+    })
   })
 
   describe('#burnAmountsWithSlippage', () => {
@@ -342,6 +380,44 @@ describe('Position', () => {
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
         expect(amount0.toString()).toEqual('95063440240746211454822')
         expect(amount1.toString()).toEqual('54828800460')
+      })
+    })
+
+    describe('5% slippage tolerance', () => {
+      const slippageTolerance = new Percent(5, 100)
+
+      it('is correct for pool at min price', () => {
+        const position = new Position({
+          pool: new Pool(DAI, USDC, FeeAmount.LOW, TickMath.MIN_SQRT_RATIO, 0, TickMath.MIN_TICK, []),
+          liquidity: 100e18,
+          tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+        })
+
+        const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
+        expect(amount0.toString()).toEqual('49949961958869841738198')
+        expect(amount1.toString()).toEqual('0')
+      })
+
+      it('is correct for pool at max price', () => {
+        const position = new Position({
+          pool: new Pool(
+            DAI,
+            USDC,
+            FeeAmount.LOW,
+            JSBI.subtract(TickMath.MAX_SQRT_RATIO, JSBI.BigInt(1)),
+            0,
+            TickMath.MAX_TICK - 1,
+            []
+          ),
+          liquidity: 100e18,
+          tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+        })
+
+        const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
+        expect(amount0.toString()).toEqual('0')
+        expect(amount1.toString()).toEqual('50045084660')
       })
     })
   })
