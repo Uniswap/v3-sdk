@@ -138,7 +138,7 @@ describe('SwapRouter', () => {
     it('ETH in exact input', async () => {
       const trade = await Trade.fromRoute(
         new Route([pool_1_weth], ETHER, token1),
-        CurrencyAmount.ether(1, 100),
+        CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_INPUT
       )
       const { calldata, value } = SwapRouter.swapCallParameters(trade, {
@@ -192,7 +192,7 @@ describe('SwapRouter', () => {
     it('ETH out exact output', async () => {
       const trade = await Trade.fromRoute(
         new Route([pool_1_weth], token1, ETHER),
-        CurrencyAmount.ether(1, 100),
+        CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_OUTPUT
       )
       const { calldata, value } = SwapRouter.swapCallParameters(trade, {

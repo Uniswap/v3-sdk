@@ -1,4 +1,4 @@
-import { Percent, Token, CurrencyAmount, WETH9 } from '@uniswap/sdk-core'
+import { Percent, Token, CurrencyAmount, WETH9, Ether } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from './constants'
 import { Pool } from './entities/pool'
 import { Position } from './entities/position'
@@ -136,7 +136,7 @@ describe('NonfungiblePositionManager', () => {
       const { calldata, value } = NonfungiblePositionManager.collectCallParameters({
         tokenId,
         expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token1, 0),
-        expectedCurrencyOwed1: CurrencyAmount.ether(1, 0),
+        expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(Ether.onChain(1), 0),
         recipient
       })
 
@@ -276,7 +276,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('works with eth', () => {
-      const ethAmount = CurrencyAmount.ether(1, 0)
+      const ethAmount = CurrencyAmount.fromRawAmount(Ether.onChain(1), 0)
       const tokenAmount = CurrencyAmount.fromRawAmount(token1, 0)
 
       const { calldata, value } = NonfungiblePositionManager.removeCallParameters(
@@ -306,7 +306,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('works for partial with eth', () => {
-      const ethAmount = CurrencyAmount.ether(1, 0)
+      const ethAmount = CurrencyAmount.fromRawAmount(Ether.onChain(1), 0)
       const tokenAmount = CurrencyAmount.fromRawAmount(token1, 0)
 
       const { calldata, value } = NonfungiblePositionManager.removeCallParameters(
