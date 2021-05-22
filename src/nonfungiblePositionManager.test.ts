@@ -34,7 +34,7 @@ describe('NonfungiblePositionManager', () => {
       ).toThrow('ZERO_LIQUIDITY')
     })
 
-    it('throws if pool does not involve ether and useEther is true', () => {
+    it('throws if pool does not involve ether and useNative is true', () => {
       expect(() =>
         NonfungiblePositionManager.addCallParameters(
           new Position({
@@ -43,7 +43,7 @@ describe('NonfungiblePositionManager', () => {
             tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
             liquidity: 1
           }),
-          { recipient, slippageTolerance, deadline, useEther: true }
+          { recipient, slippageTolerance, deadline, useNative: Ether.onChain(1) }
         )
       ).toThrow('NO_WETH')
     })
@@ -99,7 +99,7 @@ describe('NonfungiblePositionManager', () => {
       expect(value).toEqual('0x00')
     })
 
-    it('useEther', () => {
+    it('useNative', () => {
       const { calldata, value } = NonfungiblePositionManager.addCallParameters(
         new Position({
           pool: pool_1_weth,
@@ -107,7 +107,7 @@ describe('NonfungiblePositionManager', () => {
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
           liquidity: 1
         }),
-        { recipient, slippageTolerance, deadline, useEther: true }
+        { recipient, slippageTolerance, deadline, useNative: Ether.onChain(1) }
       )
 
       expect(calldata).toEqual(

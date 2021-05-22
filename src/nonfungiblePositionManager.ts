@@ -1,4 +1,12 @@
-import { BigintIsh, Percent, Token, CurrencyAmount, validateAndParseAddress, WETH9, Currency } from '@uniswap/sdk-core'
+import {
+  BigintIsh,
+  Percent,
+  Token,
+  CurrencyAmount,
+  validateAndParseAddress,
+  Currency,
+  NativeCurrency
+} from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { Position } from './entities/position'
@@ -47,7 +55,7 @@ export interface CommonAddLiquidityOptions {
   /**
    * Whether to spend ether. If true, one of the pool tokens must be WETH, by default false
    */
-  useEther?: boolean
+  useNative?: NativeCurrency
 
   /**
    * The optional permit parameters for spending token0
@@ -224,18 +232,18 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     let value: string = toHex(0)
 
-    if (options.useEther) {
-      const weth = WETH9[position.pool.chainId]
-      invariant(weth && (position.pool.token0.equals(weth) || position.pool.token1.equals(weth)), 'NO_WETH')
+    if (options.useNative) {
+      const wrapped = options.useNative.wrapped
+      invariant(position.pool.token0.equals(wrapped) || position.pool.token1.equals(wrapped), 'NO_WETH')
 
-      const wethValue = position.pool.token0.equals(weth) ? amount0Desired : amount1Desired
+      const wrappedValue = position.pool.token0.equals(wrapped) ? amount0Desired : amount1Desired
 
       // we only need to refund if we're actually sending ETH
-      if (JSBI.greaterThan(wethValue, ZERO)) {
+      if (JSBI.greaterThan(wrappedValue, ZERO)) {
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
       }
 
-      value = toHex(wethValue)
+      value = toHex(wrappedValue)
     }
 
     return {
