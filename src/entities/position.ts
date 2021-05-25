@@ -9,6 +9,9 @@ import { TickMath } from '../utils/tickMath'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
 import { Pool } from './pool'
 
+/**
+ * Position constructor args
+ */
 interface PositionConstructorArgs {
   pool: Pool
   tickLower: number
@@ -128,8 +131,8 @@ export class Position {
 
   /**
    * Returns the lower and upper sqrt ratios if the price 'slips' up to slippage tolerance percentage
-   * @param slippageTolerance amount by which the price can 'slip'
-   * @private
+   * @param slippageTolerance The amount by which the price can 'slip' before the transaction will revert
+   * @returns The sqrt ratios after slippage 
    */
   private ratiosAfterSlippage(slippageTolerance: Percent): { sqrtRatioX96Lower: JSBI; sqrtRatioX96Upper: JSBI } {
     const priceLower = this.pool.token0Price.asFraction.multiply(new Percent(1).subtract(slippageTolerance))
@@ -152,6 +155,7 @@ export class Position {
    * Returns the minimum amounts that must be sent in order to safely mint the amount of liquidity held by the position
    * with the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the current price
+   * @returns The amounts, with slippage 
    */
   public mintAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
@@ -207,6 +211,7 @@ export class Position {
    * Returns the minimum amounts that should be requested in order to safely burn the amount of liquidity held by the
    * position with the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the current price
+   * @returns The amounts with slippage 
    */
   public burnAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
@@ -305,6 +310,7 @@ export class Position {
    * @param amount1 token1 amount
    * @param useFullPrecision if false, liquidity will be maximized according to what the router can calculate,
    * not what core can theoretically support
+   * @returns the amount of liquidity for the position
    */
   public static fromAmounts({
     pool,
@@ -346,6 +352,7 @@ export class Position {
    * @param amount0 the desired amount of token0
    * @param useFullPrecision if true, liquidity will be maximized according to what the router can calculate,
    * not what core can theoretically support
+   * @returns the position
    */
   public static fromAmount0({
     pool,
@@ -369,6 +376,7 @@ export class Position {
    * @param tickLower the lower tick
    * @param tickUpper the upper tick
    * @param amount1 the desired amount of token1
+   * @returns the position
    */
   public static fromAmount1({
     pool,
