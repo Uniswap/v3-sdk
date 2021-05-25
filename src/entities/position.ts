@@ -132,7 +132,7 @@ export class Position {
   /**
    * Returns the lower and upper sqrt ratios if the price 'slips' up to slippage tolerance percentage
    * @param slippageTolerance The amount by which the price can 'slip' before the transaction will revert
-   * @returns The sqrt ratios after slippage 
+   * @returns The sqrt ratios after slippage
    */
   private ratiosAfterSlippage(slippageTolerance: Percent): { sqrtRatioX96Lower: JSBI; sqrtRatioX96Upper: JSBI } {
     const priceLower = this.pool.token0Price.asFraction.multiply(new Percent(1).subtract(slippageTolerance))
@@ -155,7 +155,7 @@ export class Position {
    * Returns the minimum amounts that must be sent in order to safely mint the amount of liquidity held by the position
    * with the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the current price
-   * @returns The amounts, with slippage 
+   * @returns The amounts, with slippage
    */
   public mintAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
@@ -211,7 +211,7 @@ export class Position {
    * Returns the minimum amounts that should be requested in order to safely burn the amount of liquidity held by the
    * position with the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the current price
-   * @returns The amounts with slippage 
+   * @returns The amounts with slippage
    */
   public burnAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
