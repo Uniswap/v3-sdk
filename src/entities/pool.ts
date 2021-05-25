@@ -11,6 +11,10 @@ import { Tick, TickConstructorArgs } from './tick'
 import { NoTickDataProvider, TickDataProvider } from './tickDataProvider'
 import { TickListDataProvider } from './tickListDataProvider'
 
+
+/**
+ * Step computations
+ */
 interface StepComputations {
   sqrtPriceStartX96: JSBI
   tickNext: number
@@ -85,6 +89,7 @@ export class Pool {
   /**
    * Returns true if the token is either token0 or token1
    * @param token to check
+   * @returns true if token 
    */
   public involvesToken(token: Token): boolean {
     return token.equals(this.token0) || token.equals(this.token1)
@@ -123,6 +128,7 @@ export class Pool {
   /**
    * Return the price of the given token in terms of the other token in the pool.
    * @param token token to return price of
+   * @returns The price of the given token, in terms of the other.
    */
   public priceOf(token: Token): Price<Token, Token> {
     invariant(this.involvesToken(token), 'TOKEN')
@@ -137,8 +143,10 @@ export class Pool {
   }
 
   /**
-   * Given an input amount of a token, return the computed output amount and a pool with state updated after the trade
-   * @param inputAmount the input amount for which to quote the output amount
+   * Given an input amount of a token, return the computed output amount, and a pool with state updated after the trade
+   * @param inputAmount The input amount for which to quote the output amount
+   * @param sqrtPriceLimitX96 The Q64.96 sqrt price limit
+   * @returns The output amount 
    */
   public async getOutputAmount(
     inputAmount: CurrencyAmount<Token>,
@@ -163,6 +171,8 @@ export class Pool {
   /**
    * Given a desired output amount of a token, return the computed input amount and a pool with state updated after the trade
    * @param outputAmount the output amount for which to quote the input amount
+   * @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this value after the swap. If one for zero, the price cannot be greater than this value after the swap
+   * @returns The input amount 
    */
   public async getInputAmount(
     outputAmount: CurrencyAmount<Token>,
@@ -184,6 +194,14 @@ export class Pool {
     ]
   }
 
+  
+  /**
+   * Executes a swap
+   * @param zeroForOne Whether the amount in is token0 or token1
+   * @param amountSpecified The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
+   * @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this value after the swap. If one for zero, the price cannot be greater than this value after the swap
+   * @returns swap 
+   */
   private async swap(
     zeroForOne: boolean,
     amountSpecified: JSBI,
@@ -205,6 +223,8 @@ export class Pool {
     const exactInput = JSBI.greaterThanOrEqual(amountSpecified, ZERO)
 
     // keep track of swap state
+    
+    
     const state = {
       amountSpecifiedRemaining: amountSpecified,
       amountCalculated: ZERO,
