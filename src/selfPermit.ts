@@ -21,7 +21,11 @@ export interface AllowedPermitArguments {
 
 export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
 
-// type guard
+/**
+ * type guard
+ * @param permitOptions 
+ * @returns allowed permit 
+ */
 function isAllowedPermit(permitOptions: PermitOptions): permitOptions is AllowedPermitArguments {
   return 'nonce' in permitOptions
 }

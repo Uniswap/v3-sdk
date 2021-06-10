@@ -73,7 +73,12 @@ export type IncreaseOptions = CommonAddLiquidityOptions & IncreaseSpecificOption
 
 export type AddLiquidityOptions = MintOptions | IncreaseOptions
 
-// type guard
+
+/**
+ * Type guard
+ * @param options 
+ * @returns mint 
+ */
 function isMint(options: AddLiquidityOptions): options is MintOptions {
   return Object.keys(options).some(k => k === 'recipient')
 }
@@ -319,6 +324,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
    * Produces the calldata for completely or partially exiting a position
    * @param position the position to exit
    * @param options additional information necessary for generating the calldata
+   * @returns call parameters 
    */
   public static removeCallParameters(position: Position, options: RemoveLiquidityOptions): MethodParameters {
     const calldatas: string[] = []

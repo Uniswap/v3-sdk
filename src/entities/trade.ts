@@ -14,7 +14,15 @@ import { ONE, ZERO } from '../internalConstants'
 import { Pool } from './pool'
 import { Route } from './route'
 
-// extension of the input output comparator that also considers other dimensions of the trade in ranking them
+/**
+ * Trades comparator, an extension of the input output comparator that also considers other dimensions of the trade in ranking them
+ * @template TInput The input token, either Ether or an ERC-20
+ * @template TOutput The output token, either Ether or an ERC-20
+ * @template TTradeType The trade type, either exact input or exact output
+ * @param a The first trade to compare
+ * @param b The second trade to compare
+ * @returns The 
+ */
 export function tradeComparator<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
   a: Trade<TInput, TOutput, TTradeType>,
   b: Trade<TInput, TOutput, TTradeType>
@@ -52,7 +60,11 @@ export interface BestTradeOptions {
 
 /**
  * Represents a trade executed against a list of pools.
- * Does not account for slippage, i.e. trades that front run this trade and move the price.
+ * Does not account for slippage, i.e., changes in price environment that can occur between 
+ * the time the trade is submitted and when it is executed.
+ * @template TInput The input token, either Ether or an ERC-20
+ * @template TOutput The output token, either Ether or an ERC-20
+ * @template TTradeType The trade type, either exact input or exact output
  */
 export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType> {
   /**
@@ -110,6 +122,8 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
   /**
    * Constructs an exact in trade with the given amount in and route
+   * @template TInput The input token, either Ether or an ERC-20
+   * @template TOutput The output token, either Ether or an ERC-20
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
@@ -122,8 +136,11 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
   /**
    * Constructs an exact out trade with the given amount out and route
+   * @template TInput The input token, either Ether or an ERC-20
+   * @template TOutput The output token, either Ether or an ERC-20
    * @param route route of the exact out trade
    * @param amountOut the amount returned by the trade
+   * @returns out 
    */
   public static async exactOut<TInput extends Currency, TOutput extends Currency>(
     route: Route<TInput, TOutput>,
@@ -134,9 +151,13 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
   /**
    * Constructs a trade by simulating swaps through the given route
+   * @template TInput The input token, either Ether or an ERC-20.
+   * @template TOutput The output token, either Ether or an ERC-20.
+   * @template TTradeType The type of the trade, either exact in or exact out.
    * @param route route to swap through
    * @param amount the amount specified, either input or output, depending on tradeType
    * @param tradeType whether the trade is an exact input or exact output swap
+   * @returns route 
    */
   public static async fromRoute<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
     route: Route<TInput, TOutput>,
@@ -183,7 +204,11 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Creates a trade without computing the result of swapping through the route. Useful when you have simulated the trade
    * elsewhere and do not have any tick data
+   * @template TInput The input token, either Ether or an ERC-20
+   * @template TOutput The output token, either Ether or an ERC-20
+   * @template TTradeType The type of the trade, either exact in or exact out
    * @param constructorArguments the arguments passed to the trade constructor
+   * @returns unchecked trade 
    */
   public static createUncheckedTrade<
     TInput extends Currency,
@@ -227,6 +252,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Get the minimum amount that must be received from this trade for the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade
+   * @returns amount out 
    */
   public minimumAmountOut(slippageTolerance: Percent): CurrencyAmount<TOutput> {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
@@ -244,6 +270,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Get the maximum amount in that can be spent via this trade for the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade
+   * @returns amount in 
    */
   public maximumAmountIn(slippageTolerance: Percent): CurrencyAmount<TInput> {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
@@ -259,6 +286,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Return the execution price after accounting for slippage tolerance
    * @param slippageTolerance the allowed tolerated slippage
+   * @returns execution price 
    */
   public worstExecutionPrice(slippageTolerance: Percent): Price<TInput, TOutput> {
     return new Price(
@@ -282,6 +310,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @param currentPools used in recursion; the current list of pools
    * @param currencyAmountIn used in recursion; the original value of the currencyAmountIn parameter
    * @param bestTrades used in recursion; the current list of best trades
+   * @returns trade exact in 
    */
   public static async bestTradeExactIn<TInput extends Currency, TOutput extends Currency>(
     pools: Pool[],
@@ -362,6 +391,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @param maxHops maximum number of hops a returned trade can make, e.g. 1 hop goes through a single pool
    * @param currentPools used in recursion; the current list of pools
    * @param bestTrades used in recursion; the current list of best trades
+   * @returns trade exact out 
    */
   public static async bestTradeExactOut<TInput extends Currency, TOutput extends Currency>(
     pools: Pool[],

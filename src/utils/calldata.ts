@@ -15,6 +15,11 @@ export interface MethodParameters {
   value: string
 }
 
+/**
+ * To hex
+ * @param bigintIsh 
+ * @returns The hex encoded calldata
+ */
 export function toHex(bigintIsh: BigintIsh) {
   const bigInt = JSBI.BigInt(bigintIsh)
   let hex = bigInt.toString(16)
