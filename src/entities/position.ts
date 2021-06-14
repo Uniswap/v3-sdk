@@ -9,9 +9,6 @@ import { TickMath } from '../utils/tickMath'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
 import { Pool } from './pool'
 
-/**
- * Position constructor args
- */
 interface PositionConstructorArgs {
   pool: Pool
   tickLower: number
@@ -35,10 +32,10 @@ export class Position {
 
   /**
    * Constructs a position for a given pool with the given liquidity
-   * @param pool for which pool the liquidity is assigned
-   * @param liquidity the amount of liquidity that is in the position
-   * @param tickLower the lower tick of the position
-   * @param tickUpper the upper tick of the position
+   * @param pool For which pool the liquidity is assigned
+   * @param liquidity The amount of liquidity that is in the position
+   * @param tickLower The lower tick of the position
+   * @param tickUpper The upper tick of the position
    */
   public constructor({ pool, liquidity, tickLower, tickUpper }: PositionConstructorArgs) {
     invariant(tickLower < tickUpper, 'TICK_ORDER')
@@ -154,7 +151,7 @@ export class Position {
   /**
    * Returns the minimum amounts that must be sent in order to safely mint the amount of liquidity held by the position
    * with the given slippage tolerance
-   * @param slippageTolerance tolerance of unfavorable slippage from the current price
+   * @param slippageTolerance Tolerance of unfavorable slippage from the current price
    * @returns The amounts, with slippage
    */
   public mintAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
@@ -211,7 +208,7 @@ export class Position {
    * Returns the minimum amounts that should be requested in order to safely burn the amount of liquidity held by the
    * position with the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the current price
-   * @returns The amounts with slippage
+   * @returns The amounts, with slippage
    */
   public burnAmountsWithSlippage(slippageTolerance: Percent): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     // get lower/upper prices
@@ -303,14 +300,14 @@ export class Position {
   /**
    * Computes the maximum amount of liquidity received for a given amount of token0, token1,
    * and the prices at the tick boundaries.
-   * @param pool the pool for which the position should be created
-   * @param tickLower the lower tick of the position
-   * @param tickUpper the upper tick of the position
+   * @param pool The pool for which the position should be created
+   * @param tickLower The lower tick of the position
+   * @param tickUpper The upper tick of the position
    * @param amount0 token0 amount
    * @param amount1 token1 amount
-   * @param useFullPrecision if false, liquidity will be maximized according to what the router can calculate,
+   * @param useFullPrecision If false, liquidity will be maximized according to what the router can calculate,
    * not what core can theoretically support
-   * @returns the amount of liquidity for the position
+   * @returns The amount of liquidity for the position
    */
   public static fromAmounts({
     pool,
@@ -346,13 +343,13 @@ export class Position {
 
   /**
    * Computes a position with the maximum amount of liquidity received for a given amount of token0, assuming an unlimited amount of token1
-   * @param pool the pool for which the position is created
-   * @param tickLower the lower tick
-   * @param tickUpper the upper tick
-   * @param amount0 the desired amount of token0
-   * @param useFullPrecision if true, liquidity will be maximized according to what the router can calculate,
+   * @param pool The pool for which the position is created
+   * @param tickLower The lower tick
+   * @param tickUpper The upper tick
+   * @param amount0 The desired amount of token0
+   * @param useFullPrecision If true, liquidity will be maximized according to what the router can calculate,
    * not what core can theoretically support
-   * @returns the position
+   * @returns The position
    */
   public static fromAmount0({
     pool,
@@ -372,11 +369,11 @@ export class Position {
 
   /**
    * Computes a position with the maximum amount of liquidity received for a given amount of token1, assuming an unlimited amount of token0
-   * @param pool the pool for which the position is created
-   * @param tickLower the lower tick
-   * @param tickUpper the upper tick
-   * @param amount1 the desired amount of token1
-   * @returns the position
+   * @param pool The pool for which the position is created
+   * @param tickLower The lower tick
+   * @param tickUpper The upper tick
+   * @param amount1 The desired amount of token1
+   * @returns The position
    */
   public static fromAmount1({
     pool,
