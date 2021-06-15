@@ -24,7 +24,7 @@ export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
 /**
  * type guard
  * @param permitOptions 
- * @returns allowed permit 
+ * @returns Allowed permit 
  */
 function isAllowedPermit(permitOptions: PermitOptions): permitOptions is AllowedPermitArguments {
   return 'nonce' in permitOptions
