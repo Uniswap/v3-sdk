@@ -21,7 +21,7 @@ import { Route } from './route'
  * @template TTradeType The trade type, either exact input or exact output
  * @param a The first trade to compare
  * @param b The second trade to compare
- * @returns The 
+ * @returns The
  */
 export function tradeComparator<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
   a: Trade<TInput, TOutput, TTradeType>,
@@ -60,7 +60,7 @@ export interface BestTradeOptions {
 
 /**
  * Represents a trade executed against a list of pools.
- * Does not account for slippage, i.e., changes in price environment that can occur between 
+ * Does not account for slippage, i.e., changes in price environment that can occur between
  * the time the trade is submitted and when it is executed.
  * @template TInput The input token, either Ether or an ERC-20
  * @template TOutput The output token, either Ether or an ERC-20
@@ -158,7 +158,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @param route route to swap through
    * @param amount the amount specified, either input or output, depending on tradeType
    * @param tradeType whether the trade is an exact input or exact output swap
-   * @returns The route 
+   * @returns The route
    */
   public static async fromRoute<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
     route: Route<TInput, TOutput>,
@@ -209,7 +209,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @template TOutput The output token, either Ether or an ERC-20
    * @template TTradeType The type of the trade, either exact in or exact out
    * @param constructorArguments The arguments passed to the trade constructor
-   * @returns The unchecked trade 
+   * @returns The unchecked trade
    */
   public static createUncheckedTrade<
     TInput extends Currency,
@@ -253,7 +253,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Get the minimum amount that must be received from this trade for the given slippage tolerance
    * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
-   * @returns The amount out 
+   * @returns The amount out
    */
   public minimumAmountOut(slippageTolerance: Percent): CurrencyAmount<TOutput> {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
@@ -271,7 +271,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Get the maximum amount in that can be spent via this trade for the given slippage tolerance
    * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
-   * @returns The amount in 
+   * @returns The amount in
    */
   public maximumAmountIn(slippageTolerance: Percent): CurrencyAmount<TInput> {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
@@ -287,7 +287,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Return the execution price after accounting for slippage tolerance
    * @param slippageTolerance the allowed tolerated slippage
-   * @returns The execution price 
+   * @returns The execution price
    */
   public worstExecutionPrice(slippageTolerance: Percent): Price<TInput, TOutput> {
     return new Price(

@@ -17,7 +17,7 @@ export interface MethodParameters {
 
 /**
  * To hex
- * @param bigintIsh 
+ * @param bigintIsh
  * @returns The hex encoded calldata
  */
 export function toHex(bigintIsh: BigintIsh) {

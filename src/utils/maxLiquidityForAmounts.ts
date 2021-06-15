@@ -2,13 +2,12 @@ import { BigintIsh } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { Q96 } from '../internalConstants'
 
-
 /**
  * Returns an imprecise maximum amount of liquidity received for a given amount of token 0
  * @param sqrtRatioAX96 price at lower boundary
  * @param sqrtRatioBX96 price at upper boundary
  * @param amount0 token0 amount
- * @returns liquidity for amount0, imprecise 
+ * @returns liquidity for amount0, imprecise
  */
 function maxLiquidityForAmount0Imprecise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
   if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
@@ -23,7 +22,7 @@ function maxLiquidityForAmount0Imprecise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSB
  * @param sqrtRatioAX96 price at lower boundary
  * @param sqrtRatioBX96 price at upper boundary
  * @param amount0 token0 amount
- * @returns liquidity for amount0, precise 
+ * @returns liquidity for amount0, precise
  */
 function maxLiquidityForAmount0Precise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
   if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
@@ -38,10 +37,10 @@ function maxLiquidityForAmount0Precise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI,
 
 /**
  * Computes the maximum amount of liquidity received for a given amount of token1
- * @param sqrtRatioAX96 
- * @param sqrtRatioBX96 
- * @param amount1 
- * @returns liquidity for amount1 
+ * @param sqrtRatioAX96
+ * @param sqrtRatioBX96
+ * @param amount1
+ * @returns liquidity for amount1
  */
 function maxLiquidityForAmount1(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount1: BigintIsh): JSBI {
   if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {

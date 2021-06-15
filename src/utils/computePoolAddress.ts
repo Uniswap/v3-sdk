@@ -10,7 +10,7 @@ import { FeeAmount, POOL_INIT_CODE_HASH } from '../constants'
  * @param tokenA The first token of the pair, irrespective of sort order
  * @param tokenB The second token of the pair, irrespective of sort order
  * @param fee The fee tier of the pool
- * @returns The pool address 
+ * @returns The pool address
  */
 export function computePoolAddress({
   factoryAddress,
