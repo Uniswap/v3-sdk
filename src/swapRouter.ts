@@ -74,9 +74,13 @@ export abstract class SwapRouter extends SelfPermit {
    * @param options options for the call parameters
    */
   public static swapCallParameters(
-    trades: Trade<Currency, Currency, TradeType>[],
+    trades: Trade<Currency, Currency, TradeType> | Trade<Currency, Currency, TradeType>[],
     options: SwapOptions
   ): MethodParameters {
+    if (!Array.isArray(trades)) {
+      trades = [trades]
+    }
+
     const sampleTrade = trades[0]
     const tokenIn = sampleTrade.route.tokenPath[0]
     const tokenOut = sampleTrade.route.tokenPath[sampleTrade.route.tokenPath.length - 1]
@@ -105,12 +109,12 @@ export abstract class SwapRouter extends SelfPermit {
     const mustRefund = sampleTrade.inputAmount.currency.isNative && sampleTrade.tradeType === TradeType.EXACT_OUTPUT
     const inputIsNative = sampleTrade.inputAmount.currency.isNative
     // flags for whether funds should be send first to the router
-    const outputIsEther = sampleTrade.outputAmount.currency.isNative
-    const routerMustCustody = outputIsEther || !!options.fee
+    const outputIsNative = sampleTrade.outputAmount.currency.isNative
+    const routerMustCustody = outputIsNative || !!options.fee
 
     const totalValue: CurrencyAmount<Currency> = inputIsNative
       ? trades.reduce((sum, trade) => sum.add(trade.maximumAmountIn(options.slippageTolerance)), ZERO_IN)
-      : ZERO_IN.multiply(0)
+      : ZERO_IN
 
     // encode permit if necessary
     if (options.inputTokenPermit) {
@@ -191,7 +195,7 @@ export abstract class SwapRouter extends SelfPermit {
         const feeRecipient: string = validateAndParseAddress(options.fee.recipient)
         const fee = toHex(options.fee.fee.multiply(10_000).quotient)
 
-        if (outputIsEther) {
+        if (outputIsNative) {
           calldatas.push(
             SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9WithFee', [
               toHex(totalAmountOut.quotient),
