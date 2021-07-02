@@ -16,6 +16,7 @@ import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
+import { Pool } from './entities'
 
 const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
@@ -158,6 +159,22 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     super()
   }
 
+  private static encodeCreate(pool: Pool): string {
+    return NonfungiblePositionManager.INTERFACE.encodeFunctionData('createAndInitializePoolIfNecessary', [
+      pool.token0.address,
+      pool.token1.address,
+      pool.fee,
+      toHex(pool.sqrtRatioX96)
+    ])
+  }
+
+  public static createCallParameters(pool: Pool): MethodParameters {
+    return {
+      calldata: this.encodeCreate(pool),
+      value: toHex(0)
+    }
+  }
+
   public static addCallParameters(position: Position, options: AddLiquidityOptions): MethodParameters {
     invariant(JSBI.greaterThan(position.liquidity, ZERO), 'ZERO_LIQUIDITY')
 
@@ -175,14 +192,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     // create pool if needed
     if (isMint(options) && options.createPool) {
-      calldatas.push(
-        NonfungiblePositionManager.INTERFACE.encodeFunctionData('createAndInitializePoolIfNecessary', [
-          position.pool.token0.address,
-          position.pool.token1.address,
-          position.pool.fee,
-          toHex(position.pool.sqrtRatioX96)
-        ])
-      )
+      calldatas.push(this.encodeCreate(position.pool))
     }
 
     // permits if necessary

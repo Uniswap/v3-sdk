@@ -19,6 +19,17 @@ describe('NonfungiblePositionManager', () => {
   const slippageTolerance = new Percent(1, 100)
   const deadline = 123
 
+  describe('#createCallParameters', () => {
+    it('succeeds', () => {
+      const { calldata, value } = NonfungiblePositionManager.createCallParameters(pool_0_1)
+
+      expect(calldata).toEqual(
+        '0x13ead562000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000001000000000000000000000000'
+      )
+      expect(value).toEqual('0x00')
+    })
+  })
+
   describe('#addCallParameters', () => {
     it('throws if liquidity is 0', () => {
       expect(() =>
