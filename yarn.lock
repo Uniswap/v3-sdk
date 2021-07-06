@@ -1563,10 +1563,10 @@
   resolved "https://registry.yarnpkg.com/@uniswap/v3-core/-/v3-core-1.0.0.tgz#6c24adacc4c25dceee0ba3ca142b35adbd7e359d"
   integrity sha512-kSC4djMGKMHj7sLMYVnn61k9nu+lHjMIxgg9CDQT+s2QYLoA56GbSK9Oxr+qJXzzygbkrmuY6cwgP6cW2JXPFA==
 
-"@uniswap/v3-periphery-optimism@1.1.0-alpha.3":
-  version "1.1.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery-optimism/-/v3-periphery-optimism-1.1.0-alpha.3.tgz#3eb3221a375802e5c52834d2a7b6ccc54ee560e5"
-  integrity sha512-NC0p96P5h9SwDYk+E6IM3yGGEpg42DQfVwH9BQFOvlDBfIQb53yDLlNCi6YSicrpW2aq6yJsVbF9Nysv5nR0WA==
+"@uniswap/v3-periphery-optimism@^1.1.0-alpha.5":
+  version "1.1.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery-optimism/-/v3-periphery-optimism-1.1.0-alpha.5.tgz#2b60bda86c2b4ed7fdcf93b199a2ccc5584e542d"
+  integrity sha512-yPBi09nc2HcdM+fTrKHI7xY5B2h2XRZuostwyqTDvS27ADmNTA0mw5vyCxv5dnQNcCwwJIxlxAeEdFry2Tzzpw==
   dependencies:
     "@eth-optimism/hardhat-ovm" "^0.2.0"
     "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
