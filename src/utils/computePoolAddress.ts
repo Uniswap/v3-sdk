@@ -22,6 +22,6 @@ export function computePoolAddress({
       ['bytes'],
       [defaultAbiCoder.encode(['address', 'address', 'uint24'], [token0.address, token1.address, fee])]
     ),
-    tokenA.chainId === 69 ? POOL_INIT_CODE_HASH_OPTIMISM : POOL_INIT_CODE_HASH
+    tokenA.chainId === 10 || tokenA.chainId === 69 ? POOL_INIT_CODE_HASH_OPTIMISM : POOL_INIT_CODE_HASH
   )
 }

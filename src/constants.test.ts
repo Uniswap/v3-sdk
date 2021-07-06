@@ -15,7 +15,8 @@ describe('constants', () => {
     })
 
     it('optimism', () => {
-      // SwapRouter consumes the PoolAddress library, which contains the bytecode hash...
+      // bit of a hack, but the SwapRouter consumes the PoolAddress library, which contains the bytecode hash...
+      // we can't get it from core because the hash depends on library addresses
       expect(SwapRouterBytecode).toMatch(new RegExp(`.*${POOL_INIT_CODE_HASH_OPTIMISM.slice(2)}.*`))
     })
   })
