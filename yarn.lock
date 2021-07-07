@@ -1553,26 +1553,26 @@
   resolved "https://registry.yarnpkg.com/@uniswap/v2-core/-/v2-core-1.0.1.tgz#af8f508bf183204779938969e2e54043e147d425"
   integrity sha512-MtybtkUPSyysqLY2U210NBDeCHX+ltHt3oADGdjqoThZaFRDKwM6k1Nb3F0A3hk5hwuQvytFWhrWHOEq6nVJ8Q==
 
-"@uniswap/v3-core-optimism@1.0.0-alpha.3":
-  version "1.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-core-optimism/-/v3-core-optimism-1.0.0-alpha.3.tgz#64cd45072af185e2383355b122200d21a63b56f8"
-  integrity sha512-7aQlXAuvjwNiJTraCZWJfvOzgJkfwPsQXw8nHZCETk1/0N/5QKGKNd3iZtG5JcpOekbveb0vJCnW55a1wMSd7w==
+"@uniswap/v3-core-optimism@1.0.0-rc.0":
+  version "1.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-core-optimism/-/v3-core-optimism-1.0.0-rc.0.tgz#fafe94c2d435a2133a470fc2793370c544463dd3"
+  integrity sha512-mJ5TwiWabR02G8lceVc2+3lmFOqVI3p++wpQQcvVHv+pfGq38NSaHbirmGB8sbv7x29wUteiNL7soHoD6tGe7g==
 
 "@uniswap/v3-core@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@uniswap/v3-core/-/v3-core-1.0.0.tgz#6c24adacc4c25dceee0ba3ca142b35adbd7e359d"
   integrity sha512-kSC4djMGKMHj7sLMYVnn61k9nu+lHjMIxgg9CDQT+s2QYLoA56GbSK9Oxr+qJXzzygbkrmuY6cwgP6cW2JXPFA==
 
-"@uniswap/v3-periphery-optimism@^1.1.0-alpha.5":
-  version "1.1.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery-optimism/-/v3-periphery-optimism-1.1.0-alpha.5.tgz#2b60bda86c2b4ed7fdcf93b199a2ccc5584e542d"
-  integrity sha512-yPBi09nc2HcdM+fTrKHI7xY5B2h2XRZuostwyqTDvS27ADmNTA0mw5vyCxv5dnQNcCwwJIxlxAeEdFry2Tzzpw==
+"@uniswap/v3-periphery-optimism@1.1.0-rc.1":
+  version "1.1.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@uniswap/v3-periphery-optimism/-/v3-periphery-optimism-1.1.0-rc.1.tgz#1b3ba22b255f8b389b07ab230a72e1e874ea2212"
+  integrity sha512-9vykc9YcUXoub2RNW68TRgL1ouvX7hkYvggPbXP9m+NRPD7HE7CDGh/jCbPGyuIhgjVZAi2dj/717/McO7THjA==
   dependencies:
     "@eth-optimism/hardhat-ovm" "^0.2.0"
     "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
     "@uniswap/lib" "^4.0.1-alpha"
     "@uniswap/v2-core" "1.0.1"
-    "@uniswap/v3-core-optimism" "1.0.0-alpha.3"
+    "@uniswap/v3-core-optimism" "1.0.0-rc.0"
     base64-sol "1.0.1"
     hardhat-watcher "^2.1.1"
 
