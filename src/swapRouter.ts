@@ -6,7 +6,7 @@ import { ADDRESS_ZERO } from './constants'
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
-import { abi } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
+import SwapRouterArtifact from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
 
 export interface FeeOptions {
   /**
@@ -59,7 +59,7 @@ export interface SwapOptions {
  * Represents the Uniswap V2 SwapRouter, and has static methods for helping execute trades.
  */
 export abstract class SwapRouter extends SelfPermit {
-  public static INTERFACE: Interface = new Interface(abi)
+  public static INTERFACE: Interface = new Interface(SwapRouterArtifact.abi)
 
   /**
    * Cannot be constructed.
