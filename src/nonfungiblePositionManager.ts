@@ -73,11 +73,7 @@ export type IncreaseOptions = CommonAddLiquidityOptions & IncreaseSpecificOption
 
 export type AddLiquidityOptions = MintOptions | IncreaseOptions
 
-/**
- * Type guard
- * @param options
- * @returns mint
- */
+// type guard
 function isMint(options: AddLiquidityOptions): options is MintOptions {
   return Object.keys(options).some(k => k === 'recipient')
 }

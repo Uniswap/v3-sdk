@@ -126,7 +126,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @template TOutput The output token, either Ether or an ERC-20
    * @param route The route of the exact in trade
    * @param amountIn The amount being passed in
-   * @returns The amount In trade
+   * @returns The exact in trade
    */
   public static async exactIn<TInput extends Currency, TOutput extends Currency>(
     route: Route<TInput, TOutput>,
@@ -141,7 +141,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @template TOutput The output token, either Ether or an ERC-20
    * @param route The route of the exact out trade
    * @param amountOut The amount returned by the trade
-   * @returns The amount out trade
+   * @returns The exact out trade
    */
   public static async exactOut<TInput extends Currency, TOutput extends Currency>(
     route: Route<TInput, TOutput>,

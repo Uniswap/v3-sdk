@@ -16,7 +16,7 @@ export interface MethodParameters {
 }
 
 /**
- * To hex
+ * Converts a big int to a hex string
  * @param bigintIsh
  * @returns The hex encoded calldata
  */

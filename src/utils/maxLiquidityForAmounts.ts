@@ -3,7 +3,11 @@ import JSBI from 'jsbi'
 import { Q96 } from '../internalConstants'
 
 /**
- * Returns an imprecise maximum amount of liquidity received for a given amount of token 0
+ * Returns an imprecise maximum amount of liquidity received for a given amount of token 0.
+ * This function is available to accommodate LiquidityAmounts#getLiquidityForAmount0 in the v3 periphery,
+ * which could be more precise by at least 32 bits by dividing by Q64 instead of Q96 in the intermediate step,
+ * and shifting the subtracted ratio left by 32 bits. This imprecise calculation will likely be replaced in a future
+ * v3 router contract.
  * @param sqrtRatioAX96 price at lower boundary
  * @param sqrtRatioBX96 price at upper boundary
  * @param amount0 token0 amount
@@ -18,7 +22,8 @@ function maxLiquidityForAmount0Imprecise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSB
 }
 
 /**
- * Returns a precise maximum amount of liquidity received for a given amount of token 0
+ * Returns a precise maximum amount of liquidity received for a given amount of token 0 by dividing by Q64 instead of Q96 in the intermediate step,
+ * and shifting the subtracted ratio left by 32 bits.
  * @param sqrtRatioAX96 price at lower boundary
  * @param sqrtRatioBX96 price at upper boundary
  * @param amount0 token0 amount
