@@ -21,7 +21,6 @@ export interface AllowedPermitArguments {
 
 export type PermitOptions = StandardPermitArguments | AllowedPermitArguments
 
-
 function isAllowedPermit(permitOptions: PermitOptions): permitOptions is AllowedPermitArguments {
   return 'nonce' in permitOptions
 }
