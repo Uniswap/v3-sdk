@@ -5,6 +5,8 @@ import { Pool } from './pool'
 
 /**
  * Represents a list of pools through which a swap can occur
+ * @template TInput The input token
+ * @template TOutput The output token
  */
 export class Route<TInput extends Currency, TOutput extends Currency> {
   public readonly pools: Pool[]
@@ -14,6 +16,12 @@ export class Route<TInput extends Currency, TOutput extends Currency> {
 
   private _midPrice: Price<TInput, TOutput> | null = null
 
+  /**
+   * Creates an instance of route.
+   * @param pools An array of `Pool` objects, ordered by the route the swap will take
+   * @param input The input token
+   * @param output The output token
+   */
   public constructor(pools: Pool[], input: TInput, output: TOutput) {
     invariant(pools.length > 0, 'POOLS')
 

@@ -12,9 +12,9 @@ export interface TickDataProvider {
 
   /**
    * Return the next tick that is initialized within a single word
-   * @param tick the current tick
-   * @param lte whether the next tick should be lte the current tick
-   * @param tickSpacing the tick spacing of the pool
+   * @param tick The current tick
+   * @param lte Whether the next tick should be lte the current tick
+   * @param tickSpacing The tick spacing of the pool
    */
   nextInitializedTickWithinOneWord(tick: number, lte: boolean, tickSpacing: number): Promise<[number, boolean]>
 }
