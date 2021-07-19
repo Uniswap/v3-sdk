@@ -21,7 +21,7 @@ import { Route } from './route'
  * @template TTradeType The trade type, either exact input or exact output
  * @param a The first trade to compare
  * @param b The second trade to compare
- * @returns The
+ * @returns A sorted ordering for two neighboring elements in a trade array
  */
 export function tradeComparator<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
   a: Trade<TInput, TOutput, TTradeType>,

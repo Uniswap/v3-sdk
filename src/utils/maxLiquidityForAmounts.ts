@@ -8,9 +8,9 @@ import { Q96 } from '../internalConstants'
  * which could be more precise by at least 32 bits by dividing by Q64 instead of Q96 in the intermediate step,
  * and shifting the subtracted ratio left by 32 bits. This imprecise calculation will likely be replaced in a future
  * v3 router contract.
- * @param sqrtRatioAX96 price at lower boundary
- * @param sqrtRatioBX96 price at upper boundary
- * @param amount0 token0 amount
+ * @param sqrtRatioAX96 The price at the lower boundary
+ * @param sqrtRatioBX96 The price at the upper boundary
+ * @param amount0 The token0 amount
  * @returns liquidity for amount0, imprecise
  */
 function maxLiquidityForAmount0Imprecise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
@@ -24,9 +24,9 @@ function maxLiquidityForAmount0Imprecise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSB
 /**
  * Returns a precise maximum amount of liquidity received for a given amount of token 0 by dividing by Q64 instead of Q96 in the intermediate step,
  * and shifting the subtracted ratio left by 32 bits.
- * @param sqrtRatioAX96 price at lower boundary
- * @param sqrtRatioBX96 price at upper boundary
- * @param amount0 token0 amount
+ * @param sqrtRatioAX96 The price at the lower boundary
+ * @param sqrtRatioBX96 The price at the upper boundary
+ * @param amount0 The token0 amount
  * @returns liquidity for amount0, precise
  */
 function maxLiquidityForAmount0Precise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
@@ -42,9 +42,9 @@ function maxLiquidityForAmount0Precise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI,
 
 /**
  * Computes the maximum amount of liquidity received for a given amount of token1
- * @param sqrtRatioAX96
- * @param sqrtRatioBX96
- * @param amount1
+ * @param sqrtRatioAX96 The price at the lower tick boundary
+ * @param sqrtRatioBX96 The price at the upper tick boundary
+ * @param amount1 The token1 amount
  * @returns liquidity for amount1
  */
 function maxLiquidityForAmount1(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount1: BigintIsh): JSBI {
