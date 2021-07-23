@@ -72,7 +72,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    */
   public readonly tradeType: TTradeType
   /**
-   * The total input amount for the trade assuming no slippage.
+   * The input amount for the trade assuming no slippage.
    */
   public readonly inputAmount: CurrencyAmount<TInput>
   /**
@@ -131,18 +131,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     return this._priceImpact
   }
 
-  public get spotOutputAmount(): CurrencyAmount<TOutput> {
-    return this.routes
-      .map(({ percent, route }) => {
-        const midPrice = route.midPrice
-
-        return midPrice.quote(this.inputAmount.multiply(percent))
-      })
-      .reduce((total: CurrencyAmount<TOutput>, cur: CurrencyAmount<TOutput>) => {
-        return total.add(cur)
-      }, CurrencyAmount.fromRawAmount(this.outputAmount.currency, 0))
-  }
-
   /**
    * Constructs an exact in trade with the given amount in and route
    * @template TInput The input token, either Ether or an ERC-20
@@ -174,7 +162,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   }
 
   /**
-   * Constructs a trade from a single route by simulating swaps through the given route
+   * Constructs a trade from routes by simulating swaps
    * @template TInput The input token, either Ether or an ERC-20.
    * @template TOutput The output token, either Ether or an ERC-20.
    * @template TTradeType The type of the trade, either exact in or exact out.
