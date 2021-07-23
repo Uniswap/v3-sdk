@@ -82,16 +82,16 @@ export abstract class SwapRouter extends SelfPermit {
     }
 
     const sampleTrade = trades[0]
-    const tokenIn = sampleTrade.route.tokenPath[0]
-    const tokenOut = sampleTrade.route.tokenPath[sampleTrade.route.tokenPath.length - 1]
+    const tokenIn = sampleTrade.inputAmount.currency.wrapped
+    const tokenOut = sampleTrade.outputAmount.currency.wrapped
 
     // All trades should have the same starting and ending token.
     invariant(
-      trades.every(trade => trade.route.tokenPath[0].equals(tokenIn)),
+      trades.every(trade => trade.inputAmount.currency.wrapped.equals(tokenIn)),
       'TOKEN_IN_DIFF'
     )
     invariant(
-      trades.every(trade => trade.route.tokenPath[trade.route.tokenPath.length - 1].equals(tokenOut)),
+      trades.every(trade => trade.outputAmount.currency.wrapped.equals(tokenOut)),
       'TOKEN_OUT_DIFF'
     )
 
@@ -126,65 +126,67 @@ export abstract class SwapRouter extends SelfPermit {
     const deadline = toHex(options.deadline)
 
     for (const trade of trades) {
-      const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).quotient)
-      const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).quotient)
+      for (const { percent, route } of trade.routes) {
+        const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).multiply(percent).quotient)
+        const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).multiply(percent).quotient)
 
-      // flag for whether the trade is single hop or not
-      const singleHop = trade.route.pools.length === 1
+        // flag for whether the trade is single hop or not
+        const singleHop = route.pools.length === 1
 
-      if (singleHop) {
-        if (trade.tradeType === TradeType.EXACT_INPUT) {
-          const exactInputSingleParams = {
-            tokenIn: trade.route.tokenPath[0].address,
-            tokenOut: trade.route.tokenPath[1].address,
-            fee: trade.route.pools[0].fee,
-            recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
-            deadline,
-            amountIn,
-            amountOutMinimum: amountOut,
-            sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
+        if (singleHop) {
+          if (trade.tradeType === TradeType.EXACT_INPUT) {
+            const exactInputSingleParams = {
+              tokenIn: route.tokenPath[0].address,
+              tokenOut: route.tokenPath[1].address,
+              fee: route.pools[0].fee,
+              recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
+              deadline,
+              amountIn,
+              amountOutMinimum: amountOut,
+              sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
+            }
+
+            calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams]))
+          } else {
+            const exactOutputSingleParams = {
+              tokenIn: route.tokenPath[0].address,
+              tokenOut: route.tokenPath[1].address,
+              fee: route.pools[0].fee,
+              recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
+              deadline,
+              amountOut,
+              amountInMaximum: amountIn,
+              sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
+            }
+
+            calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams]))
           }
-
-          calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams]))
         } else {
-          const exactOutputSingleParams = {
-            tokenIn: trade.route.tokenPath[0].address,
-            tokenOut: trade.route.tokenPath[1].address,
-            fee: trade.route.pools[0].fee,
-            recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
-            deadline,
-            amountOut,
-            amountInMaximum: amountIn,
-            sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
+          invariant(options.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
+
+          const path: string = encodeRouteToPath(route, trade.tradeType === TradeType.EXACT_OUTPUT)
+
+          if (trade.tradeType === TradeType.EXACT_INPUT) {
+            const exactInputParams = {
+              path,
+              recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
+              deadline,
+              amountIn,
+              amountOutMinimum: amountOut
+            }
+
+            calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInput', [exactInputParams]))
+          } else {
+            const exactOutputParams = {
+              path,
+              recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
+              deadline,
+              amountOut,
+              amountInMaximum: amountIn
+            }
+
+            calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutput', [exactOutputParams]))
           }
-
-          calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams]))
-        }
-      } else {
-        invariant(options.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
-
-        const path: string = encodeRouteToPath(trade.route, trade.tradeType === TradeType.EXACT_OUTPUT)
-
-        if (trade.tradeType === TradeType.EXACT_INPUT) {
-          const exactInputParams = {
-            path,
-            recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
-            deadline,
-            amountIn,
-            amountOutMinimum: amountOut
-          }
-
-          calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInput', [exactInputParams]))
-        } else {
-          const exactOutputParams = {
-            path,
-            recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
-            deadline,
-            amountOut,
-            amountInMaximum: amountIn
-          }
-
-          calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutput', [exactOutputParams]))
         }
       }
     }
@@ -207,7 +209,7 @@ export abstract class SwapRouter extends SelfPermit {
         } else {
           calldatas.push(
             SwapRouter.INTERFACE.encodeFunctionData('sweepTokenWithFee', [
-              sampleTrade.route.tokenPath[sampleTrade.route.tokenPath.length - 1].address,
+              sampleTrade.outputAmount.currency.wrapped.address,
               toHex(totalAmountOut.quotient),
               recipient,
               fee,

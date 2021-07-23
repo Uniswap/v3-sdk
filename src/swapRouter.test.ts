@@ -49,8 +49,8 @@ describe('SwapRouter', () => {
   describe('#swapCallParameters', () => {
     describe('single trade input', () => {
       it('single-hop exact input', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_0_1], token0, token1),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -67,8 +67,8 @@ describe('SwapRouter', () => {
       })
 
       it('single-hop exact output', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_0_1], token0, token1),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_OUTPUT
         )
@@ -85,8 +85,8 @@ describe('SwapRouter', () => {
       })
 
       it('multi-hop exact input', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_0_1, pool_1_weth], token0, WETH),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -103,8 +103,8 @@ describe('SwapRouter', () => {
       })
 
       it('multi-hop exact output', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_0_1, pool_1_weth], token0, WETH),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }],
           CurrencyAmount.fromRawAmount(WETH, 100),
           TradeType.EXACT_OUTPUT
         )
@@ -121,8 +121,8 @@ describe('SwapRouter', () => {
       })
 
       it('ETH in exact input', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_1_weth], ETHER, token1),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], ETHER, token1) }],
           CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
           TradeType.EXACT_INPUT
         )
@@ -139,8 +139,8 @@ describe('SwapRouter', () => {
       })
 
       it('ETH in exact output', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_1_weth], ETHER, token1),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], ETHER, token1) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_OUTPUT
         )
@@ -157,8 +157,8 @@ describe('SwapRouter', () => {
       })
 
       it('ETH out exact input', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_1_weth], token1, ETHER),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], token1, ETHER) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_INPUT
         )
@@ -175,8 +175,8 @@ describe('SwapRouter', () => {
       })
 
       it('ETH out exact output', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_1_weth], token1, ETHER),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], token1, ETHER) }],
           CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
           TradeType.EXACT_OUTPUT
         )
@@ -193,8 +193,8 @@ describe('SwapRouter', () => {
       })
 
       it('sqrtPriceLimitX96', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_0_1], token0, token1),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -212,8 +212,8 @@ describe('SwapRouter', () => {
       })
 
       it('fee with eth out', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_1_weth], token1, ETHER),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], token1, ETHER) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_INPUT
         )
@@ -234,8 +234,8 @@ describe('SwapRouter', () => {
       })
 
       it('fee with eth in using exact output', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_1_weth], ETHER, token1),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], ETHER, token1) }],
           CurrencyAmount.fromRawAmount(token1, 10),
           TradeType.EXACT_OUTPUT
         )
@@ -256,8 +256,8 @@ describe('SwapRouter', () => {
       })
 
       it('fee', async () => {
-        const trade = await Trade.fromRoute(
-          new Route([pool_0_1], token0, token1),
+        const trade = await Trade.fromRoutes(
+          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -281,14 +281,14 @@ describe('SwapRouter', () => {
 
   describe('multiple trade input', () => {
     it('two single-hop exact input', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_1], token0, token1),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_1], token0, token1),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -306,14 +306,14 @@ describe('SwapRouter', () => {
     })
 
     it('one single-hop one multi-hop exact input', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_3], token0, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_2, pool_2_3], token0, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -331,14 +331,14 @@ describe('SwapRouter', () => {
     })
 
     it('two multi-hop exact input', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_1, pool_1_3], token0, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_2, pool_2_3], token0, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -353,17 +353,37 @@ describe('SwapRouter', () => {
         '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
       )
       expect(value).toBe('0x00')
+
+      const tradeCombined = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_0_1, pool_1_3], token0, token3) },
+          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+        ],
+        CurrencyAmount.fromRawAmount(token0, 200),
+        TradeType.EXACT_INPUT
+      )
+
+      const { calldata: calldata2, value: value2 } = SwapRouter.swapCallParameters([tradeCombined], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata2).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value2).toBe('0x00')
     })
 
     it('ETH in exact input', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_1_weth, pool_1_3], ETHER, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_3_weth], ETHER, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_INPUT
       )
@@ -381,14 +401,14 @@ describe('SwapRouter', () => {
     })
 
     it('ETH in exact output', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_1_weth, pool_1_3], ETHER, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_3_weth], ETHER, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -406,14 +426,14 @@ describe('SwapRouter', () => {
     })
 
     it('ETH out exact input', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_1_3, pool_1_weth], token3, ETHER),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_3_weth], token3, ETHER),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
@@ -431,14 +451,14 @@ describe('SwapRouter', () => {
     })
 
     it('ETH out exact output', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_1_3, pool_1_weth], token3, ETHER),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_3_weth], token3, ETHER),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_OUTPUT
       )
@@ -456,14 +476,14 @@ describe('SwapRouter', () => {
     })
 
     it('two single-hop exact output', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_1], token0, token1),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token1, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_1], token0, token1),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token1, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -481,14 +501,14 @@ describe('SwapRouter', () => {
     })
 
     it('one single-hop one multi-hop exact output', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_3], token0, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_2, pool_2_3], token0, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -506,14 +526,14 @@ describe('SwapRouter', () => {
     })
 
     it('two multi-hop exact output', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_1, pool_1_3], token0, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_2, pool_2_3], token0, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -531,14 +551,14 @@ describe('SwapRouter', () => {
     })
 
     it('different token in fails ', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_2_3], token2, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_2_3], token2, token3) }],
         CurrencyAmount.fromRawAmount(token2, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_1], token0, token1),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -553,14 +573,14 @@ describe('SwapRouter', () => {
     })
 
     it('different token out fails ', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_3], token0, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_1, pool_1_weth], token0, WETH),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -575,14 +595,14 @@ describe('SwapRouter', () => {
     })
 
     it('sqrtPriceLimitX96', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_1], token0, token1),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_1], token0, token1),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -600,14 +620,14 @@ describe('SwapRouter', () => {
     })
 
     it('fee with eth out', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_1_3, pool_1_weth], token3, ETHER),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_3_weth], token3, ETHER),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
@@ -629,14 +649,14 @@ describe('SwapRouter', () => {
     })
 
     it('fee with eth in using exact output', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_1_weth, pool_1_3], ETHER, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_3_weth], ETHER, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -658,14 +678,14 @@ describe('SwapRouter', () => {
     })
 
     it('fee', async () => {
-      const trade1 = await Trade.fromRoute(
-        new Route([pool_0_1, pool_1_3], token0, token3),
+      const trade1 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoute(
-        new Route([pool_0_2, pool_2_3], token0, token3),
+      const trade2 = await Trade.fromRoutes(
+        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -682,6 +702,184 @@ describe('SwapRouter', () => {
 
       expect(calldata).toBe(
         '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003600000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000003000bb800000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a4e0e189a0000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000be00000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000032000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0x00')
+    })
+  })
+
+  describe('trade with multiple routes', () => {
+    it('one single-hop one multi-hop exact input', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_0_3], token0, token3) },
+          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+        ],
+        CurrencyAmount.fromRawAmount(token0, 200),
+        TradeType.EXACT_INPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000104414bf389000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000610000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0x00')
+    })
+
+    it('two multi-hop exact input', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_0_1, pool_1_3], token0, token3) },
+          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+        ],
+        CurrencyAmount.fromRawAmount(token0, 200),
+        TradeType.EXACT_INPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0x00')
+    })
+
+    it('ETH in exact input', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) },
+          { percent: new Percent(1, 2), route: new Route([pool_3_weth], ETHER, token3) }
+        ],
+        CurrencyAmount.fromRawAmount(Ether.onChain(1), 200),
+        TradeType.EXACT_INPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f0000000000000000000000000000000000000000000000000000000000000042c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104414bf389000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000061000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0xc8')
+    })
+
+    it('ETH in exact output', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) },
+          { percent: new Percent(1, 2), route: new Route([pool_3_weth], ETHER, token3) }
+        ],
+        CurrencyAmount.fromRawAmount(token3, 200),
+        TradeType.EXACT_OUTPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003200000000000000000000000000000000000000000000000000000000000000144f28c0498000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000006900000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000004000bb80000000000000000000000000000000000000002000bb8c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104db3e2198000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000067000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000412210e8a00000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0xd0')
+    })
+
+    it('ETH out exact input', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) },
+          { percent: new Percent(1, 2), route: new Route([pool_3_weth], token3, ETHER) }
+        ],
+        CurrencyAmount.fromRawAmount(token3, 200),
+        TradeType.EXACT_INPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003200000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000004000bb80000000000000000000000000000000000000002000bb8c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104414bf3890000000000000000000000000000000000000000000000000000000000000004000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000061000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004449404b7c00000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0x00')
+    })
+
+    it('ETH out exact output', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) },
+          { percent: new Percent(1, 2), route: new Route([pool_3_weth], token3, ETHER) }
+        ],
+        CurrencyAmount.fromRawAmount(Ether.onChain(1), 200),
+        TradeType.EXACT_OUTPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003200000000000000000000000000000000000000000000000000000000000000144f28c0498000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000690000000000000000000000000000000000000000000000000000000000000042c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000104db3e21980000000000000000000000000000000000000000000000000000000000000004000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b00000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000067000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004449404b7c00000000000000000000000000000000000000000000000000000000000000c8000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0x00')
+    })
+
+    it('one single-hop one multi-hop exact output', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_0_3], token0, token3) },
+          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+        ],
+        CurrencyAmount.fromRawAmount(token3, 200),
+        TradeType.EXACT_OUTPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000104db3e2198000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000670000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144f28c0498000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000006900000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000004000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      )
+      expect(value).toBe('0x00')
+    })
+
+    it('two multi-hop exact output', async () => {
+      const trade = await Trade.fromRoutes(
+        [
+          { percent: new Percent(1, 2), route: new Route([pool_0_1, pool_1_3], token0, token3) },
+          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+        ],
+        CurrencyAmount.fromRawAmount(token3, 200),
+        TradeType.EXACT_OUTPUT
+      )
+
+      const { calldata, value } = SwapRouter.swapCallParameters([trade], {
+        slippageTolerance,
+        recipient,
+        deadline
+      })
+
+      expect(calldata).toBe(
+        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000144f28c0498000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000006900000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000004000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144f28c0498000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000006900000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000004000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
       )
       expect(value).toBe('0x00')
     })
