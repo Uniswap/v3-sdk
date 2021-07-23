@@ -50,6 +50,50 @@ export interface BestTradeOptions {
   maxHops?: number
 }
 
+export class TradeRoute<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType> {
+  constructor(
+    protected percent: Percent,
+    protected route: Route<TInput, TOutput>,
+    protected inputAmount: CurrencyAmount<TInput>,
+    protected outputAmount: CurrencyAmount<TOutput>,
+    protected tradeType: TTradeType
+  ) {}
+
+  /**
+   * Get the minimum amount that must be received from this trade for the given slippage tolerance
+   * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
+   * @returns The amount out
+   */
+  public minimumAmountOut(slippageTolerance: Percent): CurrencyAmount<TOutput> {
+    invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
+    if (this.tradeType === TradeType.EXACT_OUTPUT) {
+      return this.outputAmount
+    } else {
+      const slippageAdjustedAmountOut = new Fraction(ONE)
+        .add(slippageTolerance)
+        .invert()
+        .multiply(this.outputAmount.quotient).quotient
+      return CurrencyAmount.fromRawAmount(this.outputAmount.currency, slippageAdjustedAmountOut)
+    }
+  }
+
+  /**
+   * Get the maximum amount in that can be spent via this trade for the given slippage tolerance
+   * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
+   * @returns The amount in
+   */
+  public maximumAmountIn(slippageTolerance: Percent): CurrencyAmount<TInput> {
+    invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
+    if (this.tradeType === TradeType.EXACT_INPUT) {
+      return this.inputAmount
+    } else {
+      const slippageAdjustedAmountIn = new Fraction(ONE).add(slippageTolerance).multiply(this.inputAmount.quotient)
+        .quotient
+      return CurrencyAmount.fromRawAmount(this.inputAmount.currency, slippageAdjustedAmountIn)
+    }
+  }
+}
+
 /**
  * Represents a trade executed against a set of routes where some percentage of the input is
  * split across each route.
@@ -66,7 +110,12 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * The routes of the trade, i.e. which pools the trade goes through.
    */
-  public readonly routes: { percent: Percent; route: Route<TInput, TOutput> }[]
+  public readonly routes: {
+    percent: Percent
+    route: Route<TInput, TOutput>
+    inputAmount: CurrencyAmount<TInput>
+    outputAmount: CurrencyAmount<TOutput>
+  }[]
   /**
    * The type of the trade, either exact in or exact out.
    */
@@ -115,15 +164,11 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       return this._priceImpact
     }
 
-    const spotOutputAmount = this.routes
-      .map(({ percent, route }) => {
-        const midPrice = route.midPrice
-
-        return midPrice.quote(this.inputAmount.multiply(percent))
-      })
-      .reduce((total: CurrencyAmount<TOutput>, cur: CurrencyAmount<TOutput>) => {
-        return total.add(cur)
-      }, CurrencyAmount.fromRawAmount(this.outputAmount.currency, 0))
+    let spotOutputAmount = CurrencyAmount.fromRawAmount(this.outputAmount.currency, 0)
+    for (const { route, inputAmount } of this.routes) {
+      const midPrice = route.midPrice
+      spotOutputAmount = spotOutputAmount.add(midPrice.quote(inputAmount))
+    }
 
     const priceImpact = spotOutputAmount.subtract(this.outputAmount).divide(spotOutputAmount)
     this._priceImpact = new Percent(priceImpact.numerator, priceImpact.denominator)
@@ -163,10 +208,16 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
   /**
    * Constructs a trade from routes by simulating swaps
+   *
+   * The amount is split between the routes using the provided percentage. Any remainders due to lack of
+   * precision are carried over to the next route. Therefore the generated amounts for each route may
+   * not exactly represent the provided percentage. The trades total amount in/out is guaranteed to be
+   * as expected however
+   *
    * @template TInput The input token, either Ether or an ERC-20.
    * @template TOutput The output token, either Ether or an ERC-20.
    * @template TTradeType The type of the trade, either exact in or exact out.
-   * @param route route to swap through
+   * @param routes the routes to swap through and how much of the amount should be routed through each
    * @param amount the amount specified, either input or output, depending on tradeType
    * @param tradeType whether the trade is an exact input or exact output swap
    * @returns The route
@@ -179,6 +230,23 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     let totalInputAmount: CurrencyAmount<TInput> = CurrencyAmount.fromRawAmount(routes[0].route.input, 0)
     let totalOutputAmount: CurrencyAmount<TOutput> = CurrencyAmount.fromRawAmount(routes[0].route.output, 0)
 
+    const inputToken = routes[0].route.input.wrapped
+    const outputToken = routes[0].route.output.wrapped
+
+    const populatedRoutes: {
+      percent: Percent
+      route: Route<TInput, TOutput>
+      inputAmount: CurrencyAmount<TInput>
+      outputAmount: CurrencyAmount<TOutput>
+    }[] = []
+
+    // Multiplying by percentages can lead to lack of precision due to remainders (e.g. 50% of 101 input).
+    // Each time we take a percentage we track the remainder and carry it over to the next percentage.
+    let remainder: CurrencyAmount<Token> = CurrencyAmount.fromRawAmount(
+      tradeType === TradeType.EXACT_INPUT ? inputToken : outputToken,
+      0
+    )
+
     for (const { route, percent } of routes) {
       const amounts: CurrencyAmount<Token>[] = new Array(route.tokenPath.length)
       let inputAmount: CurrencyAmount<TInput>
@@ -186,40 +254,65 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
       if (tradeType === TradeType.EXACT_INPUT) {
         invariant(amount.currency.equals(route.input), 'INPUT')
-        amounts[0] = amount.wrapped.multiply(percent)
+        amounts[0] = amount.wrapped.multiply(percent).add(remainder)
+
         for (let i = 0; i < route.tokenPath.length - 1; i++) {
           const pool = route.pools[i]
           const [outputAmount] = await pool.getOutputAmount(amounts[i])
           amounts[i + 1] = outputAmount
         }
-        inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amount.numerator, amount.denominator).multiply(
-          percent
-        )
+        inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amount.numerator, amount.denominator)
+          .multiply(percent)
+          .add(CurrencyAmount.fromFractionalAmount(route.input, remainder.numerator, remainder.denominator))
         outputAmount = CurrencyAmount.fromFractionalAmount(
           route.output,
           amounts[amounts.length - 1].numerator,
           amounts[amounts.length - 1].denominator
         )
+
+        remainder = CurrencyAmount.fromFractionalAmount(
+          inputToken,
+          amounts[0].remainder.numerator,
+          amounts[0].remainder.denominator
+        )
       } else {
         invariant(amount.currency.equals(route.output), 'OUTPUT')
-        amounts[amounts.length - 1] = amount.wrapped.multiply(percent)
+        amounts[amounts.length - 1] = amount.wrapped.multiply(percent).add(remainder)
+
         for (let i = route.tokenPath.length - 1; i > 0; i--) {
           const pool = route.pools[i - 1]
           const [inputAmount] = await pool.getInputAmount(amounts[i])
           amounts[i - 1] = inputAmount
         }
         inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amounts[0].numerator, amounts[0].denominator)
-        outputAmount = CurrencyAmount.fromFractionalAmount(route.output, amount.numerator, amount.denominator).multiply(
-          percent
+        outputAmount = CurrencyAmount.fromFractionalAmount(route.output, amount.numerator, amount.denominator)
+          .multiply(percent)
+          .add(CurrencyAmount.fromFractionalAmount(route.output, remainder.numerator, remainder.denominator))
+
+        remainder = CurrencyAmount.fromFractionalAmount(
+          outputToken,
+          amounts[amounts.length - 1].remainder.numerator,
+          amounts[amounts.length - 1].remainder.denominator
         )
       }
+
+      populatedRoutes.push({ percent, route, inputAmount, outputAmount })
 
       totalInputAmount = totalInputAmount.add(inputAmount)
       totalOutputAmount = totalOutputAmount.add(outputAmount)
     }
 
+    // Applying percentages can lead to lack of precision due to remainders (e.g. 50% of 101 input).
+    // These checks ensure we carried over all remainders when constructing the percentages.
+    invariant(remainder.equalTo(ZERO), 'REMAINDER')
+    if (tradeType === TradeType.EXACT_INPUT) {
+      invariant(amount.equalTo(totalInputAmount), 'INPUT_TOTAL_ROUND')
+    } else {
+      invariant(amount.equalTo(totalOutputAmount), 'OUTPUT_TOTAL_ROUND')
+    }
+
     return new Trade({
-      routes,
+      routes: populatedRoutes,
       tradeType,
       inputAmount: totalInputAmount,
       outputAmount: totalOutputAmount
@@ -240,7 +333,12 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     TOutput extends Currency,
     TTradeType extends TradeType
   >(constructorArguments: {
-    routes: { percent: Percent; route: Route<TInput, TOutput> }[]
+    routes: {
+      percent: Percent
+      route: Route<TInput, TOutput>
+      inputAmount: CurrencyAmount<TInput>
+      outputAmount: CurrencyAmount<TOutput>
+    }[]
     inputAmount: CurrencyAmount<TInput>
     outputAmount: CurrencyAmount<TOutput>
     tradeType: TTradeType
@@ -261,17 +359,22 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     outputAmount,
     tradeType
   }: {
-    routes: { percent: Percent; route: Route<TInput, TOutput> }[]
+    routes: {
+      percent: Percent
+      route: Route<TInput, TOutput>
+      inputAmount: CurrencyAmount<TInput>
+      outputAmount: CurrencyAmount<TOutput>
+    }[]
     inputAmount: CurrencyAmount<TInput>
     outputAmount: CurrencyAmount<TOutput>
     tradeType: TTradeType
   }) {
     invariant(
-      routes.every(({ route }) => inputAmount.currency.equals(route.input)),
+      routes.every(({ route }) => inputAmount.currency.wrapped.equals(route.input.wrapped)),
       'INPUT_CURRENCY_MATCH'
     )
     invariant(
-      routes.every(({ route }) => outputAmount.currency.equals(route.output)),
+      routes.every(({ route }) => outputAmount.currency.wrapped.equals(route.output.wrapped)),
       'OUTPUT_CURRENCY_MATCH'
     )
 
@@ -280,6 +383,18 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       .reduce((total, cur) => total.add(cur), new Percent(0, 100))
 
     invariant(totalPercent.equalTo(new Percent(100, 100)), 'TOTAL_PERCENT')
+
+    const totalInputFromRoutes = routes
+      .map(({ inputAmount }) => inputAmount)
+      .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(inputAmount.currency, 0))
+
+    invariant(totalInputFromRoutes.equalTo(inputAmount), 'TOTAL_INPUT')
+
+    const totalOutputFromRoutes = routes
+      .map(({ outputAmount }) => outputAmount)
+      .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(outputAmount.currency, 0))
+
+    invariant(totalOutputFromRoutes.equalTo(outputAmount), 'TOTAL_OUTPUT')
 
     const numPools = routes.map(({ route }) => route.pools.length).reduce((total, cur) => total + cur, 0)
     const poolAddressSet = new Set<string>()
@@ -302,16 +417,16 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
    * @returns The amount out
    */
-  public minimumAmountOut(slippageTolerance: Percent): CurrencyAmount<TOutput> {
+  public minimumAmountOut(slippageTolerance: Percent, amountOut = this.outputAmount): CurrencyAmount<TOutput> {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
     if (this.tradeType === TradeType.EXACT_OUTPUT) {
-      return this.outputAmount
+      return amountOut
     } else {
       const slippageAdjustedAmountOut = new Fraction(ONE)
         .add(slippageTolerance)
         .invert()
-        .multiply(this.outputAmount.quotient).quotient
-      return CurrencyAmount.fromRawAmount(this.outputAmount.currency, slippageAdjustedAmountOut)
+        .multiply(amountOut.quotient).quotient
+      return CurrencyAmount.fromRawAmount(amountOut.currency, slippageAdjustedAmountOut)
     }
   }
 
@@ -320,14 +435,13 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
    * @returns The amount in
    */
-  public maximumAmountIn(slippageTolerance: Percent): CurrencyAmount<TInput> {
+  public maximumAmountIn(slippageTolerance: Percent, amountIn = this.inputAmount): CurrencyAmount<TInput> {
     invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
     if (this.tradeType === TradeType.EXACT_INPUT) {
-      return this.inputAmount
+      return amountIn
     } else {
-      const slippageAdjustedAmountIn = new Fraction(ONE).add(slippageTolerance).multiply(this.inputAmount.quotient)
-        .quotient
-      return CurrencyAmount.fromRawAmount(this.inputAmount.currency, slippageAdjustedAmountIn)
+      const slippageAdjustedAmountIn = new Fraction(ONE).add(slippageTolerance).multiply(amountIn.quotient).quotient
+      return CurrencyAmount.fromRawAmount(amountIn.currency, slippageAdjustedAmountIn)
     }
   }
 
