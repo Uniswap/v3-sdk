@@ -209,10 +209,9 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Constructs a trade from routes by simulating swaps
    *
-   * The amount is split between the routes using the provided percentage. Any remainders due to lack of
-   * precision are carried over to the next route. Therefore the generated amounts for each route may
-   * not exactly represent the provided percentage. The trades total amount in/out is guaranteed to be
-   * as expected however
+   * The amount is split between the routes using the provided percentages. Any loss of precision from taking
+   * a percentage of an input is carried over to the next routes input. For example with an amount of 101 and two
+   * routes each with 50%, the first route's amount would be 50, and the second route's amount would be 51.
    *
    * @template TInput The input token, either Ether or an ERC-20.
    * @template TOutput The output token, either Ether or an ERC-20.
@@ -230,9 +229,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     let totalInputAmount: CurrencyAmount<TInput> = CurrencyAmount.fromRawAmount(routes[0].route.input, 0)
     let totalOutputAmount: CurrencyAmount<TOutput> = CurrencyAmount.fromRawAmount(routes[0].route.output, 0)
 
-    const inputToken = routes[0].route.input.wrapped
-    const outputToken = routes[0].route.output.wrapped
-
     const populatedRoutes: {
       percent: Percent
       route: Route<TInput, TOutput>
@@ -240,12 +236,8 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       outputAmount: CurrencyAmount<TOutput>
     }[] = []
 
-    // Multiplying by percentages can lead to lack of precision due to remainders (e.g. 50% of 101 input).
-    // Each time we take a percentage we track the remainder and carry it over to the next percentage.
-    let remainder: CurrencyAmount<Token> = CurrencyAmount.fromRawAmount(
-      tradeType === TradeType.EXACT_INPUT ? inputToken : outputToken,
-      0
-    )
+    // Each time we take a percentage we track the remainder and carry it over to the next routes input.
+    let remainder = CurrencyAmount.fromRawAmount(amount.currency, 0)
 
     for (const { route, percent } of routes) {
       const amounts: CurrencyAmount<Token>[] = new Array(route.tokenPath.length)
@@ -254,55 +246,77 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
       if (tradeType === TradeType.EXACT_INPUT) {
         invariant(amount.currency.equals(route.input), 'INPUT')
-        amounts[0] = amount.wrapped.multiply(percent).add(remainder)
+
+        // Calculate the raw input amount for this route and add the carried over remainder from the previous route.
+        const inputAmountWithRemainder = CurrencyAmount.fromFractionalAmount(
+          amount.currency,
+          amount.numerator,
+          amount.denominator
+        )
+          .multiply(percent)
+          .add(remainder)
+
+        // The quotient becomes our input for this route, and we save the remainder to be carried over to the next route.
+        inputAmount = CurrencyAmount.fromRawAmount(route.input, inputAmountWithRemainder.quotient)
+        remainder = CurrencyAmount.fromFractionalAmount(
+          amount.currency,
+          inputAmountWithRemainder.remainder.numerator,
+          inputAmountWithRemainder.remainder.denominator
+        )
+
+        amounts[0] = CurrencyAmount.fromRawAmount(route.input.wrapped, inputAmountWithRemainder.quotient)
 
         for (let i = 0; i < route.tokenPath.length - 1; i++) {
           const pool = route.pools[i]
           const [outputAmount] = await pool.getOutputAmount(amounts[i])
           amounts[i + 1] = outputAmount
         }
-        inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amount.numerator, amount.denominator)
-          .multiply(percent)
-          .add(CurrencyAmount.fromFractionalAmount(route.input, remainder.numerator, remainder.denominator))
+
         outputAmount = CurrencyAmount.fromFractionalAmount(
           route.output,
           amounts[amounts.length - 1].numerator,
           amounts[amounts.length - 1].denominator
         )
-
-        remainder = CurrencyAmount.fromFractionalAmount(
-          inputToken,
-          amounts[0].remainder.numerator,
-          amounts[0].remainder.denominator
-        )
       } else {
         invariant(amount.currency.equals(route.output), 'OUTPUT')
-        amounts[amounts.length - 1] = amount.wrapped.multiply(percent).add(remainder)
+
+        // Calculate the raw output amount for this route and add the carried over remainder from the previous route.
+        const outputAmountWithRemainder = CurrencyAmount.fromFractionalAmount(
+          amount.currency,
+          amount.numerator,
+          amount.denominator
+        )
+          .multiply(percent)
+          .add(remainder)
+
+        // The quotient becomes our output for this route, and we save the remainder to be carried over to the next route.
+        outputAmount = CurrencyAmount.fromRawAmount(route.output, outputAmountWithRemainder.quotient)
+        remainder = CurrencyAmount.fromFractionalAmount(
+          amount.currency,
+          outputAmountWithRemainder.remainder.numerator,
+          outputAmountWithRemainder.remainder.denominator
+        )
+
+        amounts[amounts.length - 1] = CurrencyAmount.fromRawAmount(
+          route.output.wrapped,
+          outputAmountWithRemainder.quotient
+        )
 
         for (let i = route.tokenPath.length - 1; i > 0; i--) {
           const pool = route.pools[i - 1]
           const [inputAmount] = await pool.getInputAmount(amounts[i])
           amounts[i - 1] = inputAmount
         }
-        inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amounts[0].numerator, amounts[0].denominator)
-        outputAmount = CurrencyAmount.fromFractionalAmount(route.output, amount.numerator, amount.denominator)
-          .multiply(percent)
-          .add(CurrencyAmount.fromFractionalAmount(route.output, remainder.numerator, remainder.denominator))
 
-        remainder = CurrencyAmount.fromFractionalAmount(
-          outputToken,
-          amounts[amounts.length - 1].remainder.numerator,
-          amounts[amounts.length - 1].remainder.denominator
-        )
+        inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amounts[0].numerator, amounts[0].denominator)
       }
 
       populatedRoutes.push({ percent, route, inputAmount, outputAmount })
 
-      totalInputAmount = totalInputAmount.add(inputAmount)
-      totalOutputAmount = totalOutputAmount.add(outputAmount)
+      totalInputAmount = totalInputAmount.add(CurrencyAmount.fromRawAmount(route.input, inputAmount.quotient))
+      totalOutputAmount = totalOutputAmount.add(CurrencyAmount.fromRawAmount(route.output, outputAmount.quotient))
     }
 
-    // Applying percentages can lead to lack of precision due to remainders (e.g. 50% of 101 input).
     // These checks ensure we carried over all remainders when constructing the percentages.
     invariant(remainder.equalTo(ZERO), 'REMAINDER')
     if (tradeType === TradeType.EXACT_INPUT) {

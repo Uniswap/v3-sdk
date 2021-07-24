@@ -170,9 +170,9 @@ describe('Trade', () => {
       const trade = await Trade.fromRoutes(
         [
           { percent: new Percent(50, 100), route: new Route([pool_weth_0], ETHER, token0) },
-          { percent: new Percent(50, 100), route: new Route([pool_0_1, pool_weth_1], ETHER, token0) }
+          { percent: new Percent(50, 100), route: new Route([pool_weth_1, pool_0_1], ETHER, token0) }
         ],
-        CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10001)),
+        CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(101)),
         TradeType.EXACT_INPUT
       )
       expect(trade.inputAmount.currency).toEqual(ETHER)
@@ -418,13 +418,13 @@ describe('Trade', () => {
           {
             percent: new Percent(50, 100),
             route: new Route([pool_0_1], token0, token1),
-            inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
+            inputAmount: CurrencyAmount.fromRawAmount(token0, 5001),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
           },
           {
             percent: new Percent(50, 100),
             route: new Route([pool_0_2, pool_1_2], token0, token1),
-            inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
+            inputAmount: CurrencyAmount.fromRawAmount(token0, 4999),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
           }
         ],
