@@ -50,50 +50,6 @@ export interface BestTradeOptions {
   maxHops?: number
 }
 
-export class TradeRoute<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType> {
-  constructor(
-    protected percent: Percent,
-    protected route: Route<TInput, TOutput>,
-    protected inputAmount: CurrencyAmount<TInput>,
-    protected outputAmount: CurrencyAmount<TOutput>,
-    protected tradeType: TTradeType
-  ) {}
-
-  /**
-   * Get the minimum amount that must be received from this trade for the given slippage tolerance
-   * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
-   * @returns The amount out
-   */
-  public minimumAmountOut(slippageTolerance: Percent): CurrencyAmount<TOutput> {
-    invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
-    if (this.tradeType === TradeType.EXACT_OUTPUT) {
-      return this.outputAmount
-    } else {
-      const slippageAdjustedAmountOut = new Fraction(ONE)
-        .add(slippageTolerance)
-        .invert()
-        .multiply(this.outputAmount.quotient).quotient
-      return CurrencyAmount.fromRawAmount(this.outputAmount.currency, slippageAdjustedAmountOut)
-    }
-  }
-
-  /**
-   * Get the maximum amount in that can be spent via this trade for the given slippage tolerance
-   * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
-   * @returns The amount in
-   */
-  public maximumAmountIn(slippageTolerance: Percent): CurrencyAmount<TInput> {
-    invariant(!slippageTolerance.lessThan(ZERO), 'SLIPPAGE_TOLERANCE')
-    if (this.tradeType === TradeType.EXACT_INPUT) {
-      return this.inputAmount
-    } else {
-      const slippageAdjustedAmountIn = new Fraction(ONE).add(slippageTolerance).multiply(this.inputAmount.quotient)
-        .quotient
-      return CurrencyAmount.fromRawAmount(this.inputAmount.currency, slippageAdjustedAmountIn)
-    }
-  }
-}
-
 /**
  * Represents a trade executed against a set of routes where some percentage of the input is
  * split across each route.
