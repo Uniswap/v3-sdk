@@ -49,8 +49,8 @@ describe('SwapRouter', () => {
   describe('#swapCallParameters', () => {
     describe('single trade input', () => {
       it('single-hop exact input', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+        const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -67,8 +67,8 @@ describe('SwapRouter', () => {
       })
 
       it('single-hop exact output', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+        const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token1, 100), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_OUTPUT
         )
@@ -85,8 +85,13 @@ describe('SwapRouter', () => {
       })
 
       it('multi-hop exact input', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }],
+        const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+          [
+            {
+              amount: CurrencyAmount.fromRawAmount(token0, 100),
+              route: new Route([pool_0_1, pool_1_weth], token0, WETH)
+            }
+          ],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -103,8 +108,10 @@ describe('SwapRouter', () => {
       })
 
       it('multi-hop exact output', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }],
+        const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+          [
+            { amount: CurrencyAmount.fromRawAmount(WETH, 100), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }
+          ],
           CurrencyAmount.fromRawAmount(WETH, 100),
           TradeType.EXACT_OUTPUT
         )
@@ -121,8 +128,13 @@ describe('SwapRouter', () => {
       })
 
       it('ETH in exact input', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], ETHER, token1) }],
+        const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
+          [
+            {
+              amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+              route: new Route<Ether, Token>([pool_1_weth], ETHER, token1)
+            }
+          ],
           CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
           TradeType.EXACT_INPUT
         )
@@ -139,8 +151,8 @@ describe('SwapRouter', () => {
       })
 
       it('ETH in exact output', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], ETHER, token1) }],
+        const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token1, 100), route: new Route([pool_1_weth], ETHER, token1) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_OUTPUT
         )
@@ -157,8 +169,8 @@ describe('SwapRouter', () => {
       })
 
       it('ETH out exact input', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], token1, ETHER) }],
+        const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token1, 100), route: new Route([pool_1_weth], token1, ETHER) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_INPUT
         )
@@ -175,8 +187,13 @@ describe('SwapRouter', () => {
       })
 
       it('ETH out exact output', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], token1, ETHER) }],
+        const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_OUTPUT>(
+          [
+            {
+              amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+              route: new Route([pool_1_weth], token1, ETHER)
+            }
+          ],
           CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
           TradeType.EXACT_OUTPUT
         )
@@ -193,8 +210,8 @@ describe('SwapRouter', () => {
       })
 
       it('sqrtPriceLimitX96', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+        const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -212,8 +229,8 @@ describe('SwapRouter', () => {
       })
 
       it('fee with eth out', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], token1, ETHER) }],
+        const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token1, 100), route: new Route([pool_1_weth], token1, ETHER) }],
           CurrencyAmount.fromRawAmount(token1, 100),
           TradeType.EXACT_INPUT
         )
@@ -234,8 +251,8 @@ describe('SwapRouter', () => {
       })
 
       it('fee with eth in using exact output', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_1_weth], ETHER, token1) }],
+        const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token1, 10), route: new Route([pool_1_weth], ETHER, token1) }],
           CurrencyAmount.fromRawAmount(token1, 10),
           TradeType.EXACT_OUTPUT
         )
@@ -256,8 +273,8 @@ describe('SwapRouter', () => {
       })
 
       it('fee', async () => {
-        const trade = await Trade.fromRoutes(
-          [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+        const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+          [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
           CurrencyAmount.fromRawAmount(token0, 100),
           TradeType.EXACT_INPUT
         )
@@ -281,14 +298,14 @@ describe('SwapRouter', () => {
 
   describe('multiple trade input', () => {
     it('two single-hop exact input', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -306,14 +323,14 @@ describe('SwapRouter', () => {
     })
 
     it('one single-hop one multi-hop exact input', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_3], token0, token3) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -331,14 +348,14 @@ describe('SwapRouter', () => {
     })
 
     it('two multi-hop exact input', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -353,37 +370,27 @@ describe('SwapRouter', () => {
         '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
       )
       expect(value).toBe('0x00')
-
-      const tradeCombined = await Trade.fromRoutes(
-        [
-          { percent: new Percent(1, 2), route: new Route([pool_0_1, pool_1_3], token0, token3) },
-          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
-        ],
-        CurrencyAmount.fromRawAmount(token0, 200),
-        TradeType.EXACT_INPUT
-      )
-
-      const { calldata: calldata2, value: value2 } = SwapRouter.swapCallParameters([tradeCombined], {
-        slippageTolerance,
-        recipient,
-        deadline
-      })
-
-      expect(calldata2).toBe(
-        '0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000144c04b8d59000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000005f00000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000001000bb80000000000000000000000000000000000000003000bb8000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-      )
-      expect(value2).toBe('0x00')
     })
 
     it('ETH in exact input', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) }],
+      const trade1 = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_1_weth, pool_1_3], ETHER, token3)
+          }
+        ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], ETHER, token3) }],
+      const trade2 = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_3_weth], ETHER, token3)
+          }
+        ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_INPUT
       )
@@ -401,14 +408,19 @@ describe('SwapRouter', () => {
     })
 
     it('ETH in exact output', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) }],
+      const trade1 = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(token3, 100),
+            route: new Route([pool_1_weth, pool_1_3], ETHER, token3)
+          }
+        ],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], ETHER, token3) }],
+      const trade2 = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_3_weth], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -426,14 +438,19 @@ describe('SwapRouter', () => {
     })
 
     it('ETH out exact input', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) }],
+      const trade1 = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(token3, 100),
+            route: new Route([pool_1_3, pool_1_weth], token3, ETHER)
+          }
+        ],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], token3, ETHER) }],
+      const trade2 = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_3_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
@@ -451,14 +468,24 @@ describe('SwapRouter', () => {
     })
 
     it('ETH out exact output', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) }],
+      const trade1 = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_OUTPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_1_3, pool_1_weth], token3, ETHER)
+          }
+        ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], token3, ETHER) }],
+      const trade2 = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_OUTPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_3_weth], token3, ETHER)
+          }
+        ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
         TradeType.EXACT_OUTPUT
       )
@@ -476,14 +503,14 @@ describe('SwapRouter', () => {
     })
 
     it('two single-hop exact output', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token1, 100), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token1, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token1, 100), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token1, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -501,14 +528,14 @@ describe('SwapRouter', () => {
     })
 
     it('one single-hop one multi-hop exact output', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_3], token0, token3) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -526,14 +553,14 @@ describe('SwapRouter', () => {
     })
 
     it('two multi-hop exact output', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -551,14 +578,14 @@ describe('SwapRouter', () => {
     })
 
     it('different token in fails ', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_2_3], token2, token3) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token2, 100), route: new Route([pool_2_3], token2, token3) }],
         CurrencyAmount.fromRawAmount(token2, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -573,14 +600,16 @@ describe('SwapRouter', () => {
     })
 
     it('different token out fails ', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_3], token0, token3) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [
+          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1, pool_1_weth], token0, WETH) }
+        ],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -595,14 +624,14 @@ describe('SwapRouter', () => {
     })
 
     it('sqrtPriceLimitX96', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1], token0, token1) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1], token0, token1) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -620,14 +649,19 @@ describe('SwapRouter', () => {
     })
 
     it('fee with eth out', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) }],
+      const trade1 = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(token3, 100),
+            route: new Route([pool_1_3, pool_1_weth], token3, ETHER)
+          }
+        ],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], token3, ETHER) }],
+      const trade2 = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_3_weth], token3, ETHER) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_INPUT
       )
@@ -649,14 +683,19 @@ describe('SwapRouter', () => {
     })
 
     it('fee with eth in using exact output', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) }],
+      const trade1 = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(token3, 100),
+            route: new Route([pool_1_weth, pool_1_3], ETHER, token3)
+          }
+        ],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_3_weth], ETHER, token3) }],
+      const trade2 = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_3_weth], ETHER, token3) }],
         CurrencyAmount.fromRawAmount(token3, 100),
         TradeType.EXACT_OUTPUT
       )
@@ -678,14 +717,14 @@ describe('SwapRouter', () => {
     })
 
     it('fee', async () => {
-      const trade1 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
+      const trade1 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1, pool_1_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
 
-      const trade2 = await Trade.fromRoutes(
-        [{ percent: new Percent(1, 1), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
+      const trade2 = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
+        [{ amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }],
         CurrencyAmount.fromRawAmount(token0, 100),
         TradeType.EXACT_INPUT
       )
@@ -709,10 +748,10 @@ describe('SwapRouter', () => {
 
   describe('trade with multiple routes', () => {
     it('one single-hop one multi-hop exact input', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_0_3], token0, token3) },
-          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_3], token0, token3) },
+          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
         ],
         CurrencyAmount.fromRawAmount(token0, 200),
         TradeType.EXACT_INPUT
@@ -731,10 +770,10 @@ describe('SwapRouter', () => {
     })
 
     it('two multi-hop exact input', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_0_1, pool_1_3], token0, token3) },
-          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1, pool_1_3], token0, token3) },
+          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
         ],
         CurrencyAmount.fromRawAmount(token0, 200),
         TradeType.EXACT_INPUT
@@ -753,10 +792,16 @@ describe('SwapRouter', () => {
     })
 
     it('ETH in exact input', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) },
-          { percent: new Percent(1, 2), route: new Route([pool_3_weth], ETHER, token3) }
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_1_weth, pool_1_3], ETHER, token3)
+          },
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_3_weth], ETHER, token3)
+          }
         ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 200),
         TradeType.EXACT_INPUT
@@ -775,10 +820,13 @@ describe('SwapRouter', () => {
     })
 
     it('ETH in exact output', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_1_weth, pool_1_3], ETHER, token3) },
-          { percent: new Percent(1, 2), route: new Route([pool_3_weth], ETHER, token3) }
+          {
+            amount: CurrencyAmount.fromRawAmount(token3, 100),
+            route: new Route([pool_1_weth, pool_1_3], ETHER, token3)
+          },
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_3_weth], ETHER, token3) }
         ],
         CurrencyAmount.fromRawAmount(token3, 200),
         TradeType.EXACT_OUTPUT
@@ -797,10 +845,16 @@ describe('SwapRouter', () => {
     })
 
     it('ETH out exact input', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) },
-          { percent: new Percent(1, 2), route: new Route([pool_3_weth], token3, ETHER) }
+          {
+            amount: CurrencyAmount.fromRawAmount(token3, 100),
+            route: new Route([pool_1_3, pool_1_weth], token3, ETHER)
+          },
+          {
+            amount: CurrencyAmount.fromRawAmount(token3, 100),
+            route: new Route([pool_3_weth], token3, ETHER)
+          }
         ],
         CurrencyAmount.fromRawAmount(token3, 200),
         TradeType.EXACT_INPUT
@@ -819,10 +873,16 @@ describe('SwapRouter', () => {
     })
 
     it('ETH out exact output', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_OUTPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_1_3, pool_1_weth], token3, ETHER) },
-          { percent: new Percent(1, 2), route: new Route([pool_3_weth], token3, ETHER) }
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_1_3, pool_1_weth], token3, ETHER)
+          },
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
+            route: new Route([pool_3_weth], token3, ETHER)
+          }
         ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), 200),
         TradeType.EXACT_OUTPUT
@@ -841,10 +901,10 @@ describe('SwapRouter', () => {
     })
 
     it('one single-hop one multi-hop exact output', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_0_3], token0, token3) },
-          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_3], token0, token3) },
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
         ],
         CurrencyAmount.fromRawAmount(token3, 200),
         TradeType.EXACT_OUTPUT
@@ -863,10 +923,10 @@ describe('SwapRouter', () => {
     })
 
     it('two multi-hop exact output', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
         [
-          { percent: new Percent(1, 2), route: new Route([pool_0_1, pool_1_3], token0, token3) },
-          { percent: new Percent(1, 2), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_1, pool_1_3], token0, token3) },
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
         ],
         CurrencyAmount.fromRawAmount(token3, 200),
         TradeType.EXACT_OUTPUT

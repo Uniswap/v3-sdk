@@ -82,8 +82,13 @@ describe('Trade', () => {
 
   describe('#fromRoutes', () => {
     it('can be constructed with ETHER as input', async () => {
-      const trade = await Trade.fromRoutes(
-        [{ percent: new Percent(100, 100), route: new Route([pool_weth_0], ETHER, token0) }],
+      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
+            route: new Route([pool_weth_0], ETHER, token0)
+          }
+        ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
       )
@@ -91,8 +96,13 @@ describe('Trade', () => {
       expect(trade.outputAmount.currency).toEqual(token0)
     })
     it('can be constructed with ETHER as input for exact output', async () => {
-      const trade = await Trade.fromRoutes(
-        [{ percent: new Percent(100, 100), route: new Route([pool_weth_0], ETHER, token0) }],
+      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
+            route: new Route([pool_weth_0], ETHER, token0)
+          }
+        ],
         CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
       )
@@ -101,8 +111,13 @@ describe('Trade', () => {
     })
 
     it('can be constructed with ETHER as output', async () => {
-      const trade = await Trade.fromRoutes(
-        [{ percent: new Percent(100, 100), route: new Route([pool_weth_0], token0, ETHER) }],
+      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_OUTPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
+            route: new Route([pool_weth_0], token0, ETHER)
+          }
+        ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
       )
@@ -110,8 +125,13 @@ describe('Trade', () => {
       expect(trade.outputAmount.currency).toEqual(ETHER)
     })
     it('can be constructed with ETHER as output for exact input', async () => {
-      const trade = await Trade.fromRoutes(
-        [{ percent: new Percent(100, 100), route: new Route([pool_weth_0], token0, ETHER) }],
+      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
+            route: new Route([pool_weth_0], token0, ETHER)
+          }
+        ],
         CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
       )
@@ -120,8 +140,13 @@ describe('Trade', () => {
     })
 
     it('can be constructed with ETHER as input with multiple routes', async () => {
-      const trade = await Trade.fromRoutes(
-        [{ percent: new Percent(100, 100), route: new Route([pool_weth_0], ETHER, token0) }],
+      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
+        [
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
+            route: new Route([pool_weth_0], ETHER, token0)
+          }
+        ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
       )
@@ -129,10 +154,16 @@ describe('Trade', () => {
       expect(trade.outputAmount.currency).toEqual(token0)
     })
     it('can be constructed with ETHER as input for exact output with multiple routes', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
         [
-          { percent: new Percent(30, 100), route: new Route([pool_weth_0], ETHER, token0) },
-          { percent: new Percent(70, 100), route: new Route([pool_weth_1, pool_0_1], ETHER, token0) }
+          {
+            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(3000)),
+            route: new Route([pool_weth_0], ETHER, token0)
+          },
+          {
+            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(7000)),
+            route: new Route([pool_weth_1, pool_0_1], ETHER, token0)
+          }
         ],
         CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
@@ -142,10 +173,16 @@ describe('Trade', () => {
     })
 
     it('can be constructed with ETHER as output with multiple routes', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_OUTPUT>(
         [
-          { percent: new Percent(55, 100), route: new Route([pool_weth_0], token0, ETHER) },
-          { percent: new Percent(45, 100), route: new Route([pool_0_1, pool_weth_1], token0, ETHER) }
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(4000)),
+            route: new Route([pool_weth_0], token0, ETHER)
+          },
+          {
+            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(6000)),
+            route: new Route([pool_0_1, pool_weth_1], token0, ETHER)
+          }
         ],
         CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
@@ -154,10 +191,16 @@ describe('Trade', () => {
       expect(trade.outputAmount.currency).toEqual(ETHER)
     })
     it('can be constructed with ETHER as output for exact input with multiple routes', async () => {
-      const trade = await Trade.fromRoutes(
+      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
         [
-          { percent: new Percent(55, 100), route: new Route([pool_weth_0], token0, ETHER) },
-          { percent: new Percent(45, 100), route: new Route([pool_0_1, pool_weth_1], token0, ETHER) }
+          {
+            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(3000)),
+            route: new Route([pool_weth_0], token0, ETHER)
+          },
+          {
+            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(7000)),
+            route: new Route([pool_0_1, pool_weth_1], token0, ETHER)
+          }
         ],
         CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
@@ -166,25 +209,18 @@ describe('Trade', () => {
       expect(trade.outputAmount.currency).toEqual(ETHER)
     })
 
-    it('can be constructed when percentages result in remainders', async () => {
-      const trade = await Trade.fromRoutes(
-        [
-          { percent: new Percent(50, 100), route: new Route([pool_weth_0], ETHER, token0) },
-          { percent: new Percent(50, 100), route: new Route([pool_weth_1, pool_0_1], ETHER, token0) }
-        ],
-        CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(101)),
-        TradeType.EXACT_INPUT
-      )
-      expect(trade.inputAmount.currency).toEqual(ETHER)
-      expect(trade.outputAmount.currency).toEqual(token0)
-    })
-
     it('throws if pools are re-used between routes', async () => {
       await expect(
-        Trade.fromRoutes(
+        Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
           [
-            { percent: new Percent(45, 100), route: new Route([pool_0_1, pool_weth_1], token0, ETHER) },
-            { percent: new Percent(55, 100), route: new Route([pool_0_1, pool_1_2, pool_weth_2], token0, ETHER) }
+            {
+              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(4500)),
+              route: new Route([pool_0_1, pool_weth_1], token0, ETHER)
+            },
+            {
+              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(5500)),
+              route: new Route([pool_0_1, pool_1_2, pool_weth_2], token0, ETHER)
+            }
           ],
           CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
           TradeType.EXACT_INPUT
@@ -192,17 +228,23 @@ describe('Trade', () => {
       ).rejects.toThrow('POOLS_DUPLICATED')
     })
 
-    it('throws if percents dont sum to 100', async () => {
+    it('throws if amounts dont sum to 100', async () => {
       await expect(
-        Trade.fromRoutes(
+        Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
           [
-            { percent: new Percent(45, 100), route: new Route([pool_0_1, pool_weth_1], token0, ETHER) },
-            { percent: new Percent(35, 100), route: new Route([pool_0_1, pool_1_2, pool_weth_2], token0, ETHER) }
+            {
+              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(2000)),
+              route: new Route([pool_0_1, pool_weth_1], token0, ETHER)
+            },
+            {
+              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(3000)),
+              route: new Route([pool_0_1, pool_1_2, pool_weth_2], token0, ETHER)
+            }
           ],
           CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
           TradeType.EXACT_INPUT
         )
-      ).rejects.toThrow('INPUT_TOTAL_ROUND')
+      ).rejects.toThrow('INPUT_TOTAL')
     })
   })
 
@@ -212,7 +254,6 @@ describe('Trade', () => {
         Trade.createUncheckedTrade({
           routes: [
             {
-              percent: new Percent(100, 100),
               route: new Route([pool_0_1], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token2, 10000),
               outputAmount: CurrencyAmount.fromRawAmount(token1, 10000)
@@ -229,7 +270,6 @@ describe('Trade', () => {
         Trade.createUncheckedTrade({
           routes: [
             {
-              percent: new Percent(100, 100),
               route: new Route([pool_0_1], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
               outputAmount: CurrencyAmount.fromRawAmount(token2, 10000)
@@ -245,7 +285,6 @@ describe('Trade', () => {
       Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(100, 100),
             route: new Route([pool_0_1], token0, token1),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 100000)
@@ -260,7 +299,6 @@ describe('Trade', () => {
       Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(100, 100),
             route: new Route([pool_0_1], token0, token1),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 100000)
@@ -277,13 +315,11 @@ describe('Trade', () => {
         Trade.createUncheckedTrade({
           routes: [
             {
-              percent: new Percent(20, 100),
               route: new Route([pool_1_2], token2, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token2, 2000),
               outputAmount: CurrencyAmount.fromRawAmount(token1, 2000)
             },
             {
-              percent: new Percent(80, 100),
               route: new Route([pool_0_1], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token2, 8000),
               outputAmount: CurrencyAmount.fromRawAmount(token1, 8000)
@@ -300,13 +336,11 @@ describe('Trade', () => {
         Trade.createUncheckedTrade({
           routes: [
             {
-              percent: new Percent(20, 100),
               route: new Route([pool_0_2], token0, token2),
               inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
               outputAmount: CurrencyAmount.fromRawAmount(token2, 10000)
             },
             {
-              percent: new Percent(80, 100),
               route: new Route([pool_0_1], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
               outputAmount: CurrencyAmount.fromRawAmount(token2, 10000)
@@ -319,42 +353,16 @@ describe('Trade', () => {
       ).toThrow('OUTPUT_CURRENCY_MATCH')
     })
 
-    it('throws if percents dont sum to 100', () => {
-      expect(() =>
-        Trade.createUncheckedTrade({
-          routes: [
-            {
-              percent: new Percent(20, 100),
-              route: new Route([pool_0_1], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
-              outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
-            },
-            {
-              percent: new Percent(50, 100),
-              route: new Route([pool_0_2, pool_1_2], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
-              outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
-            }
-          ],
-          inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-          outputAmount: CurrencyAmount.fromRawAmount(token1, 100000),
-          tradeType: TradeType.EXACT_INPUT
-        })
-      ).toThrow('TOTAL_PERCENT')
-    })
-
     it('throws if amount ins of each route dont sum to total amounts', () => {
       expect(() =>
         Trade.createUncheckedTrade({
           routes: [
             {
-              percent: new Percent(50, 100),
               route: new Route([pool_0_1], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token0, 2000),
               outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
             },
             {
-              percent: new Percent(50, 100),
               route: new Route([pool_0_2, pool_1_2], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
               outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
@@ -372,13 +380,11 @@ describe('Trade', () => {
         Trade.createUncheckedTrade({
           routes: [
             {
-              percent: new Percent(50, 100),
               route: new Route([pool_0_1], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
               outputAmount: CurrencyAmount.fromRawAmount(token1, 20000)
             },
             {
-              percent: new Percent(50, 100),
               route: new Route([pool_0_2, pool_1_2], token0, token1),
               inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
               outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
@@ -395,13 +401,11 @@ describe('Trade', () => {
       Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_1], token0, token1),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
           },
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_2, pool_1_2], token0, token1),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
@@ -416,13 +420,11 @@ describe('Trade', () => {
       Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_1], token0, token1),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 5001),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
           },
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_2, pool_1_2], token0, token1),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 4999),
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
@@ -440,7 +442,6 @@ describe('Trade', () => {
       const exactIn = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(100, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 69)
@@ -453,13 +454,11 @@ describe('Trade', () => {
       const exactInMultiRoute = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 50),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 35)
           },
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 50),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 34)
@@ -490,7 +489,6 @@ describe('Trade', () => {
       const exactOut = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(100, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 100)
@@ -503,13 +501,11 @@ describe('Trade', () => {
       const exactInMultiRoute = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 78),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 50)
           },
           {
-            percent: new Percent(50, 100),
             route: new Route([pool_0_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 78),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 50)
@@ -556,7 +552,6 @@ describe('Trade', () => {
       const exactIn = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(100, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 69)
@@ -569,13 +564,11 @@ describe('Trade', () => {
       const exactInMultipleRoutes = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(90, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 90),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 62)
           },
           {
-            percent: new Percent(10, 100),
             route: new Route([pool_0_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 10),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 7)
@@ -603,7 +596,6 @@ describe('Trade', () => {
       const exactOut = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(100, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 100)
@@ -616,13 +608,11 @@ describe('Trade', () => {
       const exactOutMultipleRoutes = Trade.createUncheckedTrade({
         routes: [
           {
-            percent: new Percent(90, 100),
             route: new Route([pool_0_1, pool_1_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 140),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 90)
           },
           {
-            percent: new Percent(10, 100),
             route: new Route([pool_0_2], token0, token2),
             inputAmount: CurrencyAmount.fromRawAmount(token0, 16),
             outputAmount: CurrencyAmount.fromRawAmount(token2, 10)
@@ -760,7 +750,12 @@ describe('Trade', () => {
       let exactIn: Trade<Token, Token, TradeType.EXACT_INPUT>
       beforeEach(async () => {
         exactIn = await Trade.fromRoutes(
-          [{ percent: new Percent(100, 100), route: new Route([pool_0_1, pool_1_2], token0, token2) }],
+          [
+            {
+              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(100)),
+              route: new Route([pool_0_1, pool_1_2], token0, token2)
+            }
+          ],
           CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(100)),
           TradeType.EXACT_INPUT
         )
@@ -796,7 +791,12 @@ describe('Trade', () => {
       let exactOut: Trade<Token, Token, TradeType.EXACT_OUTPUT>
       beforeEach(async () => {
         exactOut = await Trade.fromRoutes(
-          [{ percent: new Percent(100, 100), route: new Route([pool_0_1, pool_1_2], token0, token2) }],
+          [
+            {
+              amount: CurrencyAmount.fromRawAmount(token2, 10000),
+              route: new Route([pool_0_1, pool_1_2], token0, token2)
+            }
+          ],
           CurrencyAmount.fromRawAmount(token2, 10000),
           TradeType.EXACT_OUTPUT
         )
@@ -836,7 +836,12 @@ describe('Trade', () => {
       beforeEach(
         async () =>
           (exactIn = await Trade.fromRoutes(
-            [{ percent: new Percent(100, 100), route: new Route([pool_0_1, pool_1_2], token0, token2) }],
+            [
+              {
+                amount: CurrencyAmount.fromRawAmount(token0, 10000),
+                route: new Route([pool_0_1, pool_1_2], token0, token2)
+              }
+            ],
             CurrencyAmount.fromRawAmount(token0, 10000),
             TradeType.EXACT_INPUT
           ))
@@ -866,7 +871,12 @@ describe('Trade', () => {
       let exactOut: Trade<Token, Token, TradeType.EXACT_OUTPUT>
       beforeEach(async () => {
         exactOut = await Trade.fromRoutes(
-          [{ percent: new Percent(100, 100), route: new Route([pool_0_1, pool_1_2], token0, token2) }],
+          [
+            {
+              amount: CurrencyAmount.fromRawAmount(token2, JSBI.BigInt(100)),
+              route: new Route([pool_0_1, pool_1_2], token0, token2)
+            }
+          ],
           CurrencyAmount.fromRawAmount(token2, JSBI.BigInt(100)),
           TradeType.EXACT_OUTPUT
         )
