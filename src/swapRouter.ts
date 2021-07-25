@@ -7,6 +7,7 @@ import { PermitOptions, SelfPermit } from './selfPermit'
 import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
+import { AggregatedTrade } from './entities/trade-aggregated'
 
 export interface FeeOptions {
   /**
@@ -74,26 +75,24 @@ export abstract class SwapRouter extends SelfPermit {
    * @param options options for the call parameters
    */
   public static swapCallParameters(
-    trades: Trade<Currency, Currency, TradeType> | Trade<Currency, Currency, TradeType>[],
+    trade: Trade<Currency, Currency, TradeType> | AggregatedTrade<Currency, Currency, TradeType>,
     options: SwapOptions
   ): MethodParameters {
-    if (!Array.isArray(trades)) {
-      trades = [trades]
+    const isAggregated = (
+      trade: Trade<Currency, Currency, TradeType> | AggregatedTrade<Currency, Currency, TradeType>
+    ): trade is AggregatedTrade<Currency, Currency, TradeType> => {
+      return (trade as AggregatedTrade<Currency, Currency, TradeType>).trades !== undefined
     }
 
-    const sampleTrade = trades[0]
-    const tokenIn = sampleTrade.route.tokenPath[0]
-    const tokenOut = sampleTrade.route.tokenPath[sampleTrade.route.tokenPath.length - 1]
+    let trades
+    if (isAggregated(trade)) {
+      trades = trade.trades
+    } else {
+      trades = [trade]
+    }
 
-    // All trades should have the same starting and ending token.
-    invariant(
-      trades.every(trade => trade.route.tokenPath[0].equals(tokenIn)),
-      'TOKEN_IN_DIFF'
-    )
-    invariant(
-      trades.every(trade => trade.route.tokenPath[trade.route.tokenPath.length - 1].equals(tokenOut)),
-      'TOKEN_OUT_DIFF'
-    )
+    // All trades have the same starting and ending token (the trade objects validate this)
+    const sampleTrade = trades[0]
 
     const calldatas: string[] = []
 
@@ -101,7 +100,7 @@ export abstract class SwapRouter extends SelfPermit {
     const ZERO_OUT: CurrencyAmount<Currency> = CurrencyAmount.fromRawAmount(trades[0].outputAmount.currency, 0)
 
     const totalAmountOut: CurrencyAmount<Currency> = trades.reduce(
-      (sum, trade) => sum.add(trade.minimumAmountOut(options.slippageTolerance)),
+      (sum, trades) => sum.add(trades.minimumAmountOut(options.slippageTolerance)),
       ZERO_OUT
     )
 
@@ -113,7 +112,7 @@ export abstract class SwapRouter extends SelfPermit {
     const routerMustCustody = outputIsNative || !!options.fee
 
     const totalValue: CurrencyAmount<Currency> = inputIsNative
-      ? trades.reduce((sum, trade) => sum.add(trade.maximumAmountIn(options.slippageTolerance)), ZERO_IN)
+      ? trades.reduce((sum, trades) => sum.add(trades.maximumAmountIn(options.slippageTolerance)), ZERO_IN)
       : ZERO_IN
 
     // encode permit if necessary
@@ -129,7 +128,7 @@ export abstract class SwapRouter extends SelfPermit {
       const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance).quotient)
       const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance).quotient)
 
-      // flag for whether the trade is single hop or not
+      // flag for whether the trades is single hop or not
       const singleHop = trade.route.pools.length === 1
 
       if (singleHop) {
