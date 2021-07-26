@@ -23,8 +23,8 @@ export function tradeComparator<TInput extends Currency, TOutput extends Currenc
   if (a.outputAmount.equalTo(b.outputAmount)) {
     if (a.inputAmount.equalTo(b.inputAmount)) {
       // consider the number of hops since each hop costs gas
-      const aHops = a.routes.reduce((total, cur) => total + cur.route.tokenPath.length, 0)
-      const bHops = b.routes.reduce((total, cur) => total + cur.route.tokenPath.length, 0)
+      const aHops = a.swaps.reduce((total, cur) => total + cur.route.tokenPath.length, 0)
+      const bHops = b.swaps.reduce((total, cur) => total + cur.route.tokenPath.length, 0)
       return aHops - bHops
     }
     // trade A requires less input than trade B, so A should come first
@@ -64,21 +64,22 @@ export interface BestTradeOptions {
  */
 export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType> {
   /**
-   * @deprecated Deprecated in favor of 'routes' property. If the trade consists of multiple routes
+   * @deprecated Deprecated in favor of 'swaps' property. If the trade consists of multiple routes
    * this will return an error.
    *
    * When the trade consists of just a single route, this returns the route of the trade,
    * i.e. which pools the trade goes through.
    */
   public get route(): Route<TInput, TOutput> {
-    invariant(this.routes.length == 1, 'MULTIPLE_ROUTES')
-    return this.routes[0].route
+    invariant(this.swaps.length == 1, 'MULTIPLE_ROUTES')
+    return this.swaps[0].route
   }
 
   /**
-   * The routes of the trade, i.e. which routes the trade consists of.
+   * The swaps of the trade, i.e. which routes and how much is swapped in each that
+   * make up the trade.
    */
-  public readonly routes: {
+  public readonly swaps: {
     route: Route<TInput, TOutput>
     inputAmount: CurrencyAmount<TInput>
     outputAmount: CurrencyAmount<TOutput>
@@ -103,8 +104,8 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       return this._inputAmount
     }
 
-    const inputCurrency = this.routes[0].inputAmount.currency
-    const totalInputFromRoutes = this.routes
+    const inputCurrency = this.swaps[0].inputAmount.currency
+    const totalInputFromRoutes = this.swaps
       .map(({ inputAmount }) => inputAmount)
       .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(inputCurrency, 0))
 
@@ -126,8 +127,8 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       return this._outputAmount
     }
 
-    const outputCurrency = this.routes[0].outputAmount.currency
-    const totalOutputFromRoutes = this.routes
+    const outputCurrency = this.swaps[0].outputAmount.currency
+    const totalOutputFromRoutes = this.swaps
       .map(({ outputAmount }) => outputAmount)
       .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(outputCurrency, 0))
 
@@ -171,7 +172,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     }
 
     let spotOutputAmount = CurrencyAmount.fromRawAmount(this.outputAmount.currency, 0)
-    for (const { route, inputAmount } of this.routes) {
+    for (const { route, inputAmount } of this.swaps) {
       const midPrice = route.midPrice
       spotOutputAmount = spotOutputAmount.add(midPrice.quote(inputAmount))
     }
@@ -425,7 +426,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
     invariant(numPools == poolAddressSet.size, 'POOLS_DUPLICATED')
 
-    this.routes = routes
+    this.swaps = routes
     this.tradeType = tradeType
   }
 

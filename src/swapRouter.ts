@@ -126,7 +126,7 @@ export abstract class SwapRouter extends SelfPermit {
     const deadline = toHex(options.deadline)
 
     for (const trade of trades) {
-      for (const { route, inputAmount, outputAmount } of trade.routes) {
+      for (const { route, inputAmount, outputAmount } of trade.swaps) {
         const amountIn: string = toHex(trade.maximumAmountIn(options.slippageTolerance, inputAmount).quotient)
         const amountOut: string = toHex(trade.minimumAmountOut(options.slippageTolerance, outputAmount).quotient)
 
