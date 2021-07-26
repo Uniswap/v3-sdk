@@ -23,8 +23,8 @@ export function tradeComparator<TInput extends Currency, TOutput extends Currenc
   if (a.outputAmount.equalTo(b.outputAmount)) {
     if (a.inputAmount.equalTo(b.inputAmount)) {
       // consider the number of hops since each hop costs gas
-      const aHops = a.routes.map(({ route }) => route.tokenPath.length).reduce((total, cur) => total + cur, 0)
-      const bHops = b.routes.map(({ route }) => route.tokenPath.length).reduce((total, cur) => total + cur, 0)
+      const aHops = a.routes.reduce((total, cur) => total + cur.route.tokenPath.length, 0)
+      const bHops = b.routes.reduce((total, cur) => total + cur.route.tokenPath.length, 0)
       return aHops - bHops
     }
     // trade A requires less input than trade B, so A should come first
