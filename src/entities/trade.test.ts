@@ -80,15 +80,10 @@ describe('Trade', () => {
     CurrencyAmount.fromRawAmount(token2, JSBI.BigInt(100000))
   )
 
-  describe('#fromRoutes', () => {
+  describe('#fromRoute', () => {
     it('can be constructed with ETHER as input', async () => {
-      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
-        [
-          {
-            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
-            route: new Route([pool_weth_0], ETHER, token0)
-          }
-        ],
+      const trade = await Trade.fromRoute(
+        new Route([pool_weth_0], ETHER, token0),
         CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
       )
@@ -96,13 +91,8 @@ describe('Trade', () => {
       expect(trade.outputAmount.currency).toEqual(token0)
     })
     it('can be constructed with ETHER as input for exact output', async () => {
-      const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
-        [
-          {
-            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
-            route: new Route([pool_weth_0], ETHER, token0)
-          }
-        ],
+      const trade = await Trade.fromRoute(
+        new Route([pool_weth_0], ETHER, token0),
         CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
       )
@@ -111,13 +101,8 @@ describe('Trade', () => {
     })
 
     it('can be constructed with ETHER as output', async () => {
-      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_OUTPUT>(
-        [
-          {
-            amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
-            route: new Route([pool_weth_0], token0, ETHER)
-          }
-        ],
+      const trade = await Trade.fromRoute(
+        new Route([pool_weth_0], token0, ETHER),
         CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
       )
@@ -125,20 +110,17 @@ describe('Trade', () => {
       expect(trade.outputAmount.currency).toEqual(ETHER)
     })
     it('can be constructed with ETHER as output for exact input', async () => {
-      const trade = await Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
-        [
-          {
-            amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
-            route: new Route([pool_weth_0], token0, ETHER)
-          }
-        ],
+      const trade = await Trade.fromRoute(
+        new Route([pool_weth_0], token0, ETHER),
         CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
       )
       expect(trade.inputAmount.currency).toEqual(token0)
       expect(trade.outputAmount.currency).toEqual(ETHER)
     })
+  })
 
+  describe('#fromRoutes', () => {
     it('can be constructed with ETHER as input with multiple routes', async () => {
       const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_INPUT>(
         [
@@ -147,12 +129,12 @@ describe('Trade', () => {
             route: new Route([pool_weth_0], ETHER, token0)
           }
         ],
-        CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
       )
       expect(trade.inputAmount.currency).toEqual(ETHER)
       expect(trade.outputAmount.currency).toEqual(token0)
     })
+
     it('can be constructed with ETHER as input for exact output with multiple routes', async () => {
       const trade = await Trade.fromRoutes<Ether, Token, TradeType.EXACT_OUTPUT>(
         [
@@ -165,7 +147,6 @@ describe('Trade', () => {
             route: new Route([pool_weth_1, pool_0_1], ETHER, token0)
           }
         ],
-        CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
       )
       expect(trade.inputAmount.currency).toEqual(ETHER)
@@ -184,7 +165,6 @@ describe('Trade', () => {
             route: new Route([pool_0_1, pool_weth_1], token0, ETHER)
           }
         ],
-        CurrencyAmount.fromRawAmount(Ether.onChain(1), JSBI.BigInt(10000)),
         TradeType.EXACT_OUTPUT
       )
       expect(trade.inputAmount.currency).toEqual(token0)
@@ -202,7 +182,6 @@ describe('Trade', () => {
             route: new Route([pool_0_1, pool_weth_1], token0, ETHER)
           }
         ],
-        CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
         TradeType.EXACT_INPUT
       )
       expect(trade.inputAmount.currency).toEqual(token0)
@@ -222,29 +201,9 @@ describe('Trade', () => {
               route: new Route([pool_0_1, pool_1_2, pool_weth_2], token0, ETHER)
             }
           ],
-          CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
           TradeType.EXACT_INPUT
         )
       ).rejects.toThrow('POOLS_DUPLICATED')
-    })
-
-    it('throws if amounts dont sum to 100', async () => {
-      await expect(
-        Trade.fromRoutes<Token, Ether, TradeType.EXACT_INPUT>(
-          [
-            {
-              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(2000)),
-              route: new Route([pool_0_1, pool_weth_1], token0, ETHER)
-            },
-            {
-              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(3000)),
-              route: new Route([pool_0_1, pool_1_2, pool_weth_2], token0, ETHER)
-            }
-          ],
-          CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(10000)),
-          TradeType.EXACT_INPUT
-        )
-      ).rejects.toThrow('INPUT_TOTAL')
     })
   })
 
@@ -252,13 +211,7 @@ describe('Trade', () => {
     it('throws if input currency does not match route', () => {
       expect(() =>
         Trade.createUncheckedTrade({
-          routes: [
-            {
-              route: new Route([pool_0_1], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token2, 10000),
-              outputAmount: CurrencyAmount.fromRawAmount(token1, 10000)
-            }
-          ],
+          route: new Route([pool_0_1], token0, token1),
           inputAmount: CurrencyAmount.fromRawAmount(token2, 10000),
           outputAmount: CurrencyAmount.fromRawAmount(token1, 10000),
           tradeType: TradeType.EXACT_INPUT
@@ -268,13 +221,7 @@ describe('Trade', () => {
     it('throws if output currency does not match route', () => {
       expect(() =>
         Trade.createUncheckedTrade({
-          routes: [
-            {
-              route: new Route([pool_0_1], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-              outputAmount: CurrencyAmount.fromRawAmount(token2, 10000)
-            }
-          ],
+          route: new Route([pool_0_1], token0, token1),
           inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
           outputAmount: CurrencyAmount.fromRawAmount(token2, 10000),
           tradeType: TradeType.EXACT_INPUT
@@ -283,13 +230,7 @@ describe('Trade', () => {
     })
     it('can create an exact input trade without simulating', () => {
       Trade.createUncheckedTrade({
-        routes: [
-          {
-            route: new Route([pool_0_1], token0, token1),
-            inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-            outputAmount: CurrencyAmount.fromRawAmount(token1, 100000)
-          }
-        ],
+        route: new Route([pool_0_1], token0, token1),
         inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
         outputAmount: CurrencyAmount.fromRawAmount(token1, 100000),
         tradeType: TradeType.EXACT_INPUT
@@ -297,22 +238,17 @@ describe('Trade', () => {
     })
     it('can create an exact output trade without simulating', () => {
       Trade.createUncheckedTrade({
-        routes: [
-          {
-            route: new Route([pool_0_1], token0, token1),
-            inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-            outputAmount: CurrencyAmount.fromRawAmount(token1, 100000)
-          }
-        ],
+        route: new Route([pool_0_1], token0, token1),
         inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
         outputAmount: CurrencyAmount.fromRawAmount(token1, 100000),
         tradeType: TradeType.EXACT_OUTPUT
       })
     })
-
+  })
+  describe('#createUncheckedTradeWithMultipleRoutes', () => {
     it('throws if input currency does not match route with multiple routes', () => {
       expect(() =>
-        Trade.createUncheckedTrade({
+        Trade.createUncheckedTradeWithMultipleRoutes({
           routes: [
             {
               route: new Route([pool_1_2], token2, token1),
@@ -325,15 +261,13 @@ describe('Trade', () => {
               outputAmount: CurrencyAmount.fromRawAmount(token1, 8000)
             }
           ],
-          inputAmount: CurrencyAmount.fromRawAmount(token2, 10000),
-          outputAmount: CurrencyAmount.fromRawAmount(token1, 10000),
           tradeType: TradeType.EXACT_INPUT
         })
       ).toThrow('INPUT_CURRENCY_MATCH')
     })
     it('throws if output currency does not match route with multiple routes', () => {
       expect(() =>
-        Trade.createUncheckedTrade({
+        Trade.createUncheckedTradeWithMultipleRoutes({
           routes: [
             {
               route: new Route([pool_0_2], token0, token2),
@@ -346,59 +280,13 @@ describe('Trade', () => {
               outputAmount: CurrencyAmount.fromRawAmount(token2, 10000)
             }
           ],
-          inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-          outputAmount: CurrencyAmount.fromRawAmount(token2, 10000),
           tradeType: TradeType.EXACT_INPUT
         })
       ).toThrow('OUTPUT_CURRENCY_MATCH')
     })
 
-    it('throws if amount ins of each route dont sum to total amounts', () => {
-      expect(() =>
-        Trade.createUncheckedTrade({
-          routes: [
-            {
-              route: new Route([pool_0_1], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token0, 2000),
-              outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
-            },
-            {
-              route: new Route([pool_0_2, pool_1_2], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
-              outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
-            }
-          ],
-          inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-          outputAmount: CurrencyAmount.fromRawAmount(token1, 100000),
-          tradeType: TradeType.EXACT_INPUT
-        })
-      ).toThrow('TOTAL_INPUT')
-    })
-
-    it('throws if amount outs of each route dont sum to total amounts', () => {
-      expect(() =>
-        Trade.createUncheckedTrade({
-          routes: [
-            {
-              route: new Route([pool_0_1], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
-              outputAmount: CurrencyAmount.fromRawAmount(token1, 20000)
-            },
-            {
-              route: new Route([pool_0_2, pool_1_2], token0, token1),
-              inputAmount: CurrencyAmount.fromRawAmount(token0, 5000),
-              outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
-            }
-          ],
-          inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-          outputAmount: CurrencyAmount.fromRawAmount(token1, 100000),
-          tradeType: TradeType.EXACT_INPUT
-        })
-      ).toThrow('TOTAL_OUTPUT')
-    })
-
     it('can create an exact input trade without simulating with multiple routes', () => {
-      Trade.createUncheckedTrade({
+      Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1], token0, token1),
@@ -411,13 +299,12 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-        outputAmount: CurrencyAmount.fromRawAmount(token1, 100000),
         tradeType: TradeType.EXACT_INPUT
       })
     })
+
     it('can create an exact output trade without simulating with multiple routes', () => {
-      Trade.createUncheckedTrade({
+      Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1], token0, token1),
@@ -430,28 +317,55 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token1, 50000)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 10000),
-        outputAmount: CurrencyAmount.fromRawAmount(token1, 100000),
         tradeType: TradeType.EXACT_OUTPUT
       })
+    })
+  })
+  describe('#route', () => {
+    const singleRoute = Trade.createUncheckedTrade({
+      route: new Route([pool_0_1, pool_1_2], token0, token2),
+      inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
+      outputAmount: CurrencyAmount.fromRawAmount(token2, 69),
+      tradeType: TradeType.EXACT_INPUT
+    })
+    const multiRoute = Trade.createUncheckedTradeWithMultipleRoutes({
+      routes: [
+        {
+          route: new Route([pool_0_1, pool_1_2], token0, token2),
+          inputAmount: CurrencyAmount.fromRawAmount(token0, 50),
+          outputAmount: CurrencyAmount.fromRawAmount(token2, 35)
+        },
+        {
+          route: new Route([pool_0_2], token0, token2),
+          inputAmount: CurrencyAmount.fromRawAmount(token0, 50),
+          outputAmount: CurrencyAmount.fromRawAmount(token2, 34)
+        }
+      ],
+      tradeType: TradeType.EXACT_INPUT
+    })
+    it('can access route for single route trade if less than 0', () => {
+      expect(singleRoute.route).toBeDefined()
+    })
+    it('can access routes for both single and multi route trades', () => {
+      expect(singleRoute.routes).toBeDefined()
+      expect(singleRoute.routes).toHaveLength(1)
+      expect(multiRoute.routes).toBeDefined()
+      expect(multiRoute.routes).toHaveLength(2)
+    })
+    it('throws if access route on multi route trade', () => {
+      expect(() => multiRoute.route).toThrow('MULTIPLE_ROUTES')
     })
   })
 
   describe('#worstExecutionPrice', () => {
     describe('tradeType = EXACT_INPUT', () => {
       const exactIn = Trade.createUncheckedTrade({
-        routes: [
-          {
-            route: new Route([pool_0_1, pool_1_2], token0, token2),
-            inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
-            outputAmount: CurrencyAmount.fromRawAmount(token2, 69)
-          }
-        ],
+        route: new Route([pool_0_1, pool_1_2], token0, token2),
         inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
         outputAmount: CurrencyAmount.fromRawAmount(token2, 69),
         tradeType: TradeType.EXACT_INPUT
       })
-      const exactInMultiRoute = Trade.createUncheckedTrade({
+      const exactInMultiRoute = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -464,8 +378,6 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token2, 34)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
-        outputAmount: CurrencyAmount.fromRawAmount(token2, 69),
         tradeType: TradeType.EXACT_INPUT
       })
       it('throws if less than 0', () => {
@@ -487,18 +399,12 @@ describe('Trade', () => {
     })
     describe('tradeType = EXACT_OUTPUT', () => {
       const exactOut = Trade.createUncheckedTrade({
-        routes: [
-          {
-            route: new Route([pool_0_1, pool_1_2], token0, token2),
-            inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
-            outputAmount: CurrencyAmount.fromRawAmount(token2, 100)
-          }
-        ],
+        route: new Route([pool_0_1, pool_1_2], token0, token2),
         inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
         outputAmount: CurrencyAmount.fromRawAmount(token2, 100),
         tradeType: TradeType.EXACT_OUTPUT
       })
-      const exactInMultiRoute = Trade.createUncheckedTrade({
+      const exactInMultiRoute = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -511,8 +417,6 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token2, 50)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
-        outputAmount: CurrencyAmount.fromRawAmount(token2, 100),
         tradeType: TradeType.EXACT_OUTPUT
       })
 
@@ -549,7 +453,7 @@ describe('Trade', () => {
 
   describe('#priceImpact', () => {
     describe('tradeType = EXACT_INPUT', () => {
-      const exactIn = Trade.createUncheckedTrade({
+      const exactIn = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -557,11 +461,9 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token2, 69)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
-        outputAmount: CurrencyAmount.fromRawAmount(token2, 69),
         tradeType: TradeType.EXACT_INPUT
       })
-      const exactInMultipleRoutes = Trade.createUncheckedTrade({
+      const exactInMultipleRoutes = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -574,8 +476,6 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token2, 7)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 100),
-        outputAmount: CurrencyAmount.fromRawAmount(token2, 69),
         tradeType: TradeType.EXACT_INPUT
       })
       it('is cached', () => {
@@ -593,7 +493,7 @@ describe('Trade', () => {
       })
     })
     describe('tradeType = EXACT_OUTPUT', () => {
-      const exactOut = Trade.createUncheckedTrade({
+      const exactOut = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -601,11 +501,9 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token2, 100)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
-        outputAmount: CurrencyAmount.fromRawAmount(token2, 100),
         tradeType: TradeType.EXACT_OUTPUT
       })
-      const exactOutMultipleRoutes = Trade.createUncheckedTrade({
+      const exactOutMultipleRoutes = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -618,8 +516,6 @@ describe('Trade', () => {
             outputAmount: CurrencyAmount.fromRawAmount(token2, 10)
           }
         ],
-        inputAmount: CurrencyAmount.fromRawAmount(token0, 156),
-        outputAmount: CurrencyAmount.fromRawAmount(token2, 100),
         tradeType: TradeType.EXACT_OUTPUT
       })
 
@@ -749,13 +645,8 @@ describe('Trade', () => {
     describe('tradeType = EXACT_INPUT', () => {
       let exactIn: Trade<Token, Token, TradeType.EXACT_INPUT>
       beforeEach(async () => {
-        exactIn = await Trade.fromRoutes(
-          [
-            {
-              amount: CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(100)),
-              route: new Route([pool_0_1, pool_1_2], token0, token2)
-            }
-          ],
+        exactIn = await Trade.fromRoute(
+          new Route([pool_0_1, pool_1_2], token0, token2),
           CurrencyAmount.fromRawAmount(token0, JSBI.BigInt(100)),
           TradeType.EXACT_INPUT
         )
@@ -790,13 +681,8 @@ describe('Trade', () => {
     describe('tradeType = EXACT_OUTPUT', () => {
       let exactOut: Trade<Token, Token, TradeType.EXACT_OUTPUT>
       beforeEach(async () => {
-        exactOut = await Trade.fromRoutes(
-          [
-            {
-              amount: CurrencyAmount.fromRawAmount(token2, 10000),
-              route: new Route([pool_0_1, pool_1_2], token0, token2)
-            }
-          ],
+        exactOut = await Trade.fromRoute(
+          new Route([pool_0_1, pool_1_2], token0, token2),
           CurrencyAmount.fromRawAmount(token2, 10000),
           TradeType.EXACT_OUTPUT
         )
@@ -835,13 +721,8 @@ describe('Trade', () => {
       let exactIn: Trade<Token, Token, TradeType.EXACT_INPUT>
       beforeEach(
         async () =>
-          (exactIn = await Trade.fromRoutes(
-            [
-              {
-                amount: CurrencyAmount.fromRawAmount(token0, 10000),
-                route: new Route([pool_0_1, pool_1_2], token0, token2)
-              }
-            ],
+          (exactIn = await Trade.fromRoute(
+            new Route([pool_0_1, pool_1_2], token0, token2),
             CurrencyAmount.fromRawAmount(token0, 10000),
             TradeType.EXACT_INPUT
           ))
@@ -870,13 +751,8 @@ describe('Trade', () => {
     describe('tradeType = EXACT_OUTPUT', () => {
       let exactOut: Trade<Token, Token, TradeType.EXACT_OUTPUT>
       beforeEach(async () => {
-        exactOut = await Trade.fromRoutes(
-          [
-            {
-              amount: CurrencyAmount.fromRawAmount(token2, JSBI.BigInt(100)),
-              route: new Route([pool_0_1, pool_1_2], token0, token2)
-            }
-          ],
+        exactOut = await Trade.fromRoute(
+          new Route([pool_0_1, pool_1_2], token0, token2),
           CurrencyAmount.fromRawAmount(token2, JSBI.BigInt(100)),
           TradeType.EXACT_OUTPUT
         )

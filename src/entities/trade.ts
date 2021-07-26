@@ -64,6 +64,14 @@ export interface BestTradeOptions {
  */
 export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType> {
   /**
+   * The route of the trade, i.e. which pools the trade goes through.
+   */
+  public get route(): Route<TInput, TOutput> {
+    invariant(this.routes.length == 1, 'MULTIPLE_ROUTES')
+    return this.routes[0].route
+  }
+
+  /**
    * The routes of the trade, i.e. which pools the trade goes through.
    */
   public readonly routes: {
@@ -71,6 +79,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     inputAmount: CurrencyAmount<TInput>
     outputAmount: CurrencyAmount<TOutput>
   }[]
+
   /**
    * The type of the trade, either exact in or exact out.
    */
@@ -78,11 +87,40 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * The input amount for the trade assuming no slippage.
    */
-  public readonly inputAmount: CurrencyAmount<TInput>
+  public get inputAmount(): CurrencyAmount<TInput> {
+    if (this._inputAmount) {
+      return this._inputAmount
+    }
+
+    const inputCurrency = this.routes[0].inputAmount.currency
+    const totalInputFromRoutes = this.routes
+      .map(({ inputAmount }) => inputAmount)
+      .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(inputCurrency, 0))
+
+    this._inputAmount = totalInputFromRoutes
+    return this._inputAmount
+  }
+
+  private _inputAmount: CurrencyAmount<TInput> | undefined
+
   /**
    * The output amount for the trade assuming no slippage.
    */
-  public readonly outputAmount: CurrencyAmount<TOutput>
+  public get outputAmount(): CurrencyAmount<TOutput> {
+    if (this._outputAmount) {
+      return this._outputAmount
+    }
+
+    const outputCurrency = this.routes[0].outputAmount.currency
+    const totalOutputFromRoutes = this.routes
+      .map(({ outputAmount }) => outputAmount)
+      .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(outputCurrency, 0))
+
+    this._outputAmount = totalOutputFromRoutes
+    return this._outputAmount
+  }
+
+  private _outputAmount: CurrencyAmount<TOutput> | undefined
 
   /**
    * The cached result of the computed execution price
@@ -140,10 +178,10 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @returns The exact in trade
    */
   public static async exactIn<TInput extends Currency, TOutput extends Currency>(
-    routes: { amount: CurrencyAmount<TInput>; route: Route<TInput, TOutput> }[],
+    route: Route<TInput, TOutput>,
     amountIn: CurrencyAmount<TInput>
   ): Promise<Trade<TInput, TOutput, TradeType.EXACT_INPUT>> {
-    return Trade.fromRoutes<TInput, TOutput, TradeType.EXACT_INPUT>(routes, amountIn, TradeType.EXACT_INPUT)
+    return Trade.fromRoute(route, amountIn, TradeType.EXACT_INPUT)
   }
 
   /**
@@ -155,10 +193,60 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * @returns The exact out trade
    */
   public static async exactOut<TInput extends Currency, TOutput extends Currency>(
-    routes: { amount: CurrencyAmount<TOutput>; route: Route<TInput, TOutput> }[],
+    route: Route<TInput, TOutput>,
     amountOut: CurrencyAmount<TOutput>
   ): Promise<Trade<TInput, TOutput, TradeType.EXACT_OUTPUT>> {
-    return Trade.fromRoutes<TInput, TOutput, TradeType.EXACT_OUTPUT>(routes, amountOut, TradeType.EXACT_OUTPUT)
+    return Trade.fromRoute(route, amountOut, TradeType.EXACT_OUTPUT)
+  }
+
+  /**
+   * Constructs a trade by simulating swaps through the given route
+   * @template TInput The input token, either Ether or an ERC-20.
+   * @template TOutput The output token, either Ether or an ERC-20.
+   * @template TTradeType The type of the trade, either exact in or exact out.
+   * @param route route to swap through
+   * @param amount the amount specified, either input or output, depending on tradeType
+   * @param tradeType whether the trade is an exact input or exact output swap
+   * @returns The route
+   */
+  public static async fromRoute<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
+    route: Route<TInput, TOutput>,
+    amount: TTradeType extends TradeType.EXACT_INPUT ? CurrencyAmount<TInput> : CurrencyAmount<TOutput>,
+    tradeType: TTradeType
+  ): Promise<Trade<TInput, TOutput, TTradeType>> {
+    const amounts: CurrencyAmount<Token>[] = new Array(route.tokenPath.length)
+    let inputAmount: CurrencyAmount<TInput>
+    let outputAmount: CurrencyAmount<TOutput>
+    if (tradeType === TradeType.EXACT_INPUT) {
+      invariant(amount.currency.equals(route.input), 'INPUT')
+      amounts[0] = amount.wrapped
+      for (let i = 0; i < route.tokenPath.length - 1; i++) {
+        const pool = route.pools[i]
+        const [outputAmount] = await pool.getOutputAmount(amounts[i])
+        amounts[i + 1] = outputAmount
+      }
+      inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amount.numerator, amount.denominator)
+      outputAmount = CurrencyAmount.fromFractionalAmount(
+        route.output,
+        amounts[amounts.length - 1].numerator,
+        amounts[amounts.length - 1].denominator
+      )
+    } else {
+      invariant(amount.currency.equals(route.output), 'OUTPUT')
+      amounts[amounts.length - 1] = amount.wrapped
+      for (let i = route.tokenPath.length - 1; i > 0; i--) {
+        const pool = route.pools[i - 1]
+        const [inputAmount] = await pool.getInputAmount(amounts[i])
+        amounts[i - 1] = inputAmount
+      }
+      inputAmount = CurrencyAmount.fromFractionalAmount(route.input, amounts[0].numerator, amounts[0].denominator)
+      outputAmount = CurrencyAmount.fromFractionalAmount(route.output, amount.numerator, amount.denominator)
+    }
+
+    return new Trade({
+      routes: [{ inputAmount, outputAmount, route }],
+      tradeType
+    })
   }
 
   /**
@@ -181,7 +269,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       amount: TTradeType extends TradeType.EXACT_INPUT ? CurrencyAmount<TInput> : CurrencyAmount<TOutput>
       route: Route<TInput, TOutput>
     }[],
-    totalAmount: TTradeType extends TradeType.EXACT_INPUT ? CurrencyAmount<TInput> : CurrencyAmount<TOutput>,
     tradeType: TTradeType
   ): Promise<Trade<TInput, TOutput, TTradeType>> {
     let totalInputAmount: CurrencyAmount<TInput> = CurrencyAmount.fromRawAmount(routes[0].route.input, 0)
@@ -216,8 +303,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
         )
       } else {
         invariant(amount.currency.equals(route.output), 'OUTPUT')
-
-        // The quotient becomes our output for this route, and we save the remainder to be carried over to the next route.
         outputAmount = CurrencyAmount.fromFractionalAmount(route.output, amount.numerator, amount.denominator)
         amounts[amounts.length - 1] = CurrencyAmount.fromFractionalAmount(
           route.output.wrapped,
@@ -240,18 +325,9 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       totalOutputAmount = totalOutputAmount.add(CurrencyAmount.fromRawAmount(route.output, outputAmount.quotient))
     }
 
-    // These checks ensure we carried over all remainders when constructing the percentages.
-    if (tradeType === TradeType.EXACT_INPUT) {
-      invariant(totalAmount.equalTo(totalInputAmount), 'INPUT_TOTAL')
-    } else {
-      invariant(totalAmount.equalTo(totalOutputAmount), 'OUTPUT_TOTAL')
-    }
-
     return new Trade({
       routes: populatedRoutes,
-      tradeType,
-      inputAmount: totalInputAmount,
-      outputAmount: totalOutputAmount
+      tradeType
     })
   }
 
@@ -269,13 +345,42 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     TOutput extends Currency,
     TTradeType extends TradeType
   >(constructorArguments: {
+    route: Route<TInput, TOutput>
+    inputAmount: CurrencyAmount<TInput>
+    outputAmount: CurrencyAmount<TOutput>
+    tradeType: TTradeType
+  }): Trade<TInput, TOutput, TTradeType> {
+    return new Trade({
+      ...constructorArguments,
+      routes: [
+        {
+          inputAmount: constructorArguments.inputAmount,
+          outputAmount: constructorArguments.outputAmount,
+          route: constructorArguments.route
+        }
+      ]
+    })
+  }
+
+  /**
+   * Creates a trade without computing the result of swapping through the route. Useful when you have simulated the trade
+   * elsewhere and do not have any tick data
+   * @template TInput The input token, either Ether or an ERC-20
+   * @template TOutput The output token, either Ether or an ERC-20
+   * @template TTradeType The type of the trade, either exact in or exact out
+   * @param constructorArguments The arguments passed to the trade constructor
+   * @returns The unchecked trade
+   */
+  public static createUncheckedTradeWithMultipleRoutes<
+    TInput extends Currency,
+    TOutput extends Currency,
+    TTradeType extends TradeType
+  >(constructorArguments: {
     routes: {
       route: Route<TInput, TOutput>
       inputAmount: CurrencyAmount<TInput>
       outputAmount: CurrencyAmount<TOutput>
     }[]
-    inputAmount: CurrencyAmount<TInput>
-    outputAmount: CurrencyAmount<TOutput>
     tradeType: TTradeType
   }): Trade<TInput, TOutput, TTradeType> {
     return new Trade(constructorArguments)
@@ -290,8 +395,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    */
   private constructor({
     routes,
-    inputAmount,
-    outputAmount,
     tradeType
   }: {
     routes: {
@@ -299,30 +402,18 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       inputAmount: CurrencyAmount<TInput>
       outputAmount: CurrencyAmount<TOutput>
     }[]
-    inputAmount: CurrencyAmount<TInput>
-    outputAmount: CurrencyAmount<TOutput>
     tradeType: TTradeType
   }) {
+    const inputCurrency = routes[0].inputAmount.currency
+    const outputCurrency = routes[0].outputAmount.currency
     invariant(
-      routes.every(({ route }) => inputAmount.currency.wrapped.equals(route.input.wrapped)),
+      routes.every(({ route }) => inputCurrency.wrapped.equals(route.input.wrapped)),
       'INPUT_CURRENCY_MATCH'
     )
     invariant(
-      routes.every(({ route }) => outputAmount.currency.wrapped.equals(route.output.wrapped)),
+      routes.every(({ route }) => outputCurrency.wrapped.equals(route.output.wrapped)),
       'OUTPUT_CURRENCY_MATCH'
     )
-
-    const totalInputFromRoutes = routes
-      .map(({ inputAmount }) => inputAmount)
-      .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(inputAmount.currency, 0))
-
-    invariant(totalInputFromRoutes.equalTo(inputAmount), 'TOTAL_INPUT')
-
-    const totalOutputFromRoutes = routes
-      .map(({ outputAmount }) => outputAmount)
-      .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(outputAmount.currency, 0))
-
-    invariant(totalOutputFromRoutes.equalTo(outputAmount), 'TOTAL_OUTPUT')
 
     const numPools = routes.map(({ route }) => route.pools.length).reduce((total, cur) => total + cur, 0)
     const poolAddressSet = new Set<string>()
@@ -335,8 +426,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     invariant(numPools == poolAddressSet.size, 'POOLS_DUPLICATED')
 
     this.routes = routes
-    this.inputAmount = inputAmount
-    this.outputAmount = outputAmount
     this.tradeType = tradeType
   }
 
@@ -437,13 +526,8 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       if (amountOut.currency.isToken && amountOut.currency.equals(tokenOut)) {
         sortedInsert(
           bestTrades,
-          await Trade.fromRoutes<TInput, TOutput, TradeType.EXACT_INPUT>(
-            [
-              {
-                amount: currencyAmountIn,
-                route: new Route([...currentPools, pool], currencyAmountIn.currency, currencyOut)
-              }
-            ],
+          await Trade.fromRoute(
+            new Route([...currentPools, pool], currencyAmountIn.currency, currencyOut),
             currencyAmountIn,
             TradeType.EXACT_INPUT
           ),
@@ -523,13 +607,8 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       if (amountIn.currency.equals(tokenIn)) {
         sortedInsert(
           bestTrades,
-          await Trade.fromRoutes<TInput, TOutput, TradeType.EXACT_OUTPUT>(
-            [
-              {
-                amount: currencyAmountOut,
-                route: new Route([pool, ...currentPools], currencyIn, currencyAmountOut.currency)
-              }
-            ],
+          await Trade.fromRoute(
+            new Route([pool, ...currentPools], currencyIn, currencyAmountOut.currency),
             currencyAmountOut,
             TradeType.EXACT_OUTPUT
           ),
