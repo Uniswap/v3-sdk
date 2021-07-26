@@ -321,6 +321,7 @@ describe('Trade', () => {
       })
     })
   })
+  
   describe('#route', () => {
     const singleRoute = Trade.createUncheckedTrade({
       route: new Route([pool_0_1, pool_1_2], token0, token2),

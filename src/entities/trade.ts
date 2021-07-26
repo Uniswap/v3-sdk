@@ -64,7 +64,11 @@ export interface BestTradeOptions {
  */
 export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType> {
   /**
-   * The route of the trade, i.e. which pools the trade goes through.
+   * @deprecated Deprecated in favor of 'routes' property. If the trade consists of multiple routes
+   * this will return an error.
+   *
+   * When the trade consists of just a single route, this returns the route of the trade,
+   * i.e. which pools the trade goes through.
    */
   public get route(): Route<TInput, TOutput> {
     invariant(this.routes.length == 1, 'MULTIPLE_ROUTES')
@@ -72,7 +76,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   }
 
   /**
-   * The routes of the trade, i.e. which pools the trade goes through.
+   * The routes of the trade, i.e. which routes the trade consists of.
    */
   public readonly routes: {
     route: Route<TInput, TOutput>
@@ -84,6 +88,13 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * The type of the trade, either exact in or exact out.
    */
   public readonly tradeType: TTradeType
+
+  /**
+   * The cached result of the input amount computation
+   * @private
+   */
+  private _inputAmount: CurrencyAmount<TInput> | undefined
+
   /**
    * The input amount for the trade assuming no slippage.
    */
@@ -101,7 +112,11 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     return this._inputAmount
   }
 
-  private _inputAmount: CurrencyAmount<TInput> | undefined
+  /**
+   * The cached result of the output amount computation
+   * @private
+   */
+  private _outputAmount: CurrencyAmount<TOutput> | undefined
 
   /**
    * The output amount for the trade assuming no slippage.
@@ -119,8 +134,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     this._outputAmount = totalOutputFromRoutes
     return this._outputAmount
   }
-
-  private _outputAmount: CurrencyAmount<TOutput> | undefined
 
   /**
    * The cached result of the computed execution price
@@ -252,17 +265,12 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Constructs a trade from routes by simulating swaps
    *
-   * The amount is split between the routes using the provided percentages. Any loss of precision from taking
-   * a percentage of an input is carried over to the next routes input. For example with an amount of 101 and two
-   * routes each with 50%, the first route's amount would be 50, and the second route's amount would be 51.
-   *
    * @template TInput The input token, either Ether or an ERC-20.
    * @template TOutput The output token, either Ether or an ERC-20.
    * @template TTradeType The type of the trade, either exact in or exact out.
    * @param routes the routes to swap through and how much of the amount should be routed through each
-   * @param totalAmount the amount specified, either input or output, depending on tradeType
    * @param tradeType whether the trade is an exact input or exact output swap
-   * @returns The route
+   * @returns The trade
    */
   public static async fromRoutes<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
     routes: {
@@ -271,9 +279,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     }[],
     tradeType: TTradeType
   ): Promise<Trade<TInput, TOutput, TTradeType>> {
-    let totalInputAmount: CurrencyAmount<TInput> = CurrencyAmount.fromRawAmount(routes[0].route.input, 0)
-    let totalOutputAmount: CurrencyAmount<TOutput> = CurrencyAmount.fromRawAmount(routes[0].route.output, 0)
-
     const populatedRoutes: {
       route: Route<TInput, TOutput>
       inputAmount: CurrencyAmount<TInput>
@@ -320,9 +325,6 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
       }
 
       populatedRoutes.push({ route, inputAmount, outputAmount })
-
-      totalInputAmount = totalInputAmount.add(CurrencyAmount.fromRawAmount(route.input, inputAmount.quotient))
-      totalOutputAmount = totalOutputAmount.add(CurrencyAmount.fromRawAmount(route.output, outputAmount.quotient))
     }
 
     return new Trade({
@@ -363,7 +365,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   }
 
   /**
-   * Creates a trade without computing the result of swapping through the route. Useful when you have simulated the trade
+   * Creates a trade without computing the result of swapping through the routes. Useful when you have simulated the trade
    * elsewhere and do not have any tick data
    * @template TInput The input token, either Ether or an ERC-20
    * @template TOutput The output token, either Ether or an ERC-20
@@ -388,9 +390,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
   /**
    * Construct a trade by passing in the pre-computed property values
-   * @param route The route through which the trade occurs
-   * @param inputAmount The amount of input paid in the trade
-   * @param outputAmount The amount of output received in the trade
+   * @param routes The routes through which the trade occurs
    * @param tradeType The type of trade, exact input or exact output
    */
   private constructor({
