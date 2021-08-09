@@ -93,7 +93,6 @@ export interface SafeTransferOptions {
    * The optional parameter that passes data to the `onERC721Received` call
    */
   data?: string
-
 }
 
 // type guard
@@ -427,17 +426,22 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     }
   }
 
+<<<<<<< HEAD
   public static safeTransferFromParameters(options: SafeTransferOptions):  string[] {
+=======
+  public static safeTransferFromParameters(options: SafeTransferOptions): string[] {
+>>>>>>> c4e168730de9ca1a2ba0cb17cdff011d9704d6ce
     const calldatas: string[] = []
     const recipient = validateAndParseAddress(options.recipient)
-    calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom', [
-      {
-        from: toHex(options.sender),
-        to: recipient,
-        tokenId: toHex(options.tokenId),
-        _data: options.data ? options.data : ""
-      }
-    ])
+    calldatas.push(
+      NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom', [
+        {
+          from: toHex(options.sender),
+          to: recipient,
+          tokenId: toHex(options.tokenId),
+          _data: options.data ? options.data : ''
+        }
+      ])
     )
     return calldatas
   }
