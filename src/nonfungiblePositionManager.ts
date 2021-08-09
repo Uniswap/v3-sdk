@@ -426,11 +426,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     }
   }
 
-<<<<<<< HEAD
   public static safeTransferFromParameters(options: SafeTransferOptions):  string[] {
-=======
-  public static safeTransferFromParameters(options: SafeTransferOptions): string[] {
->>>>>>> c4e168730de9ca1a2ba0cb17cdff011d9704d6ce
     const calldatas: string[] = []
     const recipient = validateAndParseAddress(options.recipient)
     calldatas.push(
