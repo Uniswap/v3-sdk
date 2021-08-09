@@ -90,7 +90,7 @@ export interface SafeTransferOptions {
    */
   tokenId: BigintIsh
   /**
-   * The optional parameter for ??
+   * The optional parameter that passes data to the `onERC721Received` call
    */
   data?: string
 
@@ -426,8 +426,6 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       value: toHex(0)
     }
   }
-
-  
 
   public static safeTransferFromParameters(options: SafeTransferOptions):  string[] {
     const calldatas: string[] = []
