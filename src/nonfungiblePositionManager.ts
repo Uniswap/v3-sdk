@@ -74,6 +74,28 @@ export type IncreaseOptions = CommonAddLiquidityOptions & IncreaseSpecificOption
 
 export type AddLiquidityOptions = MintOptions | IncreaseOptions
 
+export interface SafeTransferOptions {
+  /**
+   * The account sending tne NFT.
+   */
+  sender: string
+
+  /**
+   * The account that should receive the NFT.
+   */
+  recipient: string
+
+  /**
+   * The id of the token being sent.
+   */
+  tokenId: BigintIsh
+  /**
+   * The optional parameter for ??
+   */
+  data?: string
+
+}
+
 // type guard
 function isMint(options: AddLiquidityOptions): options is MintOptions {
   return Object.keys(options).some(k => k === 'recipient')
@@ -403,5 +425,22 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
       calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
       value: toHex(0)
     }
+  }
+
+  
+
+  public static safeTransferFromParameters(options: SafeTransferOptions):  string[] {
+    const calldatas: string[] = []
+    const recipient = validateAndParseAddress(options.recipient)
+    calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom', [
+      {
+        from: toHex(options.sender),
+        to: recipient,
+        tokenId: toHex(options.tokenId),
+        _data: options.data ? options.data : ""
+      }
+    ])
+    )
+    return calldatas
   }
 }
