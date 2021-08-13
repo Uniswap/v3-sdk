@@ -17,7 +17,7 @@ import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositi
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
 import { Pool } from './entities'
-import {IncentiveKey} from './staker'
+import { IncentiveKey } from './staker'
 
 const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
