@@ -1,16 +1,12 @@
-import {
-  BigintIsh,
-  Token,
-  validateAndParseAddress,
-} from '@uniswap/sdk-core'
+import { BigintIsh, Token, validateAndParseAddress } from '@uniswap/sdk-core'
 import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json'
 import { Pool } from './entities'
 
 /**
-* Represents a unisque staking program.
-*/
+ * Represents a unisque staking program.
+ */
 export interface IncentiveKey {
   /**
    * The token awarded in the program.
@@ -35,8 +31,8 @@ export interface IncentiveKey {
 }
 
 /**
-* Options to specify when claiming rewards.
-*/
+ * Options to specify when claiming rewards.
+ */
 export interface ClaimOptions {
   /**
    * The id of the NFT
@@ -86,8 +82,8 @@ export abstract class Staker {
       Staker.INTERFACE.encodeFunctionData('unstakeToken', [
         {
           key: incentiveKey,
-          tokenId: options.tokenId,
-        },
+          tokenId: options.tokenId
+        }
       ])
     )
     const recipient: string = validateAndParseAddress(options.recipient)
@@ -96,8 +92,8 @@ export abstract class Staker {
         {
           rewardToken: options.rewardToken,
           to: recipient,
-          amountRequested: options.amount,
-        },
+          amountRequested: options.amount
+        }
       ])
     )
     return calldatas
@@ -112,13 +108,13 @@ export abstract class Staker {
       Staker.INTERFACE.encodeFunctionData('stakeToken', [
         {
           key: incentiveKey,
-          tokenId: options.tokenId,
-        },
+          tokenId: options.tokenId
+        }
       ])
     )
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value: toHex(0),
+      value: toHex(0)
     }
   }
 
@@ -134,14 +130,14 @@ export abstract class Staker {
           {
             tokenId: options.tokenId,
             to: options.owner,
-            data: options.data,
-          },
+            data: options.data
+          }
         ])
       )
     }
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value: toHex(0),
+      value: toHex(0)
     }
   }
 }
