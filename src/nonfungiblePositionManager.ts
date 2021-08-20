@@ -427,19 +427,18 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     }
   }
 
-  public static safeTransferFromParameters(options: SafeTransferOptions): string[] {
-    const calldatas: string[] = []
+  public static safeTransferFromParameters(options: SafeTransferOptions): MethodParameters {
     const recipient = validateAndParseAddress(options.recipient)
-    calldatas.push(
-      NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom', [
+    return {
+      calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom', [
         {
           from: toHex(options.sender),
           to: recipient,
           tokenId: toHex(options.tokenId),
           _data: options.data ?? ''
         }
-      ])
-    )
-    return calldatas
+      ]) ,
+      value: toHex(0)
+    }
   }
 }
