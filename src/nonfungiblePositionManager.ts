@@ -437,7 +437,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
           tokenId: toHex(options.tokenId),
           _data: options.data ?? ''
         }
-      ]) ,
+      ]),
       value: toHex(0)
     }
   }
