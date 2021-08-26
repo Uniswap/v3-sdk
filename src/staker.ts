@@ -49,16 +49,16 @@ export interface ClaimOptions {
    */
   amount?: BigintIsh
 
-   /**
-    * Set when withdrawing. The position will be sent to `owner` on withdraw.
-    */
-   owner?: string
- 
-   /**
-    * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
-    */
-   data?: string
- }
+  /**
+   * Set when withdrawing. The position will be sent to `owner` on withdraw.
+   */
+  owner?: string
+
+  /**
+   * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
+   */
+  data?: string
+}
 
 export abstract class Staker {
   public static INTERFACE: Interface = new Interface(abi)
@@ -116,19 +116,19 @@ export abstract class Staker {
   /**
    * Creates claim and unstake calldata. Option to withdraw token.
    * Note: Only really makes sense to either claim and continue staking or claim and withdraw.
-   * Note: 
+   * Note:
    */
   /**
-   * 
+   *
    * @param incentiveKeys A list of incentiveKeys to unstake from. Should include all incentiveKeys (unique staking programs) that `options.tokenId` is staked in.
    * @param options Options for producing collect/claim calldata. Can't withdraw without unstaking all programs for `tokenId`.
    * @returns Calldata for unstaking, claiming, and withdrawing.
    */
   public static withdrawToken(incentiveKeys: IncentiveKey[], options: ClaimOptions): MethodParameters {
     const calldatas: string[] = []
-    for (let i = 0; i < incentiveKeys.length; i ++) {
-      const incentiveKey = incentiveKeys[i];
-      calldatas.concat(this.encodeClaim(incentiveKey, options));
+    for (let i = 0; i < incentiveKeys.length; i++) {
+      const incentiveKey = incentiveKeys[i]
+      calldatas.concat(this.encodeClaim(incentiveKey, options))
     }
     if (options.owner) {
       calldatas.push(
