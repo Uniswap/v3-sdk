@@ -1,7 +1,7 @@
 import { BigintIsh, Token, validateAndParseAddress } from '@uniswap/sdk-core'
-import { MethodParameters, toHex } from './utils/calldata'
+import { MethodParameters } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
-import { abi } from '@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json'
+import { abi } from '@uniswap/v3-staker/artifacts/contracts/IUniswapV3Staker.sol/IUniswapV3Staker.json'
 import { Pool } from './entities'
 
 /**
@@ -9,9 +9,9 @@ import { Pool } from './entities'
  */
 export interface IncentiveKey {
   /**
-   * The token awarded in the program.
+   * The token rewarded for participating in the staking program.
    */
-  token: Token
+  rewardToken: Token
   /**
    * The pool that the staked positions must provide in.
    */
@@ -40,42 +40,37 @@ export interface ClaimOptions {
   tokenId: BigintIsh
 
   /**
-   * The token rewarded for participating in the staking program.
-   */
-  rewardToken: string
-
-  /**
    * Address to send rewards to.
    */
   recipient: string
 
   /**
-   * The amount of `rewardToken` to claim.
+   * The amount of `rewardToken` to claim. 0 claims all.
    */
-  amount: BigintIsh
+  amount?: BigintIsh
 
-  /**
-   * The amount of `rewardToken` to claim.
-   */
-  withdraw?: boolean
-
-  /**
-   * The owner of the position.
-   */
-  owner?: string
-
-  /**
-   * Optional parameter passed to the callback `onERC721Received`.
-   */
-  data?: string
-}
+   /**
+    * Set when withdrawing. The position will be sent to `owner` on withdraw.
+    */
+   owner?: string
+ 
+   /**
+    * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
+    */
+   data?: string
+ }
 
 export abstract class Staker {
   public static INTERFACE: Interface = new Interface(abi)
 
   protected constructor() {}
 
-  /** To claim rewards, must unstake and then claim. */
+  /**
+   *  To claim rewards, must unstake and then claim.
+   * @param incentiveKey The unique identifier of a staking program.
+   * @param options Options for producing the calldata to claim. Can't claim unlesss you unstake.
+   * @returns The calldatas for 'unstakeToken' and 'claimReward'.
+   */
   private static encodeClaim(incentiveKey: IncentiveKey, options: ClaimOptions): string[] {
     const calldatas: string[] = []
     calldatas.push(
@@ -90,7 +85,7 @@ export abstract class Staker {
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('claimReward', [
         {
-          rewardToken: options.rewardToken,
+          rewardToken: incentiveKey.rewardToken,
           to: recipient,
           amountRequested: options.amount
         }
@@ -99,10 +94,10 @@ export abstract class Staker {
     return calldatas
   }
 
-  /** Only claims rewards.
-   * Must unstake, claim, and then restake.
+  /**
+   * Only claims rewards. Must unstake, claim, and then restake.
    */
-  public static claimCallParameters(incentiveKey: IncentiveKey, options: ClaimOptions): MethodParameters {
+  public static collectRewards(incentiveKey: IncentiveKey, options: ClaimOptions): MethodParameters {
     const calldatas = this.encodeClaim(incentiveKey, options)
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('stakeToken', [
@@ -114,17 +109,28 @@ export abstract class Staker {
     )
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value: toHex(0)
+      value: '0x'
     }
   }
 
   /**
    * Creates claim and unstake calldata. Option to withdraw token.
    * Note: Only really makes sense to either claim and continue staking or claim and withdraw.
+   * Note: 
    */
-  public static unstakeAndClaimCallParameters(incentiveKey: IncentiveKey, options: ClaimOptions): MethodParameters {
-    const calldatas = this.encodeClaim(incentiveKey, options)
-    if (options.withdraw && options.owner) {
+  /**
+   * 
+   * @param incentiveKeys A list of incentiveKeys to unstake from. Should include all incentiveKeys (unique staking programs) that `options.tokenId` is staked in.
+   * @param options Options for producing collect/claim calldata. Can't withdraw without unstaking all programs for `tokenId`.
+   * @returns Calldata for unstaking, claiming, and withdrawing.
+   */
+  public static withdrawToken(incentiveKeys: IncentiveKey[], options: ClaimOptions): MethodParameters {
+    const calldatas: string[] = []
+    for (let i = 0; i < incentiveKeys.length; i ++) {
+      const incentiveKey = incentiveKeys[i];
+      calldatas.concat(this.encodeClaim(incentiveKey, options));
+    }
+    if (options.owner) {
       calldatas.push(
         Staker.INTERFACE.encodeFunctionData('withdrawToken', [
           {
@@ -137,7 +143,7 @@ export abstract class Staker {
     }
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value: toHex(0)
+      value: '0x'
     }
   }
 }

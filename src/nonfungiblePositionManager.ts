@@ -17,7 +17,6 @@ import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositi
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
 import { Pool } from './entities'
-import { IncentiveKey } from './staker'
 
 const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
@@ -93,7 +92,7 @@ export interface SafeTransferOptions {
   /**
    * The optional parameter that passes data to the `onERC721Received` call for the staker
    */
-  data?: IncentiveKey | IncentiveKey[]
+  data?: string
 }
 
 // type guard
@@ -432,7 +431,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     return {
       calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom', [
         {
-          from: toHex(options.sender),
+          from: options.sender,
           to: recipient,
           tokenId: toHex(options.tokenId),
           _data: options.data ?? ''
