@@ -34,7 +34,7 @@ export abstract class SwapQuoter {
 
   public static quoteSwap<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
     route: Route<TInput, TOutput>,
-    amount: TTradeType extends TradeType.EXACT_INPUT ? CurrencyAmount<TInput> : CurrencyAmount<TOutput>,
+    amount: CurrencyAmount<TInput> | CurrencyAmount<TOutput>,
     tradeType: TTradeType
   ): MethodParameters {
     const singleHop = route.pools.length === 2
