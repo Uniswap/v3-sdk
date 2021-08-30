@@ -1,7 +1,5 @@
 import { Interface } from '@ethersproject/abi'
-import { BigintIsh, Currency, CurrencyAmount, Percent, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
-import invariant from 'tiny-invariant'
-import { Trade } from './entities/trade'
+import { BigintIsh, Currency, CurrencyAmount, Percent, TradeType } from '@uniswap/sdk-core'
 import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json'
@@ -39,7 +37,6 @@ export abstract class SwapQuoter {
     amount: TTradeType extends TradeType.EXACT_INPUT ? CurrencyAmount<TInput> : CurrencyAmount<TOutput>,
     tradeType: TTradeType
   ): MethodParameters {
-
     const singleHop = route.pools.length === 2
 
     if (singleHop) {
@@ -52,7 +49,7 @@ export abstract class SwapQuoter {
         }
         return {
           calldata: SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [exactInputSingleParams]),
-          value: amount
+          value: toHex(0)
         }
       } else {
         const exactOutputSingleParams = {
@@ -63,7 +60,7 @@ export abstract class SwapQuoter {
         }
         return {
           calldata: SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [exactOutputSingleParams]),
-          value: amount
+          value: toHex(0)
         }
       }
     } else {
@@ -75,8 +72,8 @@ export abstract class SwapQuoter {
           amountIn: amount
         }
         return {
-          calldata: SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [exactInputParams])
-          value: amount
+          calldata: SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [exactInputParams]),
+          value: toHex(0)
         }
       } else {
         const exactOutputParams = {
@@ -85,7 +82,7 @@ export abstract class SwapQuoter {
         }
         return {
           calldata: SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [exactOutputParams]),
-          value: amount
+          value: toHex(0)
         }
       }
     }
