@@ -34,7 +34,7 @@ export abstract class SwapQuoter {
 
   public static quoteSwap<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
     route: Route<TInput, TOutput>,
-    amount: CurrencyAmount<TInput> | CurrencyAmount<TOutput>,
+    amount: CurrencyAmount <TInput | TOutput>, //this is wrong? needs to be able to be casted to hex
     tradeType: TTradeType
   ): MethodParameters {
     const singleHop = route.pools.length === 2
@@ -45,7 +45,7 @@ export abstract class SwapQuoter {
           tokenIn: route.tokenPath[0].address,
           tokenOut: route.tokenPath[1].address,
           fee: route.pools[0].fee,
-          amountIn: amount
+          amountIn: amount // needs #toHex 
         }
         return {
           calldata: SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [exactInputSingleParams]),
