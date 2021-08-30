@@ -380,7 +380,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     const { expectedCurrencyOwed0, expectedCurrencyOwed1, ...rest } = options.collectOptions
     calldatas.push(
       ...NonfungiblePositionManager.encodeCollect({
-        tokenId: options.tokenId,
+        tokenId: toHex(options.tokenId),
         // add the underlying value to the expected currency already owed
         expectedCurrencyOwed0: expectedCurrencyOwed0.add(
           CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency, amount0Min)
