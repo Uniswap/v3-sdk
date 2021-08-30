@@ -35,58 +35,59 @@ export abstract class SwapQuoter {
   public static INTERFACE: Interface = new Interface(abi)
 
   public static quoteSwap<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
-    routes: Route<TInput, TOutput> | Route<TInput, TOutput>[],
+    route: Route<TInput, TOutput>,
     amount: TTradeType extends TradeType.EXACT_INPUT ? CurrencyAmount<TInput> : CurrencyAmount<TOutput>,
     tradeType: TTradeType
   ): MethodParameters {
-    if (!Array.isArray(routes)) {
-      routes = [routes]
-    }
-    const calldatas: string[] = []
 
-    for (const route of routes) {
-      const singleHop = routes.length === 1
+    const singleHop = route.pools.length === 2
 
-      if (singleHop) {
-        if (tradeType === TradeType.EXACT_INPUT) {
-          const exactInputSingleParams = {
-            tokenIn: route.tokenPath[0].address,
-            tokenOut: route.tokenPath[1].address,
-            fee: route.pools[0].fee,
-            amountIn: amount
-          }
-          calldatas.push(SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [exactInputSingleParams]))
-        } else {
-          const exactOutputSingleParams = {
-            tokenIn: route.tokenPath[0].address,
-            tokenOut: route.tokenPath[1].address,
-            fee: route.pools[0].fee,
-            amountOut: amount
-          }
-          calldatas.push(SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [exactOutputSingleParams]))
+    if (singleHop) {
+      if (tradeType === TradeType.EXACT_INPUT) {
+        const exactInputSingleParams = {
+          tokenIn: route.tokenPath[0].address,
+          tokenOut: route.tokenPath[1].address,
+          fee: route.pools[0].fee,
+          amountIn: amount
+        }
+        return {
+          calldata: SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [exactInputSingleParams]),
+          value: amount
         }
       } else {
-        const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT)
-
-        if (tradeType === TradeType.EXACT_INPUT) {
-          const exactInputParams = {
-            path: path,
-            amountIn: amount
-          }
-          calldatas.push(SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [exactInputParams]))
-        } else {
-          const exactOutputParams = {
-            path: path,
-            amountOut: amount
-          }
-          calldatas.push(SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [exactOutputParams]))
+        const exactOutputSingleParams = {
+          tokenIn: route.tokenPath[0].address,
+          tokenOut: route.tokenPath[1].address,
+          fee: route.pools[0].fee,
+          amountOut: amount
+        }
+        return {
+          calldata: SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [exactOutputSingleParams]),
+          value: amount
         }
       }
-    }
+    } else {
+      const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT)
 
-    return {
-      calldata: calldatas[0],
-      value: toHex(amount)
+      if (tradeType === TradeType.EXACT_INPUT) {
+        const exactInputParams = {
+          path: path,
+          amountIn: amount
+        }
+        return {
+          calldata: SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [exactInputParams])
+          value: amount
+        }
+      } else {
+        const exactOutputParams = {
+          path: path,
+          amountOut: amount
+        }
+        return {
+          calldata: SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [exactOutputParams]),
+          value: amount
+        }
+      }
     }
   }
 }
