@@ -8,12 +8,14 @@ import { Route } from './entities'
 export abstract class SwapQuoter {
   public static INTERFACE: Interface = new Interface(abi)
 
-  public static quoteSwap<TInput extends Currency, TOutput extends Currency, TTradeType extends TradeType>(
+  public static quoteSwap<TInput extends Currency, TOutput extends Currency>(
     route: Route<TInput, TOutput>,
-    amount: CurrencyAmount<TInput | TOutput>, //this is wrong? needs to be able to be casted to hex
-    tradeType: TTradeType
+    amount: CurrencyAmount<TInput | TOutput>,
+    tradeType: TradeType
   ): MethodParameters {
     const singleHop = route.pools.length === 2
+    const quoteAmount: string = toHex(amount.quotient)
+    let formattedCalldata: string
 
     if (singleHop) {
       if (tradeType === TradeType.EXACT_INPUT) {
@@ -21,23 +23,19 @@ export abstract class SwapQuoter {
           tokenIn: route.tokenPath[0].address,
           tokenOut: route.tokenPath[1].address,
           fee: route.pools[0].fee,
-          amountIn: amount // needs #toHex
+          amountIn: quoteAmount
         }
-        return {
-          calldata: SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [exactInputSingleParams]),
-          value: toHex(0)
-        }
+
+        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [exactInputSingleParams])
       } else {
         const exactOutputSingleParams = {
           tokenIn: route.tokenPath[0].address,
           tokenOut: route.tokenPath[1].address,
           fee: route.pools[0].fee,
-          amountOut: amount
+          amountOut: quoteAmount
         }
-        return {
-          calldata: SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [exactOutputSingleParams]),
-          value: toHex(0)
-        }
+
+        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [exactOutputSingleParams])
       }
     } else {
       const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT)
@@ -45,22 +43,22 @@ export abstract class SwapQuoter {
       if (tradeType === TradeType.EXACT_INPUT) {
         const exactInputParams = {
           path: path,
-          amountIn: amount
+          amountIn: quoteAmount
         }
-        return {
-          calldata: SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [exactInputParams]),
-          value: toHex(0)
-        }
+
+        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [exactInputParams])
       } else {
         const exactOutputParams = {
           path: path,
-          amountOut: amount
+          amountOut: quoteAmount
         }
-        return {
-          calldata: SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [exactOutputParams]),
-          value: toHex(0)
-        }
+
+        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [exactOutputParams])
       }
+    }
+    return {
+      calldata: formattedCalldata,
+      value: toHex(0)
     }
   }
 }
