@@ -33,7 +33,6 @@ describe('SwapQuoter', () => {
   const pool_0_1 = makePool(token0, token1)
   const pool_1_weth = makePool(token1, WETH)
 
-
   describe('#swapCallParameters', () => {
     describe('single trade input', () => {
       it('single-hop exact input', async () => {
