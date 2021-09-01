@@ -1,9 +1,20 @@
 import { Interface } from '@ethersproject/abi'
-import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
+import { BigintIsh, Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
 import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json'
 import { Route } from './entities'
+import invariant from 'tiny-invariant'
+
+/**
+ * Optional arguments to send to the quoter.
+ */
+export interface QuoteOptions {
+  /**
+   * The optional price limit for the trade.
+   */
+  sqrtPriceLimitX96?: BigintIsh
+}
 
 /**
  * Represents the Uniswap V3 QuoterV1 contract with a method for returning the formatted
@@ -25,41 +36,43 @@ export abstract class SwapQuoter {
   public static quoteCallParameters<TInput extends Currency, TOutput extends Currency>(
     route: Route<TInput, TOutput>,
     amount: CurrencyAmount<TInput | TOutput>,
-    tradeType: TradeType
+    tradeType: TradeType,
+    options?: QuoteOptions
   ): MethodParameters {
     const singleHop = route.pools.length === 1
     const quoteAmount: string = toHex(amount.quotient)
-    let formattedCalldata: string
+    let calldata: string
 
     if (singleHop) {
       if (tradeType === TradeType.EXACT_INPUT) {
-        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [
+        calldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [
           route.tokenPath[0].address,
           route.tokenPath[1].address,
           route.pools[0].fee,
           quoteAmount,
-          toHex(0)
+          toHex(options?.sqrtPriceLimitX96 ?? 0)
         ])
       } else {
-        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [
+        calldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [
           route.tokenPath[0].address,
           route.tokenPath[1].address,
           route.pools[0].fee,
           quoteAmount,
-          toHex(0)
+          toHex(options?.sqrtPriceLimitX96 ?? 0)
         ])
       }
     } else {
+      invariant(options?.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
       const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT)
 
       if (tradeType === TradeType.EXACT_INPUT) {
-        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [path, quoteAmount])
+        calldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [path, quoteAmount])
       } else {
-        formattedCalldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [path, quoteAmount])
+        calldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [path, quoteAmount])
       }
     }
     return {
-      calldata: formattedCalldata,
+      calldata,
       value: toHex(0)
     }
   }
