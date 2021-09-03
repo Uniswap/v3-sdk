@@ -56,16 +56,15 @@ export interface ClaimOptions {
  * Options to specify when withdrawing a position.
  */
 export interface WithdrawOptions {
-   /**
-    * Set when withdrawing. The position will be sent to `owner` on withdraw.
-    */
-    owner: string
- 
-    /**
-     * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
-     */
-    data: string
-  
+  /**
+   * Set when withdrawing. The position will be sent to `owner` on withdraw.
+   */
+  owner: string
+
+  /**
+   * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
+   */
+  data: string
 }
 
 export abstract class Staker {
@@ -73,7 +72,7 @@ export abstract class Staker {
 
   protected constructor() {}
   private static INCENTIVE_KEY_ABI =
-  'tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)'
+    'tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)'
 
   /**
    *  To claim rewards, must unstake and then claim.
@@ -124,7 +123,7 @@ export abstract class Staker {
   }
 
   /**
-   * 
+   *
    * @param incentiveKeys A list of incentiveKeys to unstake from. Should include all incentiveKeys (unique staking programs) that `options.tokenId` is staked in.
    * @param withdrawOptions Options for producing claim calldata and withdraw calldata. Can't withdraw without unstaking all programs for `tokenId`.
    * @returns Calldata for unstaking, claiming, and withdrawing.
@@ -134,11 +133,12 @@ export abstract class Staker {
     const claimOptions = {
       tokenId: withdrawOptions.tokenId,
       recipient: withdrawOptions.recipient,
-      amount: withdrawOptions.amount }
+      amount: withdrawOptions.amount
+    }
 
-    for (let i = 0; i < incentiveKeys.length; i ++) {
-      const incentiveKey = incentiveKeys[i];
-      calldatas.concat(this.encodeClaim(incentiveKey, claimOptions));
+    for (let i = 0; i < incentiveKeys.length; i++) {
+      const incentiveKey = incentiveKeys[i]
+      calldatas.concat(this.encodeClaim(incentiveKey, claimOptions))
     }
     if (withdrawOptions.owner) {
       const owner = validateAndParseAddress(withdrawOptions.owner)
@@ -157,21 +157,20 @@ export abstract class Staker {
       value: toHex(0)
     }
   }
-  
+
   /**
-   * 
+   *
    * @param incentiveKeys A single IncentiveKey or array of IncentiveKeys to be encoded and used in the data parameter in `safeTransferFrom`
    * @returns An IncentiveKey as a string
    */
-  public static encodeDeposit(incentiveKeys: IncentiveKey | IncentiveKey[]) : string {
-    
-    incentiveKeys = (incentiveKeys instanceof Array) ? incentiveKeys : [incentiveKeys]
-    let data : string
+  public static encodeDeposit(incentiveKeys: IncentiveKey | IncentiveKey[]): string {
+    incentiveKeys = incentiveKeys instanceof Array ? incentiveKeys : [incentiveKeys]
+    let data: string
 
     if (incentiveKeys.length > 1) {
       const keys = []
-      for (let i = 0; i < incentiveKeys.length; i ++) {
-        const incentiveKey = incentiveKeys[i];
+      for (let i = 0; i < incentiveKeys.length; i++) {
+        const incentiveKey = incentiveKeys[i]
         keys.push(this._encodeIncentiveKey(incentiveKey))
       }
       data = ethers.utils.defaultAbiCoder.encode([`${Staker.INCENTIVE_KEY_ABI}[]`], [keys])
@@ -179,10 +178,9 @@ export abstract class Staker {
       data = ethers.utils.defaultAbiCoder.encode([Staker.INCENTIVE_KEY_ABI], incentiveKeys)
     }
     return data
-      
   }
   /**
-   * 
+   *
    * @param incentiveKey An `IncentiveKey` which represents a unique staking program.
    * @returns An encoded IncentiveKey to be read by ethers
    */
@@ -194,7 +192,7 @@ export abstract class Staker {
       pool: Pool.getAddress(pool.token0, pool.token1, pool.fee),
       startTime: toHex(incentiveKey.startTime),
       endTime: toHex(incentiveKey.endTime),
-      refundee: refundee,
+      refundee: refundee
     }
   }
 }
