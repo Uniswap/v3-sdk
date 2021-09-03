@@ -126,7 +126,7 @@ export abstract class Staker {
   /**
    * 
    * @param incentiveKeys A list of incentiveKeys to unstake from. Should include all incentiveKeys (unique staking programs) that `options.tokenId` is staked in.
-   * @param withdraw Options for producing claim calldata and withdraw calldata. Can't withdraw without unstaking all programs for `tokenId`.
+   * @param withdrawOptions Options for producing claim calldata and withdraw calldata. Can't withdraw without unstaking all programs for `tokenId`.
    * @returns Calldata for unstaking, claiming, and withdrawing.
    */
   public static withdrawToken(incentiveKeys: IncentiveKey[], withdrawOptions: FullWithdrawOptions): MethodParameters {
@@ -135,8 +135,7 @@ export abstract class Staker {
       tokenId: withdrawOptions.tokenId,
       recipient: withdrawOptions.recipient,
       amount: withdrawOptions.amount }
-    // note: currently claimOptions are independent of IncentiveKeys which means all IncentiveKey claims will be programmed with the same amount to collect. 
-    // This is ok for withdraw since it makes sense to collect full amount if withdrawing from program.
+
     for (let i = 0; i < incentiveKeys.length; i ++) {
       const incentiveKey = incentiveKeys[i];
       calldatas.concat(this.encodeClaim(incentiveKey, claimOptions));
