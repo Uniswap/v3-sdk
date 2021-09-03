@@ -1,11 +1,13 @@
 import { BigintIsh, Token, validateAndParseAddress } from '@uniswap/sdk-core'
-import { MethodParameters } from './utils/calldata'
+import { ethers } from 'ethers'
+import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-staker/artifacts/contracts/IUniswapV3Staker.sol/IUniswapV3Staker.json'
 import { Pool } from './entities'
 
+export type FullWithdrawOptions = ClaimOptions & WithdrawOptions
 /**
- * Represents a unisque staking program.
+ * Represents a unique staking program.
  */
 export interface IncentiveKey {
   /**
@@ -47,28 +49,36 @@ export interface ClaimOptions {
   /**
    * The amount of `rewardToken` to claim. 0 claims all.
    */
-  amount?: BigintIsh
+  amount: BigintIsh
+}
 
+/**
+ * Options to specify when withdrawing a position.
+ */
+export interface WithdrawOptions {
    /**
     * Set when withdrawing. The position will be sent to `owner` on withdraw.
     */
-   owner?: string
+    owner: string
  
-   /**
-    * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
-    */
-   data?: string
- }
+    /**
+     * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
+     */
+    data: string
+  
+}
 
 export abstract class Staker {
   public static INTERFACE: Interface = new Interface(abi)
 
   protected constructor() {}
+  private static INCENTIVE_KEY_ABI =
+  'tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)'
 
   /**
    *  To claim rewards, must unstake and then claim.
    * @param incentiveKey The unique identifier of a staking program.
-   * @param options Options for producing the calldata to claim. Can't claim unlesss you unstake.
+   * @param options Options for producing the calldata to claim. Can't claim unless you unstake.
    * @returns The calldatas for 'unstakeToken' and 'claimReward'.
    */
   private static encodeClaim(incentiveKey: IncentiveKey, options: ClaimOptions): string[] {
@@ -76,8 +86,8 @@ export abstract class Staker {
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('unstakeToken', [
         {
-          key: incentiveKey,
-          tokenId: options.tokenId
+          key: this._encodeIncentiveKey(incentiveKey),
+          tokenId: toHex(options.tokenId)
         }
       ])
     )
@@ -87,7 +97,7 @@ export abstract class Staker {
         {
           rewardToken: incentiveKey.rewardToken,
           to: recipient,
-          amountRequested: options.amount
+          amountRequested: toHex(options.amount)
         }
       ])
     )
@@ -103,47 +113,89 @@ export abstract class Staker {
       Staker.INTERFACE.encodeFunctionData('stakeToken', [
         {
           key: incentiveKey,
-          tokenId: options.tokenId
+          tokenId: toHex(options.tokenId)
         }
       ])
     )
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value: '0x'
+      value: toHex(0)
     }
   }
 
   /**
-   * Creates claim and unstake calldata. Option to withdraw token.
-   * Note: Only really makes sense to either claim and continue staking or claim and withdraw.
-   * Note: 
-   */
-  /**
    * 
    * @param incentiveKeys A list of incentiveKeys to unstake from. Should include all incentiveKeys (unique staking programs) that `options.tokenId` is staked in.
-   * @param options Options for producing collect/claim calldata. Can't withdraw without unstaking all programs for `tokenId`.
+   * @param withdraw Options for producing claim calldata and withdraw calldata. Can't withdraw without unstaking all programs for `tokenId`.
    * @returns Calldata for unstaking, claiming, and withdrawing.
    */
-  public static withdrawToken(incentiveKeys: IncentiveKey[], options: ClaimOptions): MethodParameters {
+  public static withdrawToken(incentiveKeys: IncentiveKey[], withdrawOptions: FullWithdrawOptions): MethodParameters {
     const calldatas: string[] = []
+    const claimOptions = {
+      tokenId: withdrawOptions.tokenId,
+      recipient: withdrawOptions.recipient,
+      amount: withdrawOptions.amount }
+    // note: currently claimOptions are independent of IncentiveKeys which means all IncentiveKey claims will be programmed with the same amount to collect. 
+    // This is ok for withdraw since it makes sense to collect full amount if withdrawing from program.
     for (let i = 0; i < incentiveKeys.length; i ++) {
       const incentiveKey = incentiveKeys[i];
-      calldatas.concat(this.encodeClaim(incentiveKey, options));
+      calldatas.concat(this.encodeClaim(incentiveKey, claimOptions));
     }
-    if (options.owner) {
+    if (withdrawOptions.owner) {
+      const owner = validateAndParseAddress(withdrawOptions.owner)
       calldatas.push(
         Staker.INTERFACE.encodeFunctionData('withdrawToken', [
           {
-            tokenId: options.tokenId,
-            to: options.owner,
-            data: options.data
+            tokenId: toHex(withdrawOptions.tokenId),
+            to: owner,
+            data: withdrawOptions.data
           }
         ])
       )
     }
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
-      value: '0x'
+      value: toHex(0)
+    }
+  }
+  
+  /**
+   * 
+   * @param incentiveKeys A single IncentiveKey or array of IncentiveKeys to be encoded and used in the data parameter in `safeTransferFrom`
+   * @returns An IncentiveKey as a string
+   */
+  public static encodeDeposit(incentiveKeys: IncentiveKey | IncentiveKey[]) : string {
+    
+    incentiveKeys = (incentiveKeys instanceof Array) ? incentiveKeys : [incentiveKeys]
+    let data : string
+
+    if (incentiveKeys.length > 1) {
+      const keys = []
+      for (let i = 0; i < incentiveKeys.length; i ++) {
+        const incentiveKey = incentiveKeys[i];
+        keys.push(this._encodeIncentiveKey(incentiveKey))
+      }
+      data = ethers.utils.defaultAbiCoder.encode([`${Staker.INCENTIVE_KEY_ABI}[]`], [keys])
+    } else {
+      data = ethers.utils.defaultAbiCoder.encode([Staker.INCENTIVE_KEY_ABI], incentiveKeys)
+    }
+    return data
+      
+  }
+  /**
+   * 
+   * @param incentiveKey An `IncentiveKey` which represents a unique staking program.
+   * @returns An encoded IncentiveKey to be read by ethers
+   */
+  private static _encodeIncentiveKey(incentiveKey: IncentiveKey): {} {
+    const pool = incentiveKey.pool
+    const refundee = validateAndParseAddress(incentiveKey.refundee)
+    return {
+      rewardToken: incentiveKey.rewardToken.address,
+      pool: Pool.getAddress(pool.token0, pool.token1, pool.fee),
+      startTime: toHex(incentiveKey.startTime),
+      endTime: toHex(incentiveKey.endTime),
+      refundee: refundee,
     }
   }
 }

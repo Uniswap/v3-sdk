@@ -76,7 +76,7 @@ export type AddLiquidityOptions = MintOptions | IncreaseOptions
 
 export interface SafeTransferOptions {
   /**
-   * The account sending tne NFT.
+   * The account sending the NFT.
    */
   sender: string
 
@@ -428,15 +428,29 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
   public static safeTransferFromParameters(options: SafeTransferOptions): MethodParameters {
     const recipient = validateAndParseAddress(options.recipient)
-    return {
-      calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom', [
+    const sender = validateAndParseAddress(options.sender)
+
+    let calldata : string
+    if (options.data) {
+      calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom(address,address,uint256,bytes)', [
         {
-          from: options.sender,
+          from: sender,
           to: recipient,
           tokenId: toHex(options.tokenId),
-          _data: options.data ?? ''
+          _data: options.data
         }
-      ]),
+      ])
+    } else {
+      calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom(address,address,uint256)', [
+        {
+          from: sender,
+          to: recipient,
+          tokenId: toHex(options.tokenId)
+        }
+      ])
+    }
+    return {
+      calldata: calldata,
       value: toHex(0)
     }
   }
