@@ -37,7 +37,7 @@ export abstract class SwapQuoter {
     route: Route<TInput, TOutput>,
     amount: CurrencyAmount<TInput | TOutput>,
     tradeType: TradeType,
-    options?: QuoteOptions
+    options: QuoteOptions = {}
   ): MethodParameters {
     const singleHop = route.pools.length === 1
     const quoteAmount: string = toHex(amount.quotient)
