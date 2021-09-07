@@ -1,3 +1,4 @@
+import JSBI from 'jsbi'
 import { CurrencyAmount, Token, TradeType, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from './constants'
 import { Pool } from './entities/pool'
@@ -95,6 +96,21 @@ describe('SwapQuoter', () => {
 
         expect(calldata).toBe(
           '0x2f80bb1d000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000042c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000bb80000000000000000000000000000000000000002000bb80000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000'
+        )
+        expect(value).toBe('0x00')
+      })
+      it('sqrtPriceLimitX96', async () => {
+        const trade = await Trade.fromRoute(
+          new Route([pool_0_1], token0, token1),
+          CurrencyAmount.fromRawAmount(token0, 100),
+          TradeType.EXACT_INPUT
+        )
+        const { calldata, value } = SwapQuoter.quoteCallParameters(trade.route, trade.inputAmount, trade.tradeType, {
+          sqrtPriceLimitX96: JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
+        })
+
+        expect(calldata).toBe(
+          '0xf7729d43000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000bb800000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000100000000000000000000000000000000'
         )
         expect(value).toBe('0x00')
       })
