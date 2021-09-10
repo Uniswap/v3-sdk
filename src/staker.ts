@@ -2,7 +2,7 @@ import { BigintIsh, Token, validateAndParseAddress } from '@uniswap/sdk-core'
 import { ethers } from 'ethers'
 import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
-import { abi } from '@uniswap/v3-staker/artifacts/contracts/IUniswapV3Staker.sol/IUniswapV3Staker.json'
+import { abi } from '@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json'
 import { Pool } from './entities'
 
 export type FullWithdrawOptions = ClaimOptions & WithdrawOptions
@@ -85,20 +85,16 @@ export abstract class Staker {
     const calldatas: string[] = []
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('unstakeToken', [
-        {
-          key: this._encodeIncentiveKey(incentiveKey),
-          tokenId: toHex(options.tokenId)
-        }
+          this._encodeIncentiveKey(incentiveKey),
+          toHex(options.tokenId)
       ])
     )
     const recipient: string = validateAndParseAddress(options.recipient)
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('claimReward', [
-        {
-          rewardToken: incentiveKey.rewardToken,
-          to: recipient,
-          amountRequested: toHex(options.amount)
-        }
+        incentiveKey.rewardToken.address,
+        recipient,
+        toHex(options.amount)
       ])
     )
     return calldatas
@@ -111,10 +107,8 @@ export abstract class Staker {
     const calldatas = this.encodeClaim(incentiveKey, options)
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('stakeToken', [
-        {
-          key: incentiveKey,
-          tokenId: toHex(options.tokenId)
-        }
+          this._encodeIncentiveKey(incentiveKey),
+          toHex(options.tokenId)
       ])
     )
     return {
@@ -129,26 +123,28 @@ export abstract class Staker {
    * @param withdrawOptions Options for producing claim calldata and withdraw calldata. Can't withdraw without unstaking all programs for `tokenId`.
    * @returns Calldata for unstaking, claiming, and withdrawing.
    */
-  public static withdrawToken(incentiveKeys: IncentiveKey[], withdrawOptions: FullWithdrawOptions): MethodParameters {
-    const calldatas: string[] = []
+  public static withdrawToken(incentiveKeys: IncentiveKey | IncentiveKey[], withdrawOptions: FullWithdrawOptions): MethodParameters {
+    let calldatas: string[] = []
+
+    incentiveKeys = (incentiveKeys instanceof Array) ? incentiveKeys : [incentiveKeys]
+    
     const claimOptions = {
       tokenId: withdrawOptions.tokenId,
       recipient: withdrawOptions.recipient,
-      amount: withdrawOptions.amount }
+      amount: withdrawOptions.amount 
+    }
 
     for (let i = 0; i < incentiveKeys.length; i ++) {
       const incentiveKey = incentiveKeys[i];
-      calldatas.concat(this.encodeClaim(incentiveKey, claimOptions));
+      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, claimOptions));
     }
     if (withdrawOptions.owner) {
       const owner = validateAndParseAddress(withdrawOptions.owner)
       calldatas.push(
         Staker.INTERFACE.encodeFunctionData('withdrawToken', [
-          {
-            tokenId: toHex(withdrawOptions.tokenId),
-            to: owner,
-            data: withdrawOptions.data
-          }
+            toHex(withdrawOptions.tokenId),
+            owner,
+            withdrawOptions.data
         ])
       )
     }
@@ -176,7 +172,7 @@ export abstract class Staker {
       }
       data = ethers.utils.defaultAbiCoder.encode([`${Staker.INCENTIVE_KEY_ABI}[]`], [keys])
     } else {
-      data = ethers.utils.defaultAbiCoder.encode([Staker.INCENTIVE_KEY_ABI], incentiveKeys)
+      data = ethers.utils.defaultAbiCoder.encode([Staker.INCENTIVE_KEY_ABI], [this._encodeIncentiveKey(incentiveKeys[0])])
     }
     return data
       
