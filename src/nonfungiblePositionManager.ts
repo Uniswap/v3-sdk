@@ -348,8 +348,9 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
   /**
    * Produces the calldata for completely or partially exiting a position
-   * @param position the position to exit
-   * @param options additional information necessary for generating the calldata
+   * @param position The position to exit
+   * @param options Additional information necessary for generating the calldata
+   * @returns The call parameters
    */
   public static removeCallParameters(position: Position, options: RemoveLiquidityOptions): MethodParameters {
     const calldatas: string[] = []
@@ -400,7 +401,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     const { expectedCurrencyOwed0, expectedCurrencyOwed1, ...rest } = options.collectOptions
     calldatas.push(
       ...NonfungiblePositionManager.encodeCollect({
-        tokenId: options.tokenId,
+        tokenId: toHex(options.tokenId),
         // add the underlying value to the expected currency already owed
         expectedCurrencyOwed0: expectedCurrencyOwed0.add(
           CurrencyAmount.fromRawAmount(expectedCurrencyOwed0.currency, amount0Min)
