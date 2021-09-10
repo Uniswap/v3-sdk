@@ -432,17 +432,15 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     let calldata: string
     if (options.data) {
-      calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom(address,address,uint256,bytes)', [
-          sender,
-          recipient,
-          toHex(options.tokenId),
-          options.data
-      ])
+      calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData(
+        'safeTransferFrom(address,address,uint256,bytes)',
+        [sender, recipient, toHex(options.tokenId), options.data]
+      )
     } else {
       calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom(address,address,uint256)', [
-          sender,
-          recipient,
-          toHex(options.tokenId)
+        sender,
+        recipient,
+        toHex(options.tokenId)
       ])
     }
     return {
