@@ -48,9 +48,8 @@ export interface ClaimOptions {
   /**
    * The amount of `rewardToken` to claim. 0 claims all.
    */
-  amount: BigintIsh
+  amount?: BigintIsh
 }
-
 /**
  * Options to specify when withdrawing a position.
  */
@@ -63,7 +62,7 @@ export interface WithdrawOptions {
   /**
    * Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
    */
-  data: string
+  data?: string
 }
 
 export abstract class Staker {
@@ -88,27 +87,44 @@ export abstract class Staker {
       ])
     )
     const recipient: string = validateAndParseAddress(options.recipient)
+    const amount = (options.amount) ? options.amount : 0
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('claimReward', [
         incentiveKey.rewardToken.address,
         recipient,
-        toHex(options.amount)
+        toHex(amount)
       ])
     )
     return calldatas
   }
 
   /**
-   * Only claims rewards. Must unstake, claim, and then restake.
+   * 
+   * Note:  A `tokenId` can be staked in many programs but to claim rewards and continue the program you must unstake, claim, and then restake.
+   * @param incentiveKeys An IncentiveKey or array of IncentiveKeys that `tokenId` is staked in. 
+   * Input an array of IncentiveKeys to claim rewards for each program.
+   * @param options ClaimOptions to specify tokenId, recipient, and amount wanting to collect. 
+   * Note that you can only specify one amount and one recipient across the various programs if you are collecting from multiple programs at once.
+   * @returns 
    */
-  public static collectRewards(incentiveKey: IncentiveKey, options: ClaimOptions): MethodParameters {
-    const calldatas = this.encodeClaim(incentiveKey, options)
-    calldatas.push(
-      Staker.INTERFACE.encodeFunctionData('stakeToken', [
-        this._encodeIncentiveKey(incentiveKey),
-        toHex(options.tokenId)
-      ])
-    )
+  public static collectRewards(incentiveKeys: IncentiveKey | IncentiveKey[], options: ClaimOptions): MethodParameters {
+    
+    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys]
+    let calldatas: string[] = []
+
+    for (let i = 0; i < incentiveKeys.length; i ++) {
+      // the unique program tokenId is staked in
+      const incentiveKey = incentiveKeys[i]
+      // unstakes and claims for the unique program
+      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, options))
+      // re-stakes the position for the unique program
+      calldatas.push(
+        Staker.INTERFACE.encodeFunctionData('stakeToken', [
+          this._encodeIncentiveKey(incentiveKey),
+          toHex(options.tokenId)
+        ])
+      )
+    }
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
       value: toHex(0)
@@ -127,7 +143,7 @@ export abstract class Staker {
   ): MethodParameters {
     let calldatas: string[] = []
 
-    incentiveKeys = incentiveKeys instanceof Array ? incentiveKeys : [incentiveKeys]
+    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys]
 
     const claimOptions = {
       tokenId: withdrawOptions.tokenId,
@@ -139,16 +155,14 @@ export abstract class Staker {
       const incentiveKey = incentiveKeys[i]
       calldatas = calldatas.concat(this.encodeClaim(incentiveKey, claimOptions))
     }
-    if (withdrawOptions.owner) {
-      const owner = validateAndParseAddress(withdrawOptions.owner)
-      calldatas.push(
-        Staker.INTERFACE.encodeFunctionData('withdrawToken', [
-          toHex(withdrawOptions.tokenId),
-          owner,
-          withdrawOptions.data
-        ])
-      )
-    }
+    const owner = validateAndParseAddress(withdrawOptions.owner)
+    calldatas.push(
+      Staker.INTERFACE.encodeFunctionData('withdrawToken', [
+        toHex(withdrawOptions.tokenId),
+        owner,
+        withdrawOptions.data ? withdrawOptions.data : toHex(0)
+      ])
+    )
     return {
       calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
       value: toHex(0)
@@ -161,7 +175,7 @@ export abstract class Staker {
    * @returns An IncentiveKey as a string
    */
   public static encodeDeposit(incentiveKeys: IncentiveKey | IncentiveKey[]): string {
-    incentiveKeys = incentiveKeys instanceof Array ? incentiveKeys : [incentiveKeys]
+    incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys]
     let data: string
 
     if (incentiveKeys.length > 1) {
@@ -182,14 +196,14 @@ export abstract class Staker {
    * @returns An encoded IncentiveKey to be read by ethers
    */
   private static _encodeIncentiveKey(incentiveKey: IncentiveKey): {} {
-    const pool = incentiveKey.pool
+    const { token0, token1, fee } = incentiveKey.pool
     const refundee = validateAndParseAddress(incentiveKey.refundee)
     return {
       rewardToken: incentiveKey.rewardToken.address,
-      pool: Pool.getAddress(pool.token0, pool.token1, pool.fee),
+      pool: Pool.getAddress(token0, token1, fee),
       startTime: toHex(incentiveKey.startTime),
       endTime: toHex(incentiveKey.endTime),
-      refundee: refundee
+      refundee
     }
   }
 }
