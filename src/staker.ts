@@ -87,32 +87,27 @@ export abstract class Staker {
       ])
     )
     const recipient: string = validateAndParseAddress(options.recipient)
-    const amount = (options.amount) ? options.amount : 0
+    const amount = options.amount ? options.amount : 0
     calldatas.push(
-      Staker.INTERFACE.encodeFunctionData('claimReward', [
-        incentiveKey.rewardToken.address,
-        recipient,
-        toHex(amount)
-      ])
+      Staker.INTERFACE.encodeFunctionData('claimReward', [incentiveKey.rewardToken.address, recipient, toHex(amount)])
     )
     return calldatas
   }
 
   /**
-   * 
+   *
    * Note:  A `tokenId` can be staked in many programs but to claim rewards and continue the program you must unstake, claim, and then restake.
-   * @param incentiveKeys An IncentiveKey or array of IncentiveKeys that `tokenId` is staked in. 
+   * @param incentiveKeys An IncentiveKey or array of IncentiveKeys that `tokenId` is staked in.
    * Input an array of IncentiveKeys to claim rewards for each program.
-   * @param options ClaimOptions to specify tokenId, recipient, and amount wanting to collect. 
+   * @param options ClaimOptions to specify tokenId, recipient, and amount wanting to collect.
    * Note that you can only specify one amount and one recipient across the various programs if you are collecting from multiple programs at once.
-   * @returns 
+   * @returns
    */
   public static collectRewards(incentiveKeys: IncentiveKey | IncentiveKey[], options: ClaimOptions): MethodParameters {
-    
     incentiveKeys = Array.isArray(incentiveKeys) ? incentiveKeys : [incentiveKeys]
     let calldatas: string[] = []
 
-    for (let i = 0; i < incentiveKeys.length; i ++) {
+    for (let i = 0; i < incentiveKeys.length; i++) {
       // the unique program tokenId is staked in
       const incentiveKey = incentiveKeys[i]
       // unstakes and claims for the unique program
