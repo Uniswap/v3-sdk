@@ -83,8 +83,8 @@ export abstract class Staker {
     const calldatas: string[] = []
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('unstakeToken', [
-          this._encodeIncentiveKey(incentiveKey),
-          toHex(options.tokenId)
+        this._encodeIncentiveKey(incentiveKey),
+        toHex(options.tokenId)
       ])
     )
     const recipient: string = validateAndParseAddress(options.recipient)
@@ -105,8 +105,8 @@ export abstract class Staker {
     const calldatas = this.encodeClaim(incentiveKey, options)
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('stakeToken', [
-          this._encodeIncentiveKey(incentiveKey),
-          toHex(options.tokenId)
+        this._encodeIncentiveKey(incentiveKey),
+        toHex(options.tokenId)
       ])
     )
     return {
@@ -121,28 +121,31 @@ export abstract class Staker {
    * @param withdrawOptions Options for producing claim calldata and withdraw calldata. Can't withdraw without unstaking all programs for `tokenId`.
    * @returns Calldata for unstaking, claiming, and withdrawing.
    */
-  public static withdrawToken(incentiveKeys: IncentiveKey | IncentiveKey[], withdrawOptions: FullWithdrawOptions): MethodParameters {
+  public static withdrawToken(
+    incentiveKeys: IncentiveKey | IncentiveKey[],
+    withdrawOptions: FullWithdrawOptions
+  ): MethodParameters {
     let calldatas: string[] = []
 
-    incentiveKeys = (incentiveKeys instanceof Array) ? incentiveKeys : [incentiveKeys]
-    
+    incentiveKeys = incentiveKeys instanceof Array ? incentiveKeys : [incentiveKeys]
+
     const claimOptions = {
       tokenId: withdrawOptions.tokenId,
       recipient: withdrawOptions.recipient,
-      amount: withdrawOptions.amount 
+      amount: withdrawOptions.amount
     }
 
-    for (let i = 0; i < incentiveKeys.length; i ++) {
-      const incentiveKey = incentiveKeys[i];
-      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, claimOptions));
+    for (let i = 0; i < incentiveKeys.length; i++) {
+      const incentiveKey = incentiveKeys[i]
+      calldatas = calldatas.concat(this.encodeClaim(incentiveKey, claimOptions))
     }
     if (withdrawOptions.owner) {
       const owner = validateAndParseAddress(withdrawOptions.owner)
       calldatas.push(
         Staker.INTERFACE.encodeFunctionData('withdrawToken', [
-            toHex(withdrawOptions.tokenId),
-            owner,
-            withdrawOptions.data
+          toHex(withdrawOptions.tokenId),
+          owner,
+          withdrawOptions.data
         ])
       )
     }
