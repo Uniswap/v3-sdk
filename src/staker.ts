@@ -87,7 +87,7 @@ export abstract class Staker {
       ])
     )
     const recipient: string = validateAndParseAddress(options.recipient)
-    const amount = options.amount ? options.amount : 0
+    const amount = options.amount ?? 0
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('claimReward', [incentiveKey.rewardToken.address, recipient, toHex(amount)])
     )
