@@ -74,6 +74,27 @@ export type IncreaseOptions = CommonAddLiquidityOptions & IncreaseSpecificOption
 
 export type AddLiquidityOptions = MintOptions | IncreaseOptions
 
+export interface SafeTransferOptions {
+  /**
+   * The account sending the NFT.
+   */
+  sender: string
+
+  /**
+   * The account that should receive the NFT.
+   */
+  recipient: string
+
+  /**
+   * The id of the token being sent.
+   */
+  tokenId: BigintIsh
+  /**
+   * The optional parameter that passes data to the `onERC721Received` call for the staker
+   */
+  data?: string
+}
+
 // type guard
 function isMint(options: AddLiquidityOptions): options is MintOptions {
   return Object.keys(options).some(k => k === 'recipient')
@@ -402,6 +423,29 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     return {
       calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      value: toHex(0)
+    }
+  }
+
+  public static safeTransferFromParameters(options: SafeTransferOptions): MethodParameters {
+    const recipient = validateAndParseAddress(options.recipient)
+    const sender = validateAndParseAddress(options.sender)
+
+    let calldata: string
+    if (options.data) {
+      calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData(
+        'safeTransferFrom(address,address,uint256,bytes)',
+        [sender, recipient, toHex(options.tokenId), options.data]
+      )
+    } else {
+      calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom(address,address,uint256)', [
+        sender,
+        recipient,
+        toHex(options.tokenId)
+      ])
+    }
+    return {
+      calldata: calldata,
       value: toHex(0)
     }
   }
