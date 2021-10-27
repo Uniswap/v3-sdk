@@ -35,20 +35,36 @@ export abstract class Payments {
       const feeBips = this.encodeFeeBips(feeOptions.fee)
       const feeRecipient: string = validateAndParseAddress(feeOptions.recipient)
 
-      return Payments.INTERFACE.encodeFunctionData('unwrapWETH9WithFee', [toHex(amountMinimum), recipient, feeBips, feeRecipient])
+      return Payments.INTERFACE.encodeFunctionData('unwrapWETH9WithFee', [
+        toHex(amountMinimum),
+        recipient,
+        feeBips,
+        feeRecipient
+      ])
     } else {
       return Payments.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(amountMinimum), recipient])
     }
   }
 
-  public static encodeSweepToken(token: Token, amountMinimum: JSBI, recipient: string, feeOptions?: FeeOptions): string {
+  public static encodeSweepToken(
+    token: Token,
+    amountMinimum: JSBI,
+    recipient: string,
+    feeOptions?: FeeOptions
+  ): string {
     recipient = validateAndParseAddress(recipient)
 
     if (!!feeOptions) {
       const feeBips = this.encodeFeeBips(feeOptions.fee)
       const feeRecipient: string = validateAndParseAddress(feeOptions.recipient)
 
-      return Payments.INTERFACE.encodeFunctionData('sweepTokenWithFee', [token.address, toHex(amountMinimum), recipient, feeBips, feeRecipient])
+      return Payments.INTERFACE.encodeFunctionData('sweepTokenWithFee', [
+        token.address,
+        toHex(amountMinimum),
+        recipient,
+        feeBips,
+        feeRecipient
+      ])
     } else {
       return Payments.INTERFACE.encodeFunctionData('sweepToken', [token.address, toHex(amountMinimum), recipient])
     }

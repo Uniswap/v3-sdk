@@ -183,13 +183,7 @@ export abstract class SwapRouter {
     if (routerMustCustody) {
       if (!!options.fee) {
         if (outputIsNative) {
-          calldatas.push(
-            Payments.encodeUnwrapWETH9(
-              totalAmountOut.quotient,
-              recipient,
-              options.fee
-            )
-          )
+          calldatas.push(Payments.encodeUnwrapWETH9(totalAmountOut.quotient, recipient, options.fee))
         } else {
           calldatas.push(
             Payments.encodeSweepToken(
@@ -201,12 +195,7 @@ export abstract class SwapRouter {
           )
         }
       } else {
-        calldatas.push(
-          Payments.encodeUnwrapWETH9(
-            totalAmountOut.quotient,
-            recipient
-          )
-        )
+        calldatas.push(Payments.encodeUnwrapWETH9(totalAmountOut.quotient, recipient))
       }
     }
 
