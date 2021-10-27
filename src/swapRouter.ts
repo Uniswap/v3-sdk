@@ -8,18 +8,7 @@ import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
 import { Multicall } from './multicall'
-
-export interface FeeOptions {
-  /**
-   * The percent of the output that will be taken as a fee.
-   */
-  fee: Percent
-
-  /**
-   * The recipient of the fee.
-   */
-  recipient: string
-}
+import { FeeOptions, Payments } from './payments'
 
 /**
  * Options for producing the arguments to send calls to the router.
@@ -193,39 +182,37 @@ export abstract class SwapRouter {
     // unwrap
     if (routerMustCustody) {
       if (!!options.fee) {
-        const feeRecipient: string = validateAndParseAddress(options.fee.recipient)
-        const fee = toHex(options.fee.fee.multiply(10_000).quotient)
-
         if (outputIsNative) {
           calldatas.push(
-            SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9WithFee', [
-              toHex(totalAmountOut.quotient),
+            Payments.encodeUnwrapWETH9(
+              totalAmountOut.quotient,
               recipient,
-              fee,
-              feeRecipient
-            ])
+              options.fee
+            )
           )
         } else {
           calldatas.push(
-            SwapRouter.INTERFACE.encodeFunctionData('sweepTokenWithFee', [
-              sampleTrade.outputAmount.currency.wrapped.address,
-              toHex(totalAmountOut.quotient),
+            Payments.encodeSweepToken(
+              sampleTrade.outputAmount.currency.wrapped,
+              totalAmountOut.quotient,
               recipient,
-              fee,
-              feeRecipient
-            ])
+              options.fee
+            )
           )
         }
       } else {
         calldatas.push(
-          SwapRouter.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(totalAmountOut.quotient), recipient])
+          Payments.encodeUnwrapWETH9(
+            totalAmountOut.quotient,
+            recipient
+          )
         )
       }
     }
 
     // refund
     if (mustRefund) {
-      calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('refundETH'))
+      calldatas.push(Payments.encodeRefundETH())
     }
 
     return {

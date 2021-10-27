@@ -18,6 +18,7 @@ import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
 import { Pool } from './entities'
 import { Multicall } from './multicall'
+import { Payments } from './payments'
 
 const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
@@ -270,7 +271,7 @@ export abstract class NonfungiblePositionManager {
 
       // we only need to refund if we're actually sending ETH
       if (JSBI.greaterThan(wrappedValue, ZERO)) {
-        calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('refundETH'))
+        calldatas.push(Payments.encodeRefundETH())
       }
 
       value = toHex(wrappedValue)
@@ -315,16 +316,8 @@ export abstract class NonfungiblePositionManager {
         ? options.expectedCurrencyOwed1.quotient
         : options.expectedCurrencyOwed0.quotient
 
-      calldatas.push(
-        NonfungiblePositionManager.INTERFACE.encodeFunctionData('unwrapWETH9', [toHex(ethAmount), recipient])
-      )
-      calldatas.push(
-        NonfungiblePositionManager.INTERFACE.encodeFunctionData('sweepToken', [
-          token.address,
-          toHex(tokenAmount),
-          recipient
-        ])
-      )
+      calldatas.push(Payments.encodeUnwrapWETH9(ethAmount, recipient))
+      calldatas.push(Payments.encodeSweepToken(token, tokenAmount, recipient))
     }
 
     return calldatas
