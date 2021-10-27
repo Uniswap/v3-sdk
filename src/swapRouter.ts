@@ -7,6 +7,7 @@ import { PermitOptions, SelfPermit } from './selfPermit'
 import { encodeRouteToPath } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
 import { abi } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
+import { Multicall } from './multicall'
 
 export interface FeeOptions {
   /**
@@ -58,15 +59,13 @@ export interface SwapOptions {
 /**
  * Represents the Uniswap V3 SwapRouter, and has static methods for helping execute trades.
  */
-export abstract class SwapRouter extends SelfPermit {
+export abstract class SwapRouter {
   public static INTERFACE: Interface = new Interface(abi)
 
   /**
    * Cannot be constructed.
    */
-  private constructor() {
-    super()
-  }
+  private constructor() {}
 
   /**
    * Produces the on-chain method name to call and the hex encoded parameters to pass as arguments for a given trade.
@@ -119,7 +118,7 @@ export abstract class SwapRouter extends SelfPermit {
     // encode permit if necessary
     if (options.inputTokenPermit) {
       invariant(sampleTrade.inputAmount.currency.isToken, 'NON_TOKEN_PERMIT')
-      calldatas.push(SwapRouter.encodePermit(sampleTrade.inputAmount.currency, options.inputTokenPermit))
+      calldatas.push(SelfPermit.encodePermit(sampleTrade.inputAmount.currency, options.inputTokenPermit))
     }
 
     const recipient: string = validateAndParseAddress(options.recipient)
@@ -230,8 +229,7 @@ export abstract class SwapRouter extends SelfPermit {
     }
 
     return {
-      calldata:
-        calldatas.length === 1 ? calldatas[0] : SwapRouter.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(totalValue.quotient)
     }
   }

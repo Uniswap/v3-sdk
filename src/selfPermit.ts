@@ -28,9 +28,12 @@ function isAllowedPermit(permitOptions: PermitOptions): permitOptions is Allowed
 export abstract class SelfPermit {
   public static INTERFACE: Interface = new Interface(abi)
 
-  protected constructor() {}
+  /**
+   * Cannot be constructed.
+   */
+  private constructor() {}
 
-  protected static encodePermit(token: Token, options: PermitOptions) {
+  public static encodePermit(token: Token, options: PermitOptions) {
     return isAllowedPermit(options)
       ? SelfPermit.INTERFACE.encodeFunctionData('selfPermitAllowed', [
           token.address,

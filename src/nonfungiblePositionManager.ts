@@ -17,6 +17,7 @@ import { abi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositi
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
 import { Pool } from './entities'
+import { Multicall } from './multicall'
 
 const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
 
@@ -170,15 +171,13 @@ export interface RemoveLiquidityOptions {
   collectOptions: Omit<CollectOptions, 'tokenId'>
 }
 
-export abstract class NonfungiblePositionManager extends SelfPermit {
+export abstract class NonfungiblePositionManager {
   public static INTERFACE: Interface = new Interface(abi)
 
   /**
    * Cannot be constructed.
    */
-  private constructor() {
-    super()
-  }
+  private constructor() {}
 
   private static encodeCreate(pool: Pool): string {
     return NonfungiblePositionManager.INTERFACE.encodeFunctionData('createAndInitializePoolIfNecessary', [
@@ -218,10 +217,10 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
 
     // permits if necessary
     if (options.token0Permit) {
-      calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token0, options.token0Permit))
+      calldatas.push(SelfPermit.encodePermit(position.pool.token0, options.token0Permit))
     }
     if (options.token1Permit) {
-      calldatas.push(NonfungiblePositionManager.encodePermit(position.pool.token1, options.token1Permit))
+      calldatas.push(SelfPermit.encodePermit(position.pool.token1, options.token1Permit))
     }
 
     // mint
@@ -278,10 +277,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     }
 
     return {
-      calldata:
-        calldatas.length === 1
-          ? calldatas[0]
-          : NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      calldata: Multicall.encodeMulticall(calldatas),
       value
     }
   }
@@ -338,10 +334,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     const calldatas: string[] = NonfungiblePositionManager.encodeCollect(options)
 
     return {
-      calldata:
-        calldatas.length === 1
-          ? calldatas[0]
-          : NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(0)
     }
   }
@@ -422,7 +415,7 @@ export abstract class NonfungiblePositionManager extends SelfPermit {
     }
 
     return {
-      calldata: NonfungiblePositionManager.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(0)
     }
   }
