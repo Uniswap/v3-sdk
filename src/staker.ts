@@ -3,6 +3,7 @@ import { MethodParameters, toHex } from './utils/calldata'
 import { defaultAbiCoder, Interface } from '@ethersproject/abi'
 import { abi } from '@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json'
 import { Pool } from './entities'
+import { Multicall } from './multicall'
 
 export type FullWithdrawOptions = ClaimOptions & WithdrawOptions
 /**
@@ -121,7 +122,7 @@ export abstract class Staker {
       )
     }
     return {
-      calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(0)
     }
   }
@@ -159,7 +160,7 @@ export abstract class Staker {
       ])
     )
     return {
-      calldata: Staker.INTERFACE.encodeFunctionData('multicall', [calldatas]),
+      calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(0)
     }
   }
