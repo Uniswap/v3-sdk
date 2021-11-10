@@ -55,6 +55,10 @@ describe('Pool', () => {
       new Pool(USDC, WETH9[1], FeeAmount.LOW, encodeSqrtRatioX96(1, 1), 0, 0, [])
     })
 
+    it('works with valid arguments for empty pool lowest fee', () => {
+      new Pool(USDC, WETH9[1], FeeAmount.LOWEST, encodeSqrtRatioX96(1, 1), 0, 0, [])
+    })
+
     it('works with valid arguments for empty pool high fee', () => {
       new Pool(USDC, WETH9[1], FeeAmount.HIGH, encodeSqrtRatioX96(1, 1), 0, 0, [])
     })
