@@ -405,7 +405,7 @@ describe('Trade', () => {
         outputAmount: CurrencyAmount.fromRawAmount(token2, 100),
         tradeType: TradeType.EXACT_OUTPUT
       })
-      const exactInMultiRoute = Trade.createUncheckedTradeWithMultipleRoutes({
+      const exactOutMultiRoute = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -440,13 +440,13 @@ describe('Trade', () => {
       })
       it('returns exact if nonzero with multiple routes', () => {
         expect(
-          exactInMultiRoute.worstExecutionPrice(new Percent(0, 100)).equalTo(new Price(token0, token2, 156, 100))
+          exactOutMultiRoute.worstExecutionPrice(new Percent(0, 100)).equalTo(new Price(token0, token2, 156, 100))
         ).toBeTruthy()
         expect(
-          exactInMultiRoute.worstExecutionPrice(new Percent(5, 100)).equalTo(new Price(token0, token2, 163, 100))
+          exactOutMultiRoute.worstExecutionPrice(new Percent(5, 100)).equalTo(new Price(token0, token2, 163, 100))
         ).toBeTruthy()
         expect(
-          exactInMultiRoute.worstExecutionPrice(new Percent(200, 100)).equalTo(new Price(token0, token2, 468, 100))
+          exactOutMultiRoute.worstExecutionPrice(new Percent(200, 100)).equalTo(new Price(token0, token2, 468, 100))
         ).toBeTruthy()
       })
     })
@@ -722,11 +722,11 @@ describe('Trade', () => {
       let exactIn: Trade<Token, Token, TradeType.EXACT_INPUT>
       beforeEach(
         async () =>
-          (exactIn = await Trade.fromRoute(
-            new Route([pool_0_1, pool_1_2], token0, token2),
-            CurrencyAmount.fromRawAmount(token0, 10000),
-            TradeType.EXACT_INPUT
-          ))
+        (exactIn = await Trade.fromRoute(
+          new Route([pool_0_1, pool_1_2], token0, token2),
+          CurrencyAmount.fromRawAmount(token0, 10000),
+          TradeType.EXACT_INPUT
+        ))
       )
 
       it('throws if less than 0', () => {
