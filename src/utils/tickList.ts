@@ -1,8 +1,8 @@
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
+import { Tick } from '../entities/tick'
 import { ZERO } from '../internalConstants'
 import { isSorted } from './isSorted'
-import { Tick } from '../entities/tick'
 
 function tickComparator(a: Tick, b: Tick) {
   return a.index - b.index
@@ -119,7 +119,7 @@ export abstract class TickList {
       return [nextInitializedTick, nextInitializedTick === index]
     } else {
       const wordPos = (compressed + 1) >> 8
-      const maximum = ((wordPos + 1) << 8) * tickSpacing - 1
+      const maximum = (((wordPos + 1) << 8) - 1) * tickSpacing
 
       if (this.isAtOrAboveLargest(ticks, tick)) {
         return [maximum, false]

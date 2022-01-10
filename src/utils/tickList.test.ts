@@ -1,6 +1,6 @@
-import { TickMath } from './tickMath'
 import { Tick } from '../entities/tick'
 import { TickList } from './tickList'
+import { TickMath } from './tickMath'
 
 describe('TickList', () => {
   let highTick: Tick
@@ -130,6 +130,24 @@ describe('TickList', () => {
       expect(TickList.nextInitializedTickWithinOneWord(ticks, 254, false, 1)).toEqual([255, false])
       expect(TickList.nextInitializedTickWithinOneWord(ticks, 255, false, 1)).toEqual([511, false])
       expect(TickList.nextInitializedTickWithinOneWord(ticks, 256, false, 1)).toEqual([511, false])
+    })
+
+    it('performs correctly with tickSpacing > 1', () => {
+      ticks = [
+        new Tick({
+          index: 0,
+          liquidityNet: 0,
+          liquidityGross: 0
+        }),
+        new Tick({
+          index: 511,
+          liquidityNet: 0,
+          liquidityGross: 0
+        })
+      ]
+
+      expect(TickList.nextInitializedTickWithinOneWord(ticks, 0, false, 1)).toEqual([255, false])
+      expect(TickList.nextInitializedTickWithinOneWord(ticks, 0, false, 2)).toEqual([510, false])
     })
   })
 })
