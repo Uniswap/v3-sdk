@@ -3,7 +3,7 @@ import { subIn256 } from '.'
 
 const Q128 = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
 
-export abstract class Position {
+export abstract class PositionLibrary {
   /**
    * Cannot be constructed.
    */
