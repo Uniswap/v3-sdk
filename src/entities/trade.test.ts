@@ -1,4 +1,4 @@
-import { Percent, Price, sqrt, Token, CurrencyAmount, TradeType, WETH9, Ether } from '@uniswap/sdk-core'
+import { CurrencyAmount, Ether, Percent, Price, sqrt, Token, TradeType, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { FeeAmount, TICK_SPACINGS } from '../constants'
 import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
@@ -405,7 +405,7 @@ describe('Trade', () => {
         outputAmount: CurrencyAmount.fromRawAmount(token2, 100),
         tradeType: TradeType.EXACT_OUTPUT
       })
-      const exactInMultiRoute = Trade.createUncheckedTradeWithMultipleRoutes({
+      const exactOutMultiRoute = Trade.createUncheckedTradeWithMultipleRoutes({
         routes: [
           {
             route: new Route([pool_0_1, pool_1_2], token0, token2),
@@ -440,13 +440,13 @@ describe('Trade', () => {
       })
       it('returns exact if nonzero with multiple routes', () => {
         expect(
-          exactInMultiRoute.worstExecutionPrice(new Percent(0, 100)).equalTo(new Price(token0, token2, 156, 100))
+          exactOutMultiRoute.worstExecutionPrice(new Percent(0, 100)).equalTo(new Price(token0, token2, 156, 100))
         ).toBeTruthy()
         expect(
-          exactInMultiRoute.worstExecutionPrice(new Percent(5, 100)).equalTo(new Price(token0, token2, 163, 100))
+          exactOutMultiRoute.worstExecutionPrice(new Percent(5, 100)).equalTo(new Price(token0, token2, 163, 100))
         ).toBeTruthy()
         expect(
-          exactInMultiRoute.worstExecutionPrice(new Percent(200, 100)).equalTo(new Price(token0, token2, 468, 100))
+          exactOutMultiRoute.worstExecutionPrice(new Percent(200, 100)).equalTo(new Price(token0, token2, 468, 100))
         ).toBeTruthy()
       })
     })
