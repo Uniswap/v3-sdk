@@ -1,7 +1,7 @@
 import { BigintIsh, Token, validateAndParseAddress } from '@uniswap/sdk-core'
 import { MethodParameters, toHex } from './utils/calldata'
 import { defaultAbiCoder, Interface } from '@ethersproject/abi'
-import { abi } from '@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json'
+import IUniswapV3Staker from '@uniswap/v3-staker/artifacts/contracts/UniswapV3Staker.sol/UniswapV3Staker.json'
 import { Pool } from './entities'
 import { Multicall } from './multicall'
 
@@ -67,7 +67,7 @@ export interface WithdrawOptions {
 }
 
 export abstract class Staker {
-  public static INTERFACE: Interface = new Interface(abi)
+  public static INTERFACE: Interface = new Interface(IUniswapV3Staker.abi)
 
   protected constructor() {}
   private static INCENTIVE_KEY_ABI =

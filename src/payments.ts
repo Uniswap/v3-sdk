@@ -1,6 +1,6 @@
 import JSBI from 'jsbi'
 import { Interface } from '@ethersproject/abi'
-import { abi } from '@uniswap/v3-periphery/artifacts/contracts/interfaces/IPeripheryPaymentsWithFee.sol/IPeripheryPaymentsWithFee.json'
+import IPeripheryPaymentsWithFee from '@uniswap/v3-periphery/artifacts/contracts/interfaces/IPeripheryPaymentsWithFee.sol/IPeripheryPaymentsWithFee.json'
 import { Percent, Token, validateAndParseAddress } from '@uniswap/sdk-core'
 import { toHex } from './utils/calldata'
 
@@ -17,7 +17,7 @@ export interface FeeOptions {
 }
 
 export abstract class Payments {
-  public static INTERFACE: Interface = new Interface(abi)
+  public static INTERFACE: Interface = new Interface(IPeripheryPaymentsWithFee.abi)
 
   /**
    * Cannot be constructed.
