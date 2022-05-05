@@ -203,7 +203,7 @@ describe('Pool', () => {
         expect(outputAmount.quotient).toEqual(JSBI.BigInt(98))
       })
     })
-
+    
     describe('#getInputAmount', () => {
       it('USDC -> DAI', async () => {
         const outputAmount = CurrencyAmount.fromRawAmount(DAI, 98)
@@ -217,6 +217,39 @@ describe('Pool', () => {
         const [inputAmount] = await pool.getInputAmount(outputAmount)
         expect(inputAmount.currency.equals(DAI)).toBe(true)
         expect(inputAmount.quotient).toEqual(JSBI.BigInt(100))
+      })
+    })
+  })
+
+  describe('#bigNums', () => {
+    let pool: Pool
+    const bigNum1 = JSBI.add(JSBI.BigInt(Number.MAX_SAFE_INTEGER), JSBI.BigInt(1))
+    const bigNum2 = JSBI.add(JSBI.BigInt(Number.MAX_SAFE_INTEGER), JSBI.BigInt(1))
+    beforeEach(() => {
+      pool = new Pool(USDC, DAI, FeeAmount.LOW, encodeSqrtRatioX96(bigNum1, bigNum2), ONE_ETHER, 0, [
+        {
+          index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[FeeAmount.LOW]),
+          liquidityNet: ONE_ETHER,
+          liquidityGross: ONE_ETHER
+        },
+        {
+          index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[FeeAmount.LOW]),
+          liquidityNet: JSBI.multiply(ONE_ETHER, NEGATIVE_ONE),
+          liquidityGross: ONE_ETHER
+        }
+      ])
+    })
+
+    describe('#priceLimit', () => { 
+      it('correctly compares two BigIntegers', async () => {
+        expect(bigNum1).toEqual(bigNum2)
+      })
+      it('correctly handles two BigIntegers', async () => {
+        const inputAmount = CurrencyAmount.fromRawAmount(USDC, 100)
+        const [outputAmount] = await pool.getOutputAmount(inputAmount)
+        pool.getInputAmount(outputAmount)
+        expect(outputAmount.currency.equals(DAI)).toBe(true)
+        // if output is correct, function has succeeded
       })
     })
   })
