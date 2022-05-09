@@ -64,7 +64,7 @@ export abstract class Payments {
         recipient,
         feeBips,
         feeRecipient
-      ])
+      ])Wrathchyld:patch-1
     } else {
       return Payments.INTERFACE.encodeFunctionData('sweepToken', [token.address, toHex(amountMinimum), recipient])
     }
@@ -73,4 +73,5 @@ export abstract class Payments {
   public static encodeRefundETH(): string {
     return Payments.INTERFACE.encodeFunctionData('refundETH')
   }
-}
+}.github/workflows/ci.yml Jerry Robertson
+
