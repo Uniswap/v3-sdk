@@ -9,8 +9,8 @@ describe('TickListDataProvider', () => {
     it('throws for 0 tick spacing', () => {
       expect(() => new TickListDataProvider([], 0)).toThrow('TICK_SPACING_NONZERO')
     })
-    it('throws for uneven tick list', async () => {
-      await expect(
+    it('throws for uneven tick list', () => {
+      expect(
         () =>
           new TickListDataProvider(
             [
@@ -24,7 +24,7 @@ describe('TickListDataProvider', () => {
   })
 
   describe('#getTick', () => {
-    it('throws if tick not in list', async () => {
+    it('throws if tick not in list', () => {
       const provider = new TickListDataProvider(
         [
           { index: -1, liquidityNet: -1, liquidityGross: 1 },
@@ -32,9 +32,9 @@ describe('TickListDataProvider', () => {
         ],
         1
       )
-      await expect(provider.getTick(0)).rejects.toThrow('NOT_CONTAINED')
+      expect(() => provider.getTick(0)).toThrow('NOT_CONTAINED')
     })
-    it('gets the smallest tick from the list', async () => {
+    it('gets the smallest tick from the list', () => {
       const provider = new TickListDataProvider(
         [
           { index: -1, liquidityNet: -1, liquidityGross: 1 },
@@ -42,11 +42,11 @@ describe('TickListDataProvider', () => {
         ],
         1
       )
-      const { liquidityNet, liquidityGross } = await provider.getTick(-1)
+      const { liquidityNet, liquidityGross } = provider.getTick(-1)
       expect(liquidityNet).toEqual(JSBI.BigInt(-1))
       expect(liquidityGross).toEqual(JSBI.BigInt(1))
     })
-    it('gets the largest tick from the list', async () => {
+    it('gets the largest tick from the list', () => {
       const provider = new TickListDataProvider(
         [
           { index: -1, liquidityNet: -1, liquidityGross: 1 },
@@ -54,7 +54,7 @@ describe('TickListDataProvider', () => {
         ],
         1
       )
-      const { liquidityNet, liquidityGross } = await provider.getTick(1)
+      const { liquidityNet, liquidityGross } = provider.getTick(1)
       expect(liquidityNet).toEqual(JSBI.BigInt(1))
       expect(liquidityGross).toEqual(JSBI.BigInt(1))
     })
