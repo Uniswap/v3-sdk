@@ -41,8 +41,8 @@ export class Pool {
   private _token0Price?: Price<Token, Token>
   private _token1Price?: Price<Token, Token>
 
-  public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount, initCodeHashManualOverride?: string): string {
-    return computePoolAddress({ factoryAddress: FACTORY_ADDRESS, fee, tokenA, tokenB, initCodeHashManualOverride })
+  public static getAddress(tokenA: Token, tokenB: Token, fee: FeeAmount, initCodeHashManualOverride?: string, factoryAddressOverride?: string): string {
+    return computePoolAddress({ factoryAddress: factoryAddressOverride ?? FACTORY_ADDRESS, fee, tokenA, tokenB, initCodeHashManualOverride })
   }
 
   /**
