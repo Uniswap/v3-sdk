@@ -16,7 +16,7 @@ export interface QuoteOptions {
   sqrtPriceLimitX96?: BigintIsh
 
   /**
-   * The optional interface abi for the quote
+   * The optional quoter interface to use
    */
   useQuoterV2?: boolean
 }
