@@ -1,11 +1,9 @@
 import JSBI from 'jsbi'
 import { CurrencyAmount, Token, TradeType, WETH9 } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from './constants'
-import { Pool } from './entities/pool'
 import { SwapQuoter } from './quoter'
-import { nearestUsableTick, TickMath } from './utils'
-import { encodeSqrtRatioX96 } from './utils/encodeSqrtRatioX96'
-import { Route, Trade } from './entities'
+import { nearestUsableTick, encodeSqrtRatioX96, TickMath } from './utils'
+import { Route, Trade, Pool } from './entities'
 
 describe('SwapQuoter', () => {
   const token0 = new Token(1, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
@@ -111,6 +109,47 @@ describe('SwapQuoter', () => {
 
         expect(calldata).toBe(
           '0xf7729d43000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000bb800000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000100000000000000000000000000000000'
+        )
+        expect(value).toBe('0x00')
+      })
+    })
+    describe('single trade input using Quoter V2', () => {
+      it('single-hop exact output', async () => {
+        const trade = await Trade.fromRoute(
+          new Route([pool_0_1], token0, token1),
+          CurrencyAmount.fromRawAmount(token1, 100),
+          TradeType.EXACT_OUTPUT
+        )
+
+        const { calldata, value } = SwapQuoter.quoteCallParameters(
+          trade.swaps[0].route,
+          trade.outputAmount,
+          trade.tradeType,
+          {
+            useQuoterV2: true
+          }
+        )
+
+        expect(calldata).toBe(
+          '0xbd21704a0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000000'
+        )
+        expect(value).toBe('0x00')
+      })
+      it('single-hop exact input', async () => {
+        const trade = await Trade.fromRoute(
+          new Route([pool_0_1], token0, token1),
+          CurrencyAmount.fromRawAmount(token0, 100),
+          TradeType.EXACT_INPUT
+        )
+        const { calldata, value } = SwapQuoter.quoteCallParameters(
+          trade.swaps[0].route,
+          trade.inputAmount,
+          trade.tradeType,
+          { useQuoterV2: true }
+        )
+
+        expect(calldata).toBe(
+          '0xc6a5026a0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000000000000000000000000000000000000000000000'
         )
         expect(value).toBe('0x00')
       })

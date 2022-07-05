@@ -48,57 +48,37 @@ export abstract class SwapQuoter {
     const singleHop = route.pools.length === 1
     const quoteAmount: string = toHex(amount.quotient)
     let calldata: string
+    const swapInterface = options.useQuoterV2 ? new Interface(IQuoterV2.abi) : this.INTERFACE
 
     if (singleHop) {
-      if (tradeType === TradeType.EXACT_INPUT) {
-        if (options.useQuoterV2) {
-          const quoteExactInputSingleParams = {
-            tokenIn: route.tokenPath[0].address,
-            tokenOut: route.tokenPath[1].address,
-            amountIn: quoteAmount,
-            fee: route.pools[0].fee,
-            sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0)
-          }
-          const swap = new Interface(IQuoterV2.abi)
-          calldata = swap.encodeFunctionData(`quoteExactInputSingle`, [quoteExactInputSingleParams])
-        } else {
-          calldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactInputSingle`, [
-            route.tokenPath[0].address,
-            route.tokenPath[1].address,
-            route.pools[0].fee,
-            quoteAmount,
-            toHex(options?.sqrtPriceLimitX96 ?? 0)
-          ])
-        }
-      } else {
-        if (options.useQuoterV2) {
-          const quoteExactOutputSingleParams = {
-            tokenIn: route.tokenPath[0].address,
-            tokenOut: route.tokenPath[1].address,
-            amount: quoteAmount,
-            fee: route.pools[0].fee,
-            sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0)
-          }
-          const swap = new Interface(IQuoterV2.abi)
-          calldata = swap.encodeFunctionData(`quoteExactOutputSingle`, [quoteExactOutputSingleParams])
-        } else {
-          calldata = SwapQuoter.INTERFACE.encodeFunctionData(`quoteExactOutputSingle`, [
-            route.tokenPath[0].address,
-            route.tokenPath[1].address,
-            route.pools[0].fee,
-            quoteAmount,
-            toHex(options?.sqrtPriceLimitX96 ?? 0)
-          ])
-        }
+      const quoteV2Params = {
+        tokenIn: route.tokenPath[0].address,
+        tokenOut: route.tokenPath[1].address,
+        // property name 'amount' is suffixed with 'in' for quoteExactInputSingle
+        ...(options.useQuoterV2
+          ? tradeType === TradeType.EXACT_INPUT
+            ? { amountIn: quoteAmount }
+            : { amount: quoteAmount }
+          : { fee: route.pools[0].fee }),
+        ...(options.useQuoterV2 ? { fee: route.pools[0].fee } : { amount: quoteAmount }),
+        sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0)
       }
+      const tradeTypeFunctionName =
+        tradeType === TradeType.EXACT_INPUT ? 'quoteExactInputSingle' : 'quoteExactOutputSingle'
+
+      const quoterV1Params = Object.values(quoteV2Params)
+      calldata = swapInterface.encodeFunctionData(
+        tradeTypeFunctionName,
+        options.useQuoterV2 ? [quoteV2Params] : quoterV1Params
+      )
     } else {
       invariant(options?.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
       const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT)
 
       if (tradeType === TradeType.EXACT_INPUT) {
-        calldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactInput', [path, quoteAmount])
+        calldata = swapInterface.encodeFunctionData('quoteExactInput', [path, quoteAmount])
       } else {
-        calldata = SwapQuoter.INTERFACE.encodeFunctionData('quoteExactOutput', [path, quoteAmount])
+        calldata = swapInterface.encodeFunctionData('quoteExactOutput', [path, quoteAmount])
       }
     }
     return {
