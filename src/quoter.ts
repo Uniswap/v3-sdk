@@ -5,6 +5,7 @@ import IQuoter from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Q
 import IQuoterV2 from '@uniswap/swap-router-contracts/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json'
 import { Route } from './entities'
 import invariant from 'tiny-invariant'
+import { FeeAmount } from './constants'
 
 /**
  * Optional arguments to send to the quoter.
@@ -20,6 +21,22 @@ export interface QuoteOptions {
    */
   useQuoterV2?: boolean
 }
+
+
+interface BaseQuoteParams {
+  fee: FeeAmount
+  sqrtPriceLimitX96: string
+  tokenIn: string
+  tokenOut: string
+}
+interface QuoteParamsV1 extends BaseQuoteParams {
+  amount?: string
+}
+interface QuoteParamsV2 extends QuoteParamsV1 {
+  amountIn?: string
+}
+
+type QuoteParams = QuoteParamsV1 | QuoteParamsV2
 
 /**
  * Represents the Uniswap V3 QuoterV1 contract with a method for returning the formatted
@@ -51,18 +68,19 @@ export abstract class SwapQuoter {
     const swapInterface = options.useQuoterV2 ? new Interface(IQuoterV2.abi) : this.INTERFACE
 
     if (singleHop) {
-      const quoteV2Params = {
+      const quoteV2Params: QuoteParams = {
+        amount: quoteAmount,
+        fee: route.pools[0].fee,
+        sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0),
         tokenIn: route.tokenPath[0].address,
         tokenOut: route.tokenPath[1].address,
-        // property name 'amount' is suffixed with 'in' for quoteExactInputSingle
-        ...(options.useQuoterV2
-          ? tradeType === TradeType.EXACT_INPUT
-            ? { amountIn: quoteAmount }
-            : { amount: quoteAmount }
-          : { fee: route.pools[0].fee }),
-        ...(options.useQuoterV2 ? { fee: route.pools[0].fee } : { amount: quoteAmount }),
-        sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0)
       }
+
+      if (options.useQuoterV2 && tradeType === TradeType.EXACT_INPUT) {
+        (quoteV2Params as QuoteParamsV2).amountIn = quoteAmount
+        delete quoteV2Params.amount
+      }
+
       const tradeTypeFunctionName =
         tradeType === TradeType.EXACT_INPUT ? 'quoteExactInputSingle' : 'quoteExactOutputSingle'
 
