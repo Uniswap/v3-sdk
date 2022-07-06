@@ -22,7 +22,6 @@ export interface QuoteOptions {
   useQuoterV2?: boolean
 }
 
-
 interface BaseQuoteParams {
   fee: FeeAmount
   sqrtPriceLimitX96: string
@@ -69,15 +68,15 @@ export abstract class SwapQuoter {
 
     if (singleHop) {
       const quoteV2Params: QuoteParams = {
-        amount: quoteAmount,
-        fee: route.pools[0].fee,
-        sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0),
         tokenIn: route.tokenPath[0].address,
         tokenOut: route.tokenPath[1].address,
+        fee: route.pools[0].fee,
+        amount: quoteAmount,
+        sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0)
       }
 
       if (options.useQuoterV2 && tradeType === TradeType.EXACT_INPUT) {
-        (quoteV2Params as QuoteParamsV2).amountIn = quoteAmount
+        ;(quoteV2Params as QuoteParamsV2).amountIn = quoteAmount
         delete quoteV2Params.amount
       }
 
