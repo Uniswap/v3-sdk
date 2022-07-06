@@ -74,12 +74,8 @@ export abstract class SwapQuoter {
     } else {
       invariant(options?.sqrtPriceLimitX96 === undefined, 'MULTIHOP_PRICE_LIMIT')
       const path: string = encodeRouteToPath(route, tradeType === TradeType.EXACT_OUTPUT)
-
-      if (tradeType === TradeType.EXACT_INPUT) {
-        calldata = swapInterface.encodeFunctionData('quoteExactInput', [path, quoteAmount])
-      } else {
-        calldata = swapInterface.encodeFunctionData('quoteExactOutput', [path, quoteAmount])
-      }
+      const tradeTypeFunctionName = tradeType === TradeType.EXACT_INPUT ? 'quoteExactInput' : 'quoteExactOutput'
+      calldata = swapInterface.encodeFunctionData(tradeTypeFunctionName, [path, quoteAmount])
     }
     return {
       calldata,
