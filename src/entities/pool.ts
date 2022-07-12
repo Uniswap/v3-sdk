@@ -287,7 +287,8 @@ export class Pool {
         }
 
         state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext
-      } else if (JSBI.notEqual(state.sqrtPriceX96, step.sqrtPriceStartX96)) { // updated comparison function
+      } else if (JSBI.notEqual(state.sqrtPriceX96, step.sqrtPriceStartX96)) {
+        // updated comparison function
         // recompute unless we're on a lower tick boundary (i.e. already transitioned ticks), and haven't moved
         state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96)
       }

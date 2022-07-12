@@ -203,7 +203,7 @@ describe('Pool', () => {
         expect(outputAmount.quotient).toEqual(JSBI.BigInt(98))
       })
     })
-    
+
     describe('#getInputAmount', () => {
       it('USDC -> DAI', async () => {
         const outputAmount = CurrencyAmount.fromRawAmount(DAI, 98)
@@ -240,7 +240,7 @@ describe('Pool', () => {
       ])
     })
 
-    describe('#priceLimit', () => { 
+    describe('#priceLimit', () => {
       it('correctly compares two BigIntegers', async () => {
         expect(bigNum1).toEqual(bigNum2)
       })
