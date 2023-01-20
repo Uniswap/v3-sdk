@@ -264,8 +264,8 @@ export class Pool {
         step.tickNext = TickMath.MAX_TICK
       }
 
-      step.sqrtPriceNextX96 = TickMath.getSqrtRatioAtTick(step.tickNext);
-      [state.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount] = SwapMath.computeSwapStep(
+      step.sqrtPriceNextX96 = TickMath.getSqrtRatioAtTick(step.tickNext)
+      ;[state.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount] = SwapMath.computeSwapStep(
         state.sqrtPriceX96,
         (zeroForOne
         ? JSBI.lessThan(step.sqrtPriceNextX96, sqrtPriceLimitX96)
@@ -307,6 +307,7 @@ export class Pool {
         state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96)
       }
     }
+
     return {
       amountCalculated: state.amountCalculated,
       amountSpecifiedRemaining: state.amountSpecifiedRemaining,
