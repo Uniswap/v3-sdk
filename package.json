@@ -1,5 +1,5 @@
 {
-  "name": "@uniswap/v3-sdk",
+  "name": "@qs1/v3-sdk",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -11,7 +11,7 @@
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/Uniswap/uniswap-v3-sdk.git",
+  "repository": "https://github.com/QuantSatoshi/v3-sdk.git",
   "keywords": [
     "uniswap",
     "ethereum"
