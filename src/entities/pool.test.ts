@@ -12,6 +12,7 @@ const ONE_ETHER = JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(18))
 describe('Pool', () => {
   const USDC = new Token(1, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')
   const DAI = new Token(1, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
+  const TOK = new Token(1, '0x00000000006c3852cbEf3e08E8dF289169EdE581', 18, 'TOK', 'TOK')
 
   describe('constructor', () => {
     it('cannot be used for tokens on different chains', () => {
@@ -217,6 +218,37 @@ describe('Pool', () => {
         const [inputAmount] = await pool.getInputAmount(outputAmount)
         expect(inputAmount.currency.equals(DAI)).toBe(true)
         expect(inputAmount.quotient).toEqual(JSBI.BigInt(100))
+      })
+    })
+  })
+
+  describe('swap with insufficient liquidity', () => {
+    let pool: Pool
+
+    beforeEach(() => {
+      const liquidity = JSBI.BigInt('1505426792435356595487');
+      const tickCurrent = -60200;
+      const sqftPriceX96 = JSBI.BigInt('3905891053926514387903925684');
+      pool = new Pool(TOK, DAI, FeeAmount.HIGH, sqftPriceX96, liquidity, tickCurrent, [
+        {
+          index: -60200,
+          liquidityNet: '1505426792435356595487',
+          liquidityGross: '1505426792435356595487'
+        }, {
+          index: 138200,
+          liquidityNet: '-1505426792435356595487',
+          liquidityGross: '1505426792435356595487'
+        }
+      ])
+    })
+
+    describe('#getOutputAmount with insufficient liquidity', () => {
+      it('pool2 USDC -> DAI', async () => {
+        const inputAmount = CurrencyAmount.fromRawAmount(TOK, '1000000000000000000')
+        const [outputAmount, amountSpecifiedRemaining] = await pool.getOutputAmount(inputAmount)
+        expect(outputAmount.currency.equals(DAI)).toBe(true);
+        expect(outputAmount.quotient).toEqual(JSBI.BigInt('269197620579047'));
+        expect(amountSpecifiedRemaining).toEqual(JSBI.BigInt('888118955005465234'));
       })
     })
   })
