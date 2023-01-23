@@ -104,8 +104,9 @@ export abstract class TickList {
     lte: boolean,
     tickSpacing: number
   ): [number, boolean] {
-    const compressed = Math.floor(tick / tickSpacing) // matches rounding in the code
-
+    // matches rounding in the code, remove all decimals
+    let compressed = tick > 0 ? Math.floor(tick / tickSpacing) : Math.ceil(tick / tickSpacing);
+    if (tick < 0 && tick % tickSpacing != 0) compressed--; // round towards negative infinity
     if (lte) {
       const wordPos = compressed >> 8
       const minimum = (wordPos << 8) * tickSpacing
