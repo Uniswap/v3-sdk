@@ -67,6 +67,3 @@ jspm_packages/
 
 #npm
 package-lock.json
-
-#yarn lock
-yarn.lock
