@@ -1,5 +1,5 @@
 import JSBI from 'jsbi'
-import { subIn256 } from '.'
+import { subIn256 } from './tickLibrary'
 
 const Q128 = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
 
