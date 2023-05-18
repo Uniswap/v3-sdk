@@ -259,7 +259,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
     return new Trade({
       routes: [{ inputAmount, outputAmount, route }],
-      tradeType
+      tradeType,
     })
   }
 
@@ -330,7 +330,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
 
     return new Trade({
       routes: populatedRoutes,
-      tradeType
+      tradeType,
     })
   }
 
@@ -359,9 +359,9 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
         {
           inputAmount: constructorArguments.inputAmount,
           outputAmount: constructorArguments.outputAmount,
-          route: constructorArguments.route
-        }
-      ]
+          route: constructorArguments.route,
+        },
+      ],
     })
   }
 
@@ -396,7 +396,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    */
   private constructor({
     routes,
-    tradeType
+    tradeType,
   }: {
     routes: {
       route: Route<TInput, TOutput>
@@ -545,7 +545,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
           currencyOut,
           {
             maxNumResults,
-            maxHops: maxHops - 1
+            maxHops: maxHops - 1,
           },
           [...currentPools, pool],
           amountOut,
@@ -626,7 +626,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
           currencyAmountOut,
           {
             maxNumResults,
-            maxHops: maxHops - 1
+            maxHops: maxHops - 1,
           },
           [pool, ...currentPools],
           amountIn,

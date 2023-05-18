@@ -11,17 +11,17 @@ describe('TickList', () => {
     lowTick = new Tick({
       index: TickMath.MIN_TICK + 1,
       liquidityNet: 10,
-      liquidityGross: 10
+      liquidityGross: 10,
     })
     midTick = new Tick({
       index: 0,
       liquidityNet: -5,
-      liquidityGross: 5
+      liquidityGross: 5,
     })
     highTick = new Tick({
       index: TickMath.MAX_TICK - 1,
       liquidityNet: -5,
-      liquidityGross: 5
+      liquidityGross: 5,
     })
   })
 
@@ -137,13 +137,13 @@ describe('TickList', () => {
         new Tick({
           index: 0,
           liquidityNet: 0,
-          liquidityGross: 0
+          liquidityGross: 0,
         }),
         new Tick({
           index: 511,
           liquidityNet: 0,
-          liquidityGross: 0
-        })
+          liquidityGross: 0,
+        }),
       ]
 
       expect(TickList.nextInitializedTickWithinOneWord(ticks, 0, false, 1)).toEqual([255, false])

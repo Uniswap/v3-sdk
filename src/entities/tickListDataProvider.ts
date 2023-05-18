@@ -10,7 +10,7 @@ export class TickListDataProvider implements TickDataProvider {
   private ticks: readonly Tick[]
 
   constructor(ticks: (Tick | TickConstructorArgs)[], tickSpacing: number) {
-    const ticksMapped: Tick[] = ticks.map(t => (t instanceof Tick ? t : new Tick(t)))
+    const ticksMapped: Tick[] = ticks.map((t) => (t instanceof Tick ? t : new Tick(t)))
     TickList.validateList(ticksMapped, tickSpacing)
     this.ticks = ticksMapped
   }

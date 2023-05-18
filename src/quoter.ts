@@ -64,12 +64,12 @@ export abstract class SwapQuoter {
         tokenIn: route.tokenPath[0].address,
         tokenOut: route.tokenPath[1].address,
         fee: route.pools[0].fee,
-        sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0)
+        sqrtPriceLimitX96: toHex(options?.sqrtPriceLimitX96 ?? 0),
       }
 
       const v2QuoteParams = {
         ...baseQuoteParams,
-        ...(tradeType == TradeType.EXACT_INPUT ? { amountIn: quoteAmount } : { amount: quoteAmount })
+        ...(tradeType == TradeType.EXACT_INPUT ? { amountIn: quoteAmount } : { amount: quoteAmount }),
       }
 
       const v1QuoteParams = [
@@ -77,7 +77,7 @@ export abstract class SwapQuoter {
         baseQuoteParams.tokenOut,
         baseQuoteParams.fee,
         quoteAmount,
-        baseQuoteParams.sqrtPriceLimitX96
+        baseQuoteParams.sqrtPriceLimitX96,
       ]
 
       const tradeTypeFunctionName =
@@ -94,7 +94,7 @@ export abstract class SwapQuoter {
     }
     return {
       calldata,
-      value: toHex(0)
+      value: toHex(0),
     }
   }
 }

@@ -179,13 +179,13 @@ describe('Pool', () => {
         {
           index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[FeeAmount.LOW]),
           liquidityNet: ONE_ETHER,
-          liquidityGross: ONE_ETHER
+          liquidityGross: ONE_ETHER,
         },
         {
           index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[FeeAmount.LOW]),
           liquidityNet: JSBI.multiply(ONE_ETHER, NEGATIVE_ONE),
-          liquidityGross: ONE_ETHER
-        }
+          liquidityGross: ONE_ETHER,
+        },
       ])
     })
 
@@ -231,13 +231,13 @@ describe('Pool', () => {
         {
           index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[FeeAmount.LOW]),
           liquidityNet: ONE_ETHER,
-          liquidityGross: ONE_ETHER
+          liquidityGross: ONE_ETHER,
         },
         {
           index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[FeeAmount.LOW]),
           liquidityNet: JSBI.multiply(ONE_ETHER, NEGATIVE_ONE),
-          liquidityGross: ONE_ETHER
-        }
+          liquidityGross: ONE_ETHER,
+        },
       ])
     })
 

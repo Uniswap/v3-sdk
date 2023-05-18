@@ -17,7 +17,7 @@ describe('Staker', () => {
     pool: pool_0_1,
     startTime: 100,
     endTime: 200,
-    refundee: '0x0000000000000000000000000000000000000001'
+    refundee: '0x0000000000000000000000000000000000000001',
   }
 
   const incentiveKeys = [incentiveKey]
@@ -26,7 +26,7 @@ describe('Staker', () => {
     pool: pool_0_1,
     startTime: 50,
     endTime: 100,
-    refundee: '0x0000000000000000000000000000000000000089'
+    refundee: '0x0000000000000000000000000000000000000089',
   })
 
   const recipient = '0x0000000000000000000000000000000000000003'
@@ -38,7 +38,7 @@ describe('Staker', () => {
       const { calldata, value } = Staker.collectRewards(incentiveKey, {
         tokenId: tokenId,
         recipient: recipient,
-        amount: 1
+        amount: 1,
       })
 
       expect(calldata).toEqual(
@@ -50,7 +50,7 @@ describe('Staker', () => {
     it('succeeds no amount', () => {
       const { calldata, value } = Staker.collectRewards(incentiveKey, {
         tokenId: tokenId,
-        recipient: recipient
+        recipient: recipient,
       })
 
       expect(calldata).toEqual(
@@ -61,7 +61,7 @@ describe('Staker', () => {
     it('succeeds multiple keys', () => {
       const { calldata, value } = Staker.collectRewards(incentiveKeys, {
         tokenId: tokenId,
-        recipient: recipient
+        recipient: recipient,
       })
 
       expect(calldata).toEqual(
@@ -77,7 +77,7 @@ describe('Staker', () => {
         recipient: recipient,
         amount: 0,
         owner: sender,
-        data: '0x0000000000000000000000000000000000000008'
+        data: '0x0000000000000000000000000000000000000008',
       })
 
       expect(calldata).toEqual(
@@ -92,7 +92,7 @@ describe('Staker', () => {
         recipient: recipient,
         amount: 0,
         owner: sender,
-        data: '0x0000000000000000000000000000000000000008'
+        data: '0x0000000000000000000000000000000000000008',
       })
 
       expect(calldata).toEqual(
@@ -128,7 +128,7 @@ describe('Staker', () => {
         sender,
         recipient,
         tokenId,
-        data
+        data,
       }
       const { calldata, value } = NonfungiblePositionManager.safeTransferFromParameters(options)
 

@@ -20,7 +20,7 @@ describe('Position', () => {
       pool: DAI_USDC_POOL,
       liquidity: 1,
       tickLower: -10,
-      tickUpper: 10
+      tickUpper: 10,
     })
     expect(position.liquidity).toEqual(JSBI.BigInt(1))
   })
@@ -30,7 +30,7 @@ describe('Position', () => {
       pool: DAI_USDC_POOL,
       liquidity: 1,
       tickLower: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACING),
-      tickUpper: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACING)
+      tickUpper: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACING),
     })
     expect(position.liquidity).toEqual(JSBI.BigInt(1))
   })
@@ -42,7 +42,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 1,
           tickLower: 10,
-          tickUpper: -10
+          tickUpper: -10,
         })
     ).toThrow('TICK_ORDER')
   })
@@ -54,7 +54,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 1,
           tickLower: -10,
-          tickUpper: -10
+          tickUpper: -10,
         })
     ).toThrow('TICK_ORDER')
   })
@@ -66,7 +66,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 1,
           tickLower: -5,
-          tickUpper: 10
+          tickUpper: 10,
         })
     ).toThrow('TICK_LOWER')
   })
@@ -78,7 +78,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 1,
           tickLower: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACING) - TICK_SPACING,
-          tickUpper: 10
+          tickUpper: 10,
         })
     ).toThrow('TICK_LOWER')
   })
@@ -90,7 +90,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 1,
           tickLower: -10,
-          tickUpper: 15
+          tickUpper: 15,
         })
     ).toThrow('TICK_UPPER')
   })
@@ -102,7 +102,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 1,
           tickLower: -10,
-          tickUpper: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACING) + TICK_SPACING
+          tickUpper: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACING) + TICK_SPACING,
         })
     ).toThrow('TICK_UPPER')
   })
@@ -114,7 +114,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e12,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         }).amount0.quotient.toString()
       ).toEqual('49949961958869841')
     })
@@ -124,7 +124,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING,
         }).amount0.quotient.toString()
       ).toEqual('0')
     })
@@ -134,7 +134,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         }).amount0.quotient.toString()
       ).toEqual('120054069145287995769396')
     })
@@ -147,7 +147,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         }).amount1.quotient.toString()
       ).toEqual('0')
     })
@@ -157,7 +157,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING,
         }).amount1.quotient.toString()
       ).toEqual('49970077052')
     })
@@ -167,7 +167,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         }).amount1.quotient.toString()
       ).toEqual('79831926242')
     })
@@ -182,7 +182,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -195,7 +195,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -208,7 +208,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -225,7 +225,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -238,7 +238,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -251,7 +251,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -268,7 +268,7 @@ describe('Position', () => {
           pool: new Pool(DAI, USDC, FeeAmount.LOW, TickMath.MIN_SQRT_RATIO, 0, TickMath.MIN_TICK, []),
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
@@ -289,7 +289,7 @@ describe('Position', () => {
           ),
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
@@ -308,7 +308,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
@@ -321,7 +321,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING,
         })
 
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
@@ -334,7 +334,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
@@ -351,7 +351,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
         expect(amount0.toString()).toEqual('49949961958869841754181')
@@ -363,7 +363,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING,
         })
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
         expect(amount0.toString()).toEqual('0')
@@ -375,7 +375,7 @@ describe('Position', () => {
           pool: DAI_USDC_POOL,
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
         const { amount0, amount1 } = position.burnAmountsWithSlippage(slippageTolerance)
         expect(amount0.toString()).toEqual('95063440240746211454822')
@@ -391,7 +391,7 @@ describe('Position', () => {
           pool: new Pool(DAI, USDC, FeeAmount.LOW, TickMath.MIN_SQRT_RATIO, 0, TickMath.MIN_TICK, []),
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -412,7 +412,7 @@ describe('Position', () => {
           ),
           liquidity: 100e18,
           tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+          tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
         })
 
         const { amount0, amount1 } = position.mintAmountsWithSlippage(slippageTolerance)
@@ -428,7 +428,7 @@ describe('Position', () => {
         pool: DAI_USDC_POOL,
         liquidity: 100e18,
         tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING,
-        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
       }).mintAmounts
       expect(amount0.toString()).toEqual('49949961958869841754182')
       expect(amount1.toString()).toEqual('0')
@@ -438,7 +438,7 @@ describe('Position', () => {
         pool: DAI_USDC_POOL,
         liquidity: 100e18,
         tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING
+        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING,
       }).mintAmounts
       expect(amount0.toString()).toEqual('0')
       expect(amount1.toString()).toEqual('49970077053')
@@ -448,7 +448,7 @@ describe('Position', () => {
         pool: DAI_USDC_POOL,
         liquidity: 100e18,
         tickLower: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) - TICK_SPACING * 2,
-        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2
+        tickUpper: nearestUsableTick(POOL_TICK_CURRENT, TICK_SPACING) + TICK_SPACING * 2,
       }).mintAmounts
       // note these are rounded up
       expect(amount0.toString()).toEqual('120054069145287995769397')

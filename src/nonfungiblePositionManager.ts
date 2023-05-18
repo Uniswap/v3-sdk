@@ -5,7 +5,7 @@ import {
   CurrencyAmount,
   validateAndParseAddress,
   Currency,
-  NativeCurrency
+  NativeCurrency,
 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
@@ -99,7 +99,7 @@ export interface SafeTransferOptions {
 
 // type guard
 function isMint(options: AddLiquidityOptions): options is MintOptions {
-  return Object.keys(options).some(k => k === 'recipient')
+  return Object.keys(options).some((k) => k === 'recipient')
 }
 
 export interface CollectOptions {
@@ -185,14 +185,14 @@ export abstract class NonfungiblePositionManager {
       pool.token0.address,
       pool.token1.address,
       pool.fee,
-      toHex(pool.sqrtRatioX96)
+      toHex(pool.sqrtRatioX96),
     ])
   }
 
   public static createCallParameters(pool: Pool): MethodParameters {
     return {
       calldata: this.encodeCreate(pool),
-      value: toHex(0)
+      value: toHex(0),
     }
   }
 
@@ -241,8 +241,8 @@ export abstract class NonfungiblePositionManager {
             amount0Min,
             amount1Min,
             recipient,
-            deadline
-          }
+            deadline,
+          },
         ])
       )
     } else {
@@ -255,8 +255,8 @@ export abstract class NonfungiblePositionManager {
             amount1Desired: toHex(amount1Desired),
             amount0Min,
             amount1Min,
-            deadline
-          }
+            deadline,
+          },
         ])
       )
     }
@@ -279,7 +279,7 @@ export abstract class NonfungiblePositionManager {
 
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value
+      value,
     }
   }
 
@@ -300,8 +300,8 @@ export abstract class NonfungiblePositionManager {
           tokenId,
           recipient: involvesETH ? ADDRESS_ZERO : recipient,
           amount0Max: MaxUint128,
-          amount1Max: MaxUint128
-        }
+          amount1Max: MaxUint128,
+        },
       ])
     )
 
@@ -328,7 +328,7 @@ export abstract class NonfungiblePositionManager {
 
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value: toHex(0)
+      value: toHex(0),
     }
   }
 
@@ -349,7 +349,7 @@ export abstract class NonfungiblePositionManager {
       pool: position.pool,
       liquidity: options.liquidityPercentage.multiply(position.liquidity).quotient,
       tickLower: position.tickLower,
-      tickUpper: position.tickUpper
+      tickUpper: position.tickUpper,
     })
     invariant(JSBI.greaterThan(partialPosition.liquidity, ZERO), 'ZERO_LIQUIDITY')
 
@@ -366,7 +366,7 @@ export abstract class NonfungiblePositionManager {
           toHex(options.permit.deadline),
           options.permit.v,
           options.permit.r,
-          options.permit.s
+          options.permit.s,
         ])
       )
     }
@@ -379,8 +379,8 @@ export abstract class NonfungiblePositionManager {
           liquidity: toHex(partialPosition.liquidity),
           amount0Min: toHex(amount0Min),
           amount1Min: toHex(amount1Min),
-          deadline
-        }
+          deadline,
+        },
       ])
     )
 
@@ -395,7 +395,7 @@ export abstract class NonfungiblePositionManager {
         expectedCurrencyOwed1: expectedCurrencyOwed1.add(
           CurrencyAmount.fromRawAmount(expectedCurrencyOwed1.currency, amount1Min)
         ),
-        ...rest
+        ...rest,
       })
     )
 
@@ -409,7 +409,7 @@ export abstract class NonfungiblePositionManager {
 
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value: toHex(0)
+      value: toHex(0),
     }
   }
 
@@ -427,12 +427,12 @@ export abstract class NonfungiblePositionManager {
       calldata = NonfungiblePositionManager.INTERFACE.encodeFunctionData('safeTransferFrom(address,address,uint256)', [
         sender,
         recipient,
-        toHex(options.tokenId)
+        toHex(options.tokenId),
       ])
     }
     return {
       calldata: calldata,
-      value: toHex(0)
+      value: toHex(0),
     }
   }
 }

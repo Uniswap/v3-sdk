@@ -18,7 +18,7 @@ export function computePoolAddress({
   tokenA,
   tokenB,
   fee,
-  initCodeHashManualOverride
+  initCodeHashManualOverride,
 }: {
   factoryAddress: string
   tokenA: Token

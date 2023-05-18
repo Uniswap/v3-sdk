@@ -75,11 +75,11 @@ export abstract class SwapRouter {
 
     // All trades should have the same starting and ending token.
     invariant(
-      trades.every(trade => trade.inputAmount.currency.wrapped.equals(tokenIn)),
+      trades.every((trade) => trade.inputAmount.currency.wrapped.equals(tokenIn)),
       'TOKEN_IN_DIFF'
     )
     invariant(
-      trades.every(trade => trade.outputAmount.currency.wrapped.equals(tokenOut)),
+      trades.every((trade) => trade.outputAmount.currency.wrapped.equals(tokenOut)),
       'TOKEN_OUT_DIFF'
     )
 
@@ -131,7 +131,7 @@ export abstract class SwapRouter {
               deadline,
               amountIn,
               amountOutMinimum: amountOut,
-              sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
+              sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0),
             }
 
             calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInputSingle', [exactInputSingleParams]))
@@ -144,7 +144,7 @@ export abstract class SwapRouter {
               deadline,
               amountOut,
               amountInMaximum: amountIn,
-              sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0)
+              sqrtPriceLimitX96: toHex(options.sqrtPriceLimitX96 ?? 0),
             }
 
             calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutputSingle', [exactOutputSingleParams]))
@@ -160,7 +160,7 @@ export abstract class SwapRouter {
               recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
               deadline,
               amountIn,
-              amountOutMinimum: amountOut
+              amountOutMinimum: amountOut,
             }
 
             calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactInput', [exactInputParams]))
@@ -170,7 +170,7 @@ export abstract class SwapRouter {
               recipient: routerMustCustody ? ADDRESS_ZERO : recipient,
               deadline,
               amountOut,
-              amountInMaximum: amountIn
+              amountInMaximum: amountIn,
             }
 
             calldatas.push(SwapRouter.INTERFACE.encodeFunctionData('exactOutput', [exactOutputParams]))
@@ -206,7 +206,7 @@ export abstract class SwapRouter {
 
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value: toHex(totalValue.quotient)
+      value: toHex(totalValue.quotient),
     }
   }
 }

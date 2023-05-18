@@ -144,7 +144,7 @@ export class Position {
     }
     return {
       sqrtRatioX96Lower,
-      sqrtRatioX96Upper
+      sqrtRatioX96Upper,
     }
   }
 
@@ -182,7 +182,7 @@ export class Position {
       tickLower: this.tickLower,
       tickUpper: this.tickUpper,
       ...this.mintAmounts, // the mint amounts are what will be passed as calldata
-      useFullPrecision: false
+      useFullPrecision: false,
     })
 
     // we want the smaller amounts...
@@ -191,14 +191,14 @@ export class Position {
       pool: poolUpper,
       liquidity: positionThatWillBeCreated.liquidity,
       tickLower: this.tickLower,
-      tickUpper: this.tickUpper
+      tickUpper: this.tickUpper,
     }).mintAmounts
     // ...and the lower for amount1
     const { amount1 } = new Position({
       pool: poolLower,
       liquidity: positionThatWillBeCreated.liquidity,
       tickLower: this.tickLower,
-      tickUpper: this.tickUpper
+      tickUpper: this.tickUpper,
     }).mintAmounts
 
     return { amount0, amount1 }
@@ -238,14 +238,14 @@ export class Position {
       pool: poolUpper,
       liquidity: this.liquidity,
       tickLower: this.tickLower,
-      tickUpper: this.tickUpper
+      tickUpper: this.tickUpper,
     }).amount0
     // ...and the lower for amount1
     const amount1 = new Position({
       pool: poolLower,
       liquidity: this.liquidity,
       tickLower: this.tickLower,
-      tickUpper: this.tickUpper
+      tickUpper: this.tickUpper,
     }).amount1
 
     return { amount0: amount0.quotient, amount1: amount1.quotient }
@@ -265,7 +265,7 @@ export class Position {
             this.liquidity,
             true
           ),
-          amount1: ZERO
+          amount1: ZERO,
         }
       } else if (this.pool.tickCurrent < this.tickUpper) {
         return {
@@ -280,7 +280,7 @@ export class Position {
             this.pool.sqrtRatioX96,
             this.liquidity,
             true
-          )
+          ),
         }
       } else {
         return {
@@ -290,7 +290,7 @@ export class Position {
             TickMath.getSqrtRatioAtTick(this.tickUpper),
             this.liquidity,
             true
-          )
+          ),
         }
       }
     }
@@ -315,7 +315,7 @@ export class Position {
     tickUpper,
     amount0,
     amount1,
-    useFullPrecision
+    useFullPrecision,
   }: {
     pool: Pool
     tickLower: number
@@ -337,7 +337,7 @@ export class Position {
         amount0,
         amount1,
         useFullPrecision
-      )
+      ),
     })
   }
 
@@ -356,7 +356,7 @@ export class Position {
     tickLower,
     tickUpper,
     amount0,
-    useFullPrecision
+    useFullPrecision,
   }: {
     pool: Pool
     tickLower: number
@@ -379,7 +379,7 @@ export class Position {
     pool,
     tickLower,
     tickUpper,
-    amount1
+    amount1,
   }: {
     pool: Pool
     tickLower: number

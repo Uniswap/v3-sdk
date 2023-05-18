@@ -7,7 +7,7 @@ const amount = JSBI.BigInt(123)
 
 const feeOptions = {
   fee: new Percent(1, 1000),
-  recipient: '0x0000000000000000000000000000000000000009'
+  recipient: '0x0000000000000000000000000000000000000009',
 }
 
 const token = new Token(1, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')
