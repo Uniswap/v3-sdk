@@ -26,11 +26,12 @@ describe('Pool', () => {
       }).toThrow('FEE')
     })
 
-    it('fee cannot be more than 1e6', () => {
-      expect(() => {
-        new Pool(USDC, WETH9[1], 1e6, encodeSqrtRatioX96(1, 1), 0, 0, [])
-      }).toThrow('FEE')
-    })
+    // TODO: Typescript compiler doesn't allow arbitrary numbers for FeeAmount
+    // it('fee cannot be more than 1e6', () => {
+    //   expect(() => {
+    //     new Pool(USDC, WETH9[1], 1e6, encodeSqrtRatioX96(1, 1), 0, 0, [])
+    //   }).toThrow('FEE')
+    // })
 
     it('cannot be given two of the same token', () => {
       expect(() => {

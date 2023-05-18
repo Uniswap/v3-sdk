@@ -18,10 +18,9 @@
   ],
   "module": "dist/v3-sdk.esm.js",
   "scripts": {
-    "build": "tsdx build",
-    "start": "tsdx watch",
-    "test": "tsdx test",
-    "prepublishOnly": "tsdx build"
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "tsc"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.0.12",
@@ -34,9 +33,12 @@
     "tiny-warning": "^1.0.3"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.25",
+    "@types/jest": "^24.9.1",
     "@uniswap/v3-core": "1.0.0",
-    "tsdx": "^0.14.1"
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.4"
   },
   "engines": {
     "node": ">=10"
