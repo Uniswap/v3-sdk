@@ -84,7 +84,7 @@ export abstract class Staker {
     calldatas.push(
       Staker.INTERFACE.encodeFunctionData('unstakeToken', [
         this._encodeIncentiveKey(incentiveKey),
-        toHex(options.tokenId)
+        toHex(options.tokenId),
       ])
     )
     const recipient: string = validateAndParseAddress(options.recipient)
@@ -117,13 +117,13 @@ export abstract class Staker {
       calldatas.push(
         Staker.INTERFACE.encodeFunctionData('stakeToken', [
           this._encodeIncentiveKey(incentiveKey),
-          toHex(options.tokenId)
+          toHex(options.tokenId),
         ])
       )
     }
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value: toHex(0)
+      value: toHex(0),
     }
   }
 
@@ -144,7 +144,7 @@ export abstract class Staker {
     const claimOptions = {
       tokenId: withdrawOptions.tokenId,
       recipient: withdrawOptions.recipient,
-      amount: withdrawOptions.amount
+      amount: withdrawOptions.amount,
     }
 
     for (let i = 0; i < incentiveKeys.length; i++) {
@@ -156,12 +156,12 @@ export abstract class Staker {
       Staker.INTERFACE.encodeFunctionData('withdrawToken', [
         toHex(withdrawOptions.tokenId),
         owner,
-        withdrawOptions.data ? withdrawOptions.data : toHex(0)
+        withdrawOptions.data ? withdrawOptions.data : toHex(0),
       ])
     )
     return {
       calldata: Multicall.encodeMulticall(calldatas),
-      value: toHex(0)
+      value: toHex(0),
     }
   }
 
@@ -199,7 +199,7 @@ export abstract class Staker {
       pool: Pool.getAddress(token0, token1, fee),
       startTime: toHex(incentiveKey.startTime),
       endTime: toHex(incentiveKey.endTime),
-      refundee
+      refundee,
     }
   }
 }

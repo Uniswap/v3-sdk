@@ -15,7 +15,7 @@ describe('TickListDataProvider', () => {
           new TickListDataProvider(
             [
               { index: -1, liquidityNet: -1, liquidityGross: 1 },
-              { index: 1, liquidityNet: 2, liquidityGross: 1 }
+              { index: 1, liquidityNet: 2, liquidityGross: 1 },
             ],
             1
           )
@@ -28,7 +28,7 @@ describe('TickListDataProvider', () => {
       const provider = new TickListDataProvider(
         [
           { index: -1, liquidityNet: -1, liquidityGross: 1 },
-          { index: 1, liquidityNet: 1, liquidityGross: 1 }
+          { index: 1, liquidityNet: 1, liquidityGross: 1 },
         ],
         1
       )
@@ -38,7 +38,7 @@ describe('TickListDataProvider', () => {
       const provider = new TickListDataProvider(
         [
           { index: -1, liquidityNet: -1, liquidityGross: 1 },
-          { index: 1, liquidityNet: 1, liquidityGross: 1 }
+          { index: 1, liquidityNet: 1, liquidityGross: 1 },
         ],
         1
       )
@@ -50,7 +50,7 @@ describe('TickListDataProvider', () => {
       const provider = new TickListDataProvider(
         [
           { index: -1, liquidityNet: -1, liquidityGross: 1 },
-          { index: 1, liquidityNet: 1, liquidityGross: 1 }
+          { index: 1, liquidityNet: 1, liquidityGross: 1 },
         ],
         1
       )

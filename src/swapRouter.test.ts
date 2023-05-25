@@ -24,13 +24,13 @@ describe('SwapRouter', () => {
       {
         index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount]),
         liquidityNet: liquidity,
-        liquidityGross: liquidity
+        liquidityGross: liquidity,
       },
       {
         index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount]),
         liquidityNet: -liquidity,
-        liquidityGross: liquidity
-      }
+        liquidityGross: liquidity,
+      },
     ])
   }
 
@@ -57,7 +57,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -75,7 +75,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -93,7 +93,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -111,7 +111,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -129,7 +129,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -147,7 +147,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -165,7 +165,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -183,7 +183,7 @@ describe('SwapRouter', () => {
         const { calldata, value } = SwapRouter.swapCallParameters(trade, {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
 
         expect(calldata).toBe(
@@ -202,7 +202,7 @@ describe('SwapRouter', () => {
           slippageTolerance,
           recipient,
           deadline,
-          sqrtPriceLimitX96: JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
+          sqrtPriceLimitX96: JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
         })
 
         expect(calldata).toBe(
@@ -223,8 +223,8 @@ describe('SwapRouter', () => {
           deadline,
           fee: {
             fee: new Percent(5, 1000),
-            recipient
-          }
+            recipient,
+          },
         })
 
         expect(calldata).toBe(
@@ -245,8 +245,8 @@ describe('SwapRouter', () => {
           deadline,
           fee: {
             fee: new Percent(5, 1000),
-            recipient
-          }
+            recipient,
+          },
         })
 
         expect(calldata).toBe(
@@ -267,8 +267,8 @@ describe('SwapRouter', () => {
           deadline,
           fee: {
             fee: new Percent(5, 1000),
-            recipient
-          }
+            recipient,
+          },
         })
 
         expect(calldata).toBe(
@@ -296,7 +296,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -321,7 +321,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -346,7 +346,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -371,7 +371,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -396,7 +396,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -421,7 +421,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -446,7 +446,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -471,7 +471,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -496,7 +496,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -521,7 +521,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade1, trade2], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -547,7 +547,7 @@ describe('SwapRouter', () => {
         SwapRouter.swapCallParameters([trade1, trade2], {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
       ).toThrow('TOKEN_IN_DIFF')
     })
@@ -569,7 +569,7 @@ describe('SwapRouter', () => {
         SwapRouter.swapCallParameters([trade1, trade2], {
           slippageTolerance,
           recipient,
-          deadline
+          deadline,
         })
       ).toThrow('TOKEN_OUT_DIFF')
     })
@@ -590,7 +590,7 @@ describe('SwapRouter', () => {
         slippageTolerance,
         recipient,
         deadline,
-        sqrtPriceLimitX96: JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
+        sqrtPriceLimitX96: JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
       })
 
       expect(calldata).toBe(
@@ -618,8 +618,8 @@ describe('SwapRouter', () => {
         deadline,
         fee: {
           fee: new Percent(5, 1000),
-          recipient
-        }
+          recipient,
+        },
       })
 
       expect(calldata).toBe(
@@ -647,8 +647,8 @@ describe('SwapRouter', () => {
         deadline,
         fee: {
           fee: new Percent(5, 1000),
-          recipient
-        }
+          recipient,
+        },
       })
 
       expect(calldata).toBe(
@@ -676,8 +676,8 @@ describe('SwapRouter', () => {
         deadline,
         fee: {
           fee: new Percent(5, 1000),
-          recipient
-        }
+          recipient,
+        },
       })
 
       expect(calldata).toBe(
@@ -692,7 +692,7 @@ describe('SwapRouter', () => {
       const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
         [
           { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_3], token0, token3) },
-          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) },
         ],
         TradeType.EXACT_INPUT
       )
@@ -700,7 +700,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -713,7 +713,7 @@ describe('SwapRouter', () => {
       const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_INPUT>(
         [
           { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_1, pool_1_3], token0, token3) },
-          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token0, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) },
         ],
         TradeType.EXACT_INPUT
       )
@@ -721,7 +721,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -735,12 +735,12 @@ describe('SwapRouter', () => {
         [
           {
             amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
-            route: new Route([pool_1_weth, pool_1_3], ETHER, token3)
+            route: new Route([pool_1_weth, pool_1_3], ETHER, token3),
           },
           {
             amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
-            route: new Route([pool_3_weth], ETHER, token3)
-          }
+            route: new Route([pool_3_weth], ETHER, token3),
+          },
         ],
         TradeType.EXACT_INPUT
       )
@@ -748,7 +748,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -762,9 +762,9 @@ describe('SwapRouter', () => {
         [
           {
             amount: CurrencyAmount.fromRawAmount(token3, 100),
-            route: new Route([pool_1_weth, pool_1_3], ETHER, token3)
+            route: new Route([pool_1_weth, pool_1_3], ETHER, token3),
           },
-          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_3_weth], ETHER, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_3_weth], ETHER, token3) },
         ],
         TradeType.EXACT_OUTPUT
       )
@@ -772,7 +772,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -786,12 +786,12 @@ describe('SwapRouter', () => {
         [
           {
             amount: CurrencyAmount.fromRawAmount(token3, 100),
-            route: new Route([pool_1_3, pool_1_weth], token3, ETHER)
+            route: new Route([pool_1_3, pool_1_weth], token3, ETHER),
           },
           {
             amount: CurrencyAmount.fromRawAmount(token3, 100),
-            route: new Route([pool_3_weth], token3, ETHER)
-          }
+            route: new Route([pool_3_weth], token3, ETHER),
+          },
         ],
         TradeType.EXACT_INPUT
       )
@@ -799,7 +799,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -813,12 +813,12 @@ describe('SwapRouter', () => {
         [
           {
             amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
-            route: new Route([pool_1_3, pool_1_weth], token3, ETHER)
+            route: new Route([pool_1_3, pool_1_weth], token3, ETHER),
           },
           {
             amount: CurrencyAmount.fromRawAmount(Ether.onChain(1), 100),
-            route: new Route([pool_3_weth], token3, ETHER)
-          }
+            route: new Route([pool_3_weth], token3, ETHER),
+          },
         ],
         TradeType.EXACT_OUTPUT
       )
@@ -826,7 +826,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -839,7 +839,7 @@ describe('SwapRouter', () => {
       const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
         [
           { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_3], token0, token3) },
-          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) },
         ],
         TradeType.EXACT_OUTPUT
       )
@@ -847,7 +847,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(
@@ -860,7 +860,7 @@ describe('SwapRouter', () => {
       const trade = await Trade.fromRoutes<Token, Token, TradeType.EXACT_OUTPUT>(
         [
           { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_1, pool_1_3], token0, token3) },
-          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) }
+          { amount: CurrencyAmount.fromRawAmount(token3, 100), route: new Route([pool_0_2, pool_2_3], token0, token3) },
         ],
         TradeType.EXACT_OUTPUT
       )
@@ -868,7 +868,7 @@ describe('SwapRouter', () => {
       const { calldata, value } = SwapRouter.swapCallParameters([trade], {
         slippageTolerance,
         recipient,
-        deadline
+        deadline,
       })
 
       expect(calldata).toBe(

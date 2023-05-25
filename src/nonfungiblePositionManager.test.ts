@@ -39,7 +39,7 @@ describe('NonfungiblePositionManager', () => {
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
             tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-            liquidity: 0
+            liquidity: 0,
           }),
           { recipient, slippageTolerance, deadline }
         )
@@ -53,7 +53,7 @@ describe('NonfungiblePositionManager', () => {
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
             tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-            liquidity: 1
+            liquidity: 1,
           }),
           { recipient, slippageTolerance, deadline, useNative: Ether.onChain(1) }
         )
@@ -66,7 +66,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 1
+          liquidity: 1,
         }),
         { recipient, slippageTolerance, deadline }
       )
@@ -83,7 +83,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 1
+          liquidity: 1,
         }),
         { tokenId, slippageTolerance, deadline }
       )
@@ -100,7 +100,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 1
+          liquidity: 1,
         }),
         { recipient, slippageTolerance, deadline, createPool: true }
       )
@@ -117,7 +117,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_1_weth,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 1
+          liquidity: 1,
         }),
         { recipient, slippageTolerance, deadline, useNative: Ether.onChain(1) }
       )
@@ -135,7 +135,7 @@ describe('NonfungiblePositionManager', () => {
         tokenId,
         expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token0, 0),
         expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(token1, 0),
-        recipient
+        recipient,
       })
 
       expect(calldata).toEqual(
@@ -149,7 +149,7 @@ describe('NonfungiblePositionManager', () => {
         tokenId,
         expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token1, 0),
         expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(Ether.onChain(1), 0),
-        recipient
+        recipient,
       })
 
       expect(calldata).toEqual(
@@ -167,7 +167,7 @@ describe('NonfungiblePositionManager', () => {
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
             tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-            liquidity: 0
+            liquidity: 0,
           }),
           {
             tokenId,
@@ -177,8 +177,8 @@ describe('NonfungiblePositionManager', () => {
             collectOptions: {
               expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token0, 0),
               expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(token1, 0),
-              recipient
-            }
+              recipient,
+            },
           }
         )
       ).toThrow('ZERO_LIQUIDITY')
@@ -191,7 +191,7 @@ describe('NonfungiblePositionManager', () => {
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
             tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-            liquidity: 50
+            liquidity: 50,
           }),
           {
             tokenId,
@@ -201,8 +201,8 @@ describe('NonfungiblePositionManager', () => {
             collectOptions: {
               expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token0, 0),
               expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(token1, 0),
-              recipient
-            }
+              recipient,
+            },
           }
         )
       ).toThrow('ZERO_LIQUIDITY')
@@ -215,7 +215,7 @@ describe('NonfungiblePositionManager', () => {
             pool: pool_0_1,
             tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
             tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-            liquidity: 50
+            liquidity: 50,
           }),
           {
             tokenId,
@@ -226,8 +226,8 @@ describe('NonfungiblePositionManager', () => {
             collectOptions: {
               expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token0, 0),
               expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(token1, 0),
-              recipient
-            }
+              recipient,
+            },
           }
         )
       ).toThrow('CANNOT_BURN')
@@ -239,7 +239,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 100
+          liquidity: 100,
         }),
         {
           tokenId,
@@ -249,8 +249,8 @@ describe('NonfungiblePositionManager', () => {
           collectOptions: {
             expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token0, 0),
             expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(token1, 0),
-            recipient
-          }
+            recipient,
+          },
         }
       )
 
@@ -266,7 +266,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_0_1,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 100
+          liquidity: 100,
         }),
         {
           tokenId,
@@ -276,8 +276,8 @@ describe('NonfungiblePositionManager', () => {
           collectOptions: {
             expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token0, 0),
             expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(token1, 0),
-            recipient
-          }
+            recipient,
+          },
         }
       )
 
@@ -296,7 +296,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_1_weth,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 100
+          liquidity: 100,
         }),
         {
           tokenId,
@@ -306,8 +306,8 @@ describe('NonfungiblePositionManager', () => {
           collectOptions: {
             expectedCurrencyOwed0: pool_1_weth.token0.equals(token1) ? tokenAmount : ethAmount,
             expectedCurrencyOwed1: pool_1_weth.token0.equals(token1) ? ethAmount : tokenAmount,
-            recipient
-          }
+            recipient,
+          },
         }
       )
 
@@ -326,7 +326,7 @@ describe('NonfungiblePositionManager', () => {
           pool: pool_1_weth,
           tickLower: -TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM],
-          liquidity: 100
+          liquidity: 100,
         }),
         {
           tokenId,
@@ -336,8 +336,8 @@ describe('NonfungiblePositionManager', () => {
           collectOptions: {
             expectedCurrencyOwed0: pool_1_weth.token0.equals(token1) ? tokenAmount : ethAmount,
             expectedCurrencyOwed1: pool_1_weth.token0.equals(token1) ? ethAmount : tokenAmount,
-            recipient
-          }
+            recipient,
+          },
         }
       )
 
@@ -352,7 +352,7 @@ describe('NonfungiblePositionManager', () => {
       const options = {
         sender,
         recipient,
-        tokenId
+        tokenId,
       }
       const { calldata, value } = NonfungiblePositionManager.safeTransferFromParameters(options)
 
@@ -367,7 +367,7 @@ describe('NonfungiblePositionManager', () => {
         sender,
         recipient,
         tokenId,
-        data
+        data,
       }
       const { calldata, value } = NonfungiblePositionManager.safeTransferFromParameters(options)
 

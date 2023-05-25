@@ -53,7 +53,7 @@ export class Pool {
       fee,
       tokenA,
       tokenB,
-      initCodeHashManualOverride
+      initCodeHashManualOverride,
     })
   }
 
@@ -164,15 +164,16 @@ export class Pool {
 
     const zeroForOne = inputAmount.currency.equals(this.token0)
 
-    const { amountCalculated: outputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
-      zeroForOne,
-      inputAmount.quotient,
-      sqrtPriceLimitX96
-    )
+    const {
+      amountCalculated: outputAmount,
+      sqrtRatioX96,
+      liquidity,
+      tickCurrent,
+    } = await this.swap(zeroForOne, inputAmount.quotient, sqrtPriceLimitX96)
     const outputToken = zeroForOne ? this.token1 : this.token0
     return [
       CurrencyAmount.fromRawAmount(outputToken, JSBI.multiply(outputAmount, NEGATIVE_ONE)),
-      new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider)
+      new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider),
     ]
   }
 
@@ -190,15 +191,16 @@ export class Pool {
 
     const zeroForOne = outputAmount.currency.equals(this.token1)
 
-    const { amountCalculated: inputAmount, sqrtRatioX96, liquidity, tickCurrent } = await this.swap(
-      zeroForOne,
-      JSBI.multiply(outputAmount.quotient, NEGATIVE_ONE),
-      sqrtPriceLimitX96
-    )
+    const {
+      amountCalculated: inputAmount,
+      sqrtRatioX96,
+      liquidity,
+      tickCurrent,
+    } = await this.swap(zeroForOne, JSBI.multiply(outputAmount.quotient, NEGATIVE_ONE), sqrtPriceLimitX96)
     const inputToken = zeroForOne ? this.token0 : this.token1
     return [
       CurrencyAmount.fromRawAmount(inputToken, inputAmount),
-      new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider)
+      new Pool(this.token0, this.token1, this.fee, sqrtRatioX96, liquidity, tickCurrent, this.tickDataProvider),
     ]
   }
 
@@ -239,7 +241,7 @@ export class Pool {
       amountCalculated: ZERO,
       sqrtPriceX96: this.sqrtRatioX96,
       tick: this.tickCurrent,
-      liquidity: this.liquidity
+      liquidity: this.liquidity,
     }
 
     // start swap while loop
@@ -265,9 +267,11 @@ export class Pool {
       step.sqrtPriceNextX96 = TickMath.getSqrtRatioAtTick(step.tickNext)
       ;[state.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount] = SwapMath.computeSwapStep(
         state.sqrtPriceX96,
-        (zeroForOne
-        ? JSBI.lessThan(step.sqrtPriceNextX96, sqrtPriceLimitX96)
-        : JSBI.greaterThan(step.sqrtPriceNextX96, sqrtPriceLimitX96))
+        (
+          zeroForOne
+            ? JSBI.lessThan(step.sqrtPriceNextX96, sqrtPriceLimitX96)
+            : JSBI.greaterThan(step.sqrtPriceNextX96, sqrtPriceLimitX96)
+        )
           ? sqrtPriceLimitX96
           : step.sqrtPriceNextX96,
         state.liquidity,
@@ -310,7 +314,7 @@ export class Pool {
       amountCalculated: state.amountCalculated,
       sqrtRatioX96: state.sqrtPriceX96,
       liquidity: state.liquidity,
-      tickCurrent: state.tick
+      tickCurrent: state.tick,
     }
   }
 

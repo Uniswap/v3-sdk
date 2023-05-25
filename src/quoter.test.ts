@@ -19,13 +19,13 @@ describe('SwapQuoter', () => {
       {
         index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount]),
         liquidityNet: liquidity,
-        liquidityGross: liquidity
+        liquidityGross: liquidity,
       },
       {
         index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount]),
         liquidityNet: -liquidity,
-        liquidityGross: liquidity
-      }
+        liquidityGross: liquidity,
+      },
     ])
   }
 
@@ -104,7 +104,7 @@ describe('SwapQuoter', () => {
           TradeType.EXACT_INPUT
         )
         const { calldata, value } = SwapQuoter.quoteCallParameters(trade.route, trade.inputAmount, trade.tradeType, {
-          sqrtPriceLimitX96: JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
+          sqrtPriceLimitX96: JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
         })
 
         expect(calldata).toBe(
@@ -126,7 +126,7 @@ describe('SwapQuoter', () => {
           trade.outputAmount,
           trade.tradeType,
           {
-            useQuoterV2: true
+            useQuoterV2: true,
           }
         )
 

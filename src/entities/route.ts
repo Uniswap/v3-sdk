@@ -26,7 +26,7 @@ export class Route<TInput extends Currency, TOutput extends Currency> {
     invariant(pools.length > 0, 'POOLS')
 
     const chainId = pools[0].chainId
-    const allOnSameChain = pools.every(pool => pool.chainId === chainId)
+    const allOnSameChain = pools.every((pool) => pool.chainId === chainId)
     invariant(allOnSameChain, 'CHAIN_IDS')
 
     const wrappedInput = input.wrapped
@@ -66,21 +66,21 @@ export class Route<TInput extends Currency, TOutput extends Currency> {
         return nextInput.equals(pool.token0)
           ? {
               nextInput: pool.token1,
-              price: price.multiply(pool.token0Price)
+              price: price.multiply(pool.token0Price),
             }
           : {
               nextInput: pool.token0,
-              price: price.multiply(pool.token1Price)
+              price: price.multiply(pool.token1Price),
             }
       },
       this.pools[0].token0.equals(this.input.wrapped)
         ? {
             nextInput: this.pools[0].token1,
-            price: this.pools[0].token0Price
+            price: this.pools[0].token0Price,
           }
         : {
             nextInput: this.pools[0].token0,
-            price: this.pools[0].token1Price
+            price: this.pools[0].token1Price,
           }
     ).price
 
