@@ -1,6 +1,6 @@
 import JSBI from 'jsbi'
-import { PositionLibrary } from '.'
-import { ZERO } from '../internalConstants'
+import { PositionLibrary } from 'src/utils'
+import { ZERO } from 'src/internalConstants'
 
 describe('PositionLibrary', () => {
   describe('#getTokensOwed', () => {

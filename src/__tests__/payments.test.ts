@@ -1,6 +1,6 @@
 import { Percent, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { Payments } from './payments'
+import { Payments } from 'src/payments'
 
 const recipient = '0x0000000000000000000000000000000000000003'
 const amount = JSBI.BigInt(123)

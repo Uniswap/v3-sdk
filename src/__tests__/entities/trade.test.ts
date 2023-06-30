@@ -1,12 +1,12 @@
 import { CurrencyAmount, Ether, Percent, Price, sqrt, Token, TradeType, WETH9 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { FeeAmount, TICK_SPACINGS } from '../constants'
-import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
-import { nearestUsableTick } from '../utils/nearestUsableTick'
-import { TickMath } from '../utils/tickMath'
-import { Pool } from './pool'
-import { Route } from './route'
-import { Trade } from './trade'
+import { FeeAmount, TICK_SPACINGS } from 'src/constants'
+import { encodeSqrtRatioX96 } from 'src/utils/encodeSqrtRatioX96'
+import { nearestUsableTick } from 'src/utils/nearestUsableTick'
+import { TickMath } from 'src/utils/tickMath'
+import { Pool } from 'src/entities/pool'
+import { Route } from 'src/entities/route'
+import { Trade } from 'src/entities/trade'
 
 describe('Trade', () => {
   const ETHER = Ether.onChain(1)

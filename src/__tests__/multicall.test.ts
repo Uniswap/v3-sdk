@@ -1,4 +1,4 @@
-import { Multicall } from './multicall'
+import { Multicall } from 'src/multicall'
 
 describe('Multicall', () => {
   describe('#encodeMulticall', () => {

@@ -1,5 +1,5 @@
-import { nearestUsableTick } from './nearestUsableTick'
-import { TickMath } from './tickMath'
+import { nearestUsableTick } from 'src/utils/nearestUsableTick'
+import { TickMath } from 'src/utils/tickMath'
 
 describe('#nearestUsableTick', () => {
   it('throws if tickSpacing is 0', () => {

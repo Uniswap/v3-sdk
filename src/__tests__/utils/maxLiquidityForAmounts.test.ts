@@ -1,7 +1,7 @@
 import { MaxUint256 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { encodeSqrtRatioX96 } from './encodeSqrtRatioX96'
-import { maxLiquidityForAmounts } from './maxLiquidityForAmounts'
+import { encodeSqrtRatioX96 } from 'src/utils/encodeSqrtRatioX96'
+import { maxLiquidityForAmounts } from 'src/utils/maxLiquidityForAmounts'
 
 describe('#maxLiquidityForAmounts', () => {
   describe('imprecise', () => {

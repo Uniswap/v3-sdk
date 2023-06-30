@@ -1,6 +1,6 @@
 import JSBI from 'jsbi'
-import { Q96 } from '../internalConstants'
-import { encodeSqrtRatioX96 } from './encodeSqrtRatioX96'
+import { Q96 } from 'src/internalConstants'
+import { encodeSqrtRatioX96 } from 'src/utils/encodeSqrtRatioX96'
 
 describe('#encodeSqrtRatioX96', () => {
   it('1/1', () => {

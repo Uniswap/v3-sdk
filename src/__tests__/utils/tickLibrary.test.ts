@@ -1,6 +1,6 @@
 import JSBI from 'jsbi'
-import { ZERO } from '../internalConstants'
-import { TickLibrary } from './tickLibrary'
+import { ZERO } from 'src/internalConstants'
+import { TickLibrary } from 'src/utils/tickLibrary'
 
 describe('TickLibrary', () => {
   describe('#getFeeGrowthInside', () => {

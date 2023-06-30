@@ -1,6 +1,6 @@
 import JSBI from 'jsbi'
-import { ONE } from '../internalConstants'
-import { TickMath } from './tickMath'
+import { ONE } from 'src/internalConstants'
+import { TickMath } from 'src/utils/tickMath'
 
 describe('TickMath', () => {
   describe('#MIN_TICK', () => {

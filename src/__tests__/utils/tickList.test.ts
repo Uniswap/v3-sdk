@@ -1,6 +1,6 @@
-import { Tick } from '../entities/tick'
-import { TickList } from './tickList'
-import { TickMath } from './tickMath'
+import { Tick } from 'src/entities/tick'
+import { TickList } from 'src/utils/tickList'
+import { TickMath } from 'src/utils/tickMath'
 
 describe('TickList', () => {
   let highTick: Tick

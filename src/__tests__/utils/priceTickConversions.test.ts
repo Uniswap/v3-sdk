@@ -1,6 +1,6 @@
 import { Price, Token } from '@uniswap/sdk-core'
-import { tickToPrice } from './index'
-import { priceToClosestTick } from './priceTickConversions'
+import { tickToPrice } from 'src/index'
+import { priceToClosestTick } from 'src/utils/priceTickConversions'
 
 describe('priceTickConversions', () => {
   /**

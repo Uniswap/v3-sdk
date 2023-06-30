@@ -1,7 +1,7 @@
 import { MaxUint256 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { ONE } from '../internalConstants'
-import { mostSignificantBit } from './mostSignificantBit'
+import { ONE } from 'src/internalConstants'
+import { mostSignificantBit } from 'src/utils/mostSignificantBit'
 
 describe('mostSignificantBit', () => {
   it('throws for zero', () => {

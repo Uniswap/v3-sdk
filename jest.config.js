@@ -20,4 +20,8 @@ module.exports = {
     // allow lit-html transformation
     'node_modules/(?!lit-html)',
   ],
+  // for absolute imports
+  moduleNameMapper: {
+    'src/(.*)': '<rootDir>/src/$1',
+  },
 }

@@ -1,11 +1,11 @@
 import { Token, CurrencyAmount, WETH9 } from '@uniswap/sdk-core'
-import { FeeAmount, TICK_SPACINGS } from '../constants'
-import { nearestUsableTick } from '../utils/nearestUsableTick'
-import { TickMath } from '../utils/tickMath'
-import { Pool } from './pool'
-import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
+import { FeeAmount, TICK_SPACINGS } from 'src/constants'
+import { nearestUsableTick } from 'src/utils/nearestUsableTick'
+import { TickMath } from 'src/utils/tickMath'
+import { Pool } from 'src/entities/pool'
+import { encodeSqrtRatioX96 } from 'src/utils/encodeSqrtRatioX96'
 import JSBI from 'jsbi'
-import { NEGATIVE_ONE } from '../internalConstants'
+import { NEGATIVE_ONE } from 'src/internalConstants'
 
 const ONE_ETHER = JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(18))
 

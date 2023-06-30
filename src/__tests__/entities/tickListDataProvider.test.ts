@@ -1,5 +1,5 @@
 import JSBI from 'jsbi'
-import { TickListDataProvider } from './tickListDataProvider'
+import { TickListDataProvider } from 'src/entities/tickListDataProvider'
 
 describe('TickListDataProvider', () => {
   describe('constructor', () => {

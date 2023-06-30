@@ -1,4 +1,4 @@
-import { isSorted } from './isSorted'
+import { isSorted } from 'src/utils/isSorted'
 
 describe('#isSorted', () => {
   it('empty list', () => {

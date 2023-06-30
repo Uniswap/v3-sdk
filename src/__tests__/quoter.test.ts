@@ -1,9 +1,9 @@
 import JSBI from 'jsbi'
 import { CurrencyAmount, Token, TradeType, WETH9 } from '@uniswap/sdk-core'
-import { FeeAmount, TICK_SPACINGS } from './constants'
-import { SwapQuoter } from './quoter'
-import { nearestUsableTick, encodeSqrtRatioX96, TickMath } from './utils'
-import { Route, Trade, Pool } from './entities'
+import { FeeAmount, TICK_SPACINGS } from 'src/constants'
+import { SwapQuoter } from 'src/quoter'
+import { nearestUsableTick, encodeSqrtRatioX96, TickMath } from 'src/utils'
+import { Route, Trade, Pool } from 'src/entities'
 
 describe('SwapQuoter', () => {
   const token0 = new Token(1, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')

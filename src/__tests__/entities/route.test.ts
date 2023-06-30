@@ -1,9 +1,9 @@
 import { Ether, Token, WETH9 } from '@uniswap/sdk-core'
-import { FeeAmount } from '../constants'
-import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
-import { TickMath } from '../utils/tickMath'
-import { Pool } from './pool'
-import { Route } from './route'
+import { FeeAmount } from 'src/constants'
+import { encodeSqrtRatioX96 } from 'src/utils/encodeSqrtRatioX96'
+import { TickMath } from 'src/utils/tickMath'
+import { Pool } from 'src/entities/pool'
+import { Route } from 'src/entities/route'
 
 describe('Route', () => {
   const ETHER = Ether.onChain(1)

@@ -1,11 +1,11 @@
 import { Percent, Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { FeeAmount, TICK_SPACINGS } from '../constants'
-import { encodeSqrtRatioX96 } from '../utils/encodeSqrtRatioX96'
-import { nearestUsableTick } from '../utils/nearestUsableTick'
-import { TickMath } from '../utils/tickMath'
-import { Pool } from './pool'
-import { Position } from './position'
+import { FeeAmount, TICK_SPACINGS } from 'src/constants'
+import { encodeSqrtRatioX96 } from 'src/utils/encodeSqrtRatioX96'
+import { nearestUsableTick } from 'src/utils/nearestUsableTick'
+import { TickMath } from 'src/utils/tickMath'
+import { Pool } from 'src/entities/pool'
+import { Position } from 'src/entities/position'
 
 describe('Position', () => {
   const USDC = new Token(1, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD Coin')

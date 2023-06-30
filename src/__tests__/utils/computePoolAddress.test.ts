@@ -1,6 +1,6 @@
 import { Token } from '@uniswap/sdk-core'
-import { FeeAmount } from '../constants'
-import { computePoolAddress } from './computePoolAddress'
+import { FeeAmount } from 'src/constants'
+import { computePoolAddress } from 'src/utils/computePoolAddress'
 
 describe('#computePoolAddress', () => {
   const factoryAddress = '0x1111111111111111111111111111111111111111'

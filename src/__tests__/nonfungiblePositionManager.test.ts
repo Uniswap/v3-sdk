@@ -1,9 +1,9 @@
 import { Percent, Token, CurrencyAmount, WETH9, Ether } from '@uniswap/sdk-core'
-import { FeeAmount, TICK_SPACINGS } from './constants'
-import { Pool } from './entities/pool'
-import { Position } from './entities/position'
-import { NonfungiblePositionManager } from './nonfungiblePositionManager'
-import { encodeSqrtRatioX96 } from './utils/encodeSqrtRatioX96'
+import { FeeAmount, TICK_SPACINGS } from 'src/constants'
+import { Pool } from 'src/entities/pool'
+import { Position } from 'src/entities/position'
+import { NonfungiblePositionManager } from 'src/nonfungiblePositionManager'
+import { encodeSqrtRatioX96 } from 'src/utils/encodeSqrtRatioX96'
 
 describe('NonfungiblePositionManager', () => {
   const token0 = new Token(1, '0x0000000000000000000000000000000000000001', 18, 't0', 'token0')

@@ -1,4 +1,4 @@
-import { POOL_INIT_CODE_HASH } from './constants'
+import { POOL_INIT_CODE_HASH } from 'src/constants'
 
 import IUniswapV3Pool from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
 import { keccak256 } from '@ethersproject/solidity'
