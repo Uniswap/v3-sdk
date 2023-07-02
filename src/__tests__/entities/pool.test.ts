@@ -1,4 +1,4 @@
-import { Token, CurrencyAmount, WETH9 } from '@uniswap/sdk-core'
+import { Token, WETH9, CurrencyAmount } from '@uniswap/sdk-core'
 import { FeeAmount, TICK_SPACINGS } from 'src/constants'
 import { nearestUsableTick } from 'src/utils/nearestUsableTick'
 import { TickMath } from 'src/utils/tickMath'
@@ -196,7 +196,6 @@ describe('Pool', () => {
         expect(outputAmount.currency.equals(DAI)).toBe(true)
         expect(outputAmount.quotient).toEqual(JSBI.BigInt(98))
       })
-
       it('DAI -> USDC', async () => {
         const inputAmount = CurrencyAmount.fromRawAmount(DAI, 100)
         const [outputAmount] = await pool.getOutputAmount(inputAmount)

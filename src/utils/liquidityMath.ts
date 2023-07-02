@@ -1,5 +1,5 @@
 import JSBI from 'jsbi'
-import { NEGATIVE_ONE, ZERO } from '../internalConstants'
+import { bigIntFromBigintIsh } from './bigintIsh'
 
 export abstract class LiquidityMath {
   /**
@@ -7,11 +7,21 @@ export abstract class LiquidityMath {
    */
   private constructor() {}
 
-  public static addDelta(x: JSBI, y: JSBI): JSBI {
-    if (JSBI.lessThan(y, ZERO)) {
-      return JSBI.subtract(x, JSBI.multiply(y, NEGATIVE_ONE))
+  public static addDelta<T extends bigint | JSBI>(_x: T, _y: T): T {
+    const x = bigIntFromBigintIsh(_x)
+    const y = bigIntFromBigintIsh(_y)
+
+    let returnValue: bigint
+    if (y < 0n) {
+      returnValue = x - y * -1n
     } else {
-      return JSBI.add(x, y)
+      returnValue = x + y
+    }
+
+    if (typeof _x === 'bigint') {
+      return returnValue as T
+    } else {
+      return JSBI.BigInt(returnValue.toString(10)) as T
     }
   }
 }

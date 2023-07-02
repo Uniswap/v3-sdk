@@ -7,10 +7,8 @@ import {
   Currency,
   NativeCurrency,
 } from '@uniswap/sdk-core'
-import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { Position } from './entities/position'
-import { ONE, ZERO } from './internalConstants'
 import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import INonfungiblePositionManager from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
@@ -20,7 +18,7 @@ import { Pool } from './entities'
 import { Multicall } from './multicall'
 import { Payments } from './payments'
 
-const MaxUint128 = toHex(JSBI.subtract(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)), JSBI.BigInt(1)))
+const MaxUint128 = `0x${(2n ** 128n - 1n).toString(16)}`
 
 export interface MintSpecificOptions {
   /**
@@ -197,12 +195,12 @@ export abstract class NonfungiblePositionManager {
   }
 
   public static addCallParameters(position: Position, options: AddLiquidityOptions): MethodParameters {
-    invariant(JSBI.greaterThan(position.liquidity, ZERO), 'ZERO_LIQUIDITY')
+    invariant(position._liquidity > 0n, 'ZERO_LIQUIDITY')
 
     const calldatas: string[] = []
 
     // get amounts
-    const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmounts
+    const { amount0: amount0Desired, amount1: amount1Desired } = position.mintAmountsBigInt
 
     // adjust for slippage
     const minimumAmounts = position.mintAmountsWithSlippage(options.slippageTolerance)
@@ -270,7 +268,7 @@ export abstract class NonfungiblePositionManager {
       const wrappedValue = position.pool.token0.equals(wrapped) ? amount0Desired : amount1Desired
 
       // we only need to refund if we're actually sending ETH
-      if (JSBI.greaterThan(wrappedValue, ZERO)) {
+      if (wrappedValue > 0n) {
         calldatas.push(Payments.encodeRefundETH())
       }
 
@@ -351,7 +349,7 @@ export abstract class NonfungiblePositionManager {
       tickLower: position.tickLower,
       tickUpper: position.tickUpper,
     })
-    invariant(JSBI.greaterThan(partialPosition.liquidity, ZERO), 'ZERO_LIQUIDITY')
+    invariant(partialPosition._liquidity > 0n, 'ZERO_LIQUIDITY')
 
     // slippage-adjusted underlying amounts
     const { amount0: amount0Min, amount1: amount1Min } = partialPosition.burnAmountsWithSlippage(
@@ -399,7 +397,7 @@ export abstract class NonfungiblePositionManager {
       })
     )
 
-    if (options.liquidityPercentage.equalTo(ONE)) {
+    if (options.liquidityPercentage.equalTo(1n)) {
       if (options.burnToken) {
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [tokenId]))
       }

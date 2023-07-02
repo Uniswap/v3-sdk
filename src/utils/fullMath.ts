@@ -1,5 +1,5 @@
 import JSBI from 'jsbi'
-import { ONE, ZERO } from '../internalConstants'
+import { bigIntFromBigintIsh } from './bigintIsh'
 
 export abstract class FullMath {
   /**
@@ -7,10 +7,21 @@ export abstract class FullMath {
    */
   private constructor() {}
 
-  public static mulDivRoundingUp(a: JSBI, b: JSBI, denominator: JSBI): JSBI {
-    const product = JSBI.multiply(a, b)
-    let result = JSBI.divide(product, denominator)
-    if (JSBI.notEqual(JSBI.remainder(product, denominator), ZERO)) result = JSBI.add(result, ONE)
-    return result
+  public static mulDivRoundingUp<T extends bigint | JSBI>(_a: T, _b: T, _denominator: T): T {
+    const a = bigIntFromBigintIsh(_a)
+    const b = bigIntFromBigintIsh(_b)
+    const denominator = bigIntFromBigintIsh(_denominator)
+
+    const product = a * b
+    let result = product / denominator
+    if (product % denominator !== 0n) {
+      result = result + 1n
+    }
+
+    if (typeof _a === 'bigint') {
+      return result as T
+    } else {
+      return JSBI.BigInt(result.toString(10)) as T
+    }
   }
 }

@@ -1,7 +1,5 @@
-import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { Tick } from '../entities/tick'
-import { ZERO } from '../internalConstants'
 import { isSorted } from './isSorted'
 
 function tickComparator(a: Tick, b: Tick) {
@@ -26,13 +24,7 @@ export abstract class TickList {
     )
 
     // ensure tick liquidity deltas sum to 0
-    invariant(
-      JSBI.equal(
-        ticks.reduce((accumulator, { liquidityNet }) => JSBI.add(accumulator, liquidityNet), ZERO),
-        ZERO
-      ),
-      'ZERO_NET'
-    )
+    invariant(ticks.reduce((accumulator, { _liquidityNet }) => accumulator + _liquidityNet, 0n) === 0n, 'ZERO_NET')
 
     invariant(isSorted(ticks, tickComparator), 'SORTED')
   }

@@ -1,6 +1,7 @@
 import { BigintIsh } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
-import { Q96 } from '../internalConstants'
+import { Q96_BIGINT } from '../internalConstants'
+import { bigIntFromBigintIsh } from './bigintIsh'
 
 /**
  * Returns an imprecise maximum amount of liquidity received for a given amount of token 0.
@@ -13,12 +14,27 @@ import { Q96 } from '../internalConstants'
  * @param amount0 The token0 amount
  * @returns liquidity for amount0, imprecise
  */
-function maxLiquidityForAmount0Imprecise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
-  if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
+function maxLiquidityForAmount0Imprecise<T extends bigint | JSBI>(
+  _sqrtRatioAX96: T,
+  _sqrtRatioBX96: T,
+  _amount0: BigintIsh
+): T {
+  let sqrtRatioAX96 = bigIntFromBigintIsh(_sqrtRatioAX96)
+  let sqrtRatioBX96 = bigIntFromBigintIsh(_sqrtRatioBX96)
+  const amount0 = bigIntFromBigintIsh(_amount0)
+
+  if (sqrtRatioAX96 > sqrtRatioBX96) {
     ;[sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]
   }
-  const intermediate = JSBI.divide(JSBI.multiply(sqrtRatioAX96, sqrtRatioBX96), Q96)
-  return JSBI.divide(JSBI.multiply(JSBI.BigInt(amount0), intermediate), JSBI.subtract(sqrtRatioBX96, sqrtRatioAX96))
+  const intermediate = (sqrtRatioAX96 * sqrtRatioBX96) / Q96_BIGINT
+
+  const returnValue = (amount0 * intermediate) / (sqrtRatioBX96 - sqrtRatioAX96)
+
+  if (typeof _sqrtRatioAX96 === 'bigint') {
+    return returnValue as T
+  } else {
+    return JSBI.BigInt(returnValue.toString(10)) as T
+  }
 }
 
 /**
@@ -29,15 +45,29 @@ function maxLiquidityForAmount0Imprecise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSB
  * @param amount0 The token0 amount
  * @returns liquidity for amount0, precise
  */
-function maxLiquidityForAmount0Precise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount0: BigintIsh): JSBI {
-  if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
+function maxLiquidityForAmount0Precise<T extends bigint | JSBI>(
+  _sqrtRatioAX96: T,
+  _sqrtRatioBX96: T,
+  _amount0: BigintIsh
+): T {
+  let sqrtRatioAX96 = bigIntFromBigintIsh(_sqrtRatioAX96)
+  let sqrtRatioBX96 = bigIntFromBigintIsh(_sqrtRatioBX96)
+  const amount0 = bigIntFromBigintIsh(_amount0)
+
+  if (sqrtRatioAX96 > sqrtRatioBX96) {
     ;[sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]
   }
 
-  const numerator = JSBI.multiply(JSBI.multiply(JSBI.BigInt(amount0), sqrtRatioAX96), sqrtRatioBX96)
-  const denominator = JSBI.multiply(Q96, JSBI.subtract(sqrtRatioBX96, sqrtRatioAX96))
+  const numerator = amount0 * sqrtRatioAX96 * sqrtRatioBX96
+  const denominator = Q96_BIGINT * (sqrtRatioBX96 - sqrtRatioAX96)
 
-  return JSBI.divide(numerator, denominator)
+  const returnValue = numerator / denominator
+
+  if (typeof _sqrtRatioAX96 === 'bigint') {
+    return returnValue as T
+  } else {
+    return JSBI.BigInt(returnValue.toString(10)) as T
+  }
 }
 
 /**
@@ -47,11 +77,21 @@ function maxLiquidityForAmount0Precise(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI,
  * @param amount1 The token1 amount
  * @returns liquidity for amount1
  */
-function maxLiquidityForAmount1(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount1: BigintIsh): JSBI {
-  if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
+function maxLiquidityForAmount1<T extends bigint | JSBI>(_sqrtRatioAX96: T, _sqrtRatioBX96: T, _amount1: BigintIsh): T {
+  let sqrtRatioAX96 = bigIntFromBigintIsh(_sqrtRatioAX96)
+  let sqrtRatioBX96 = bigIntFromBigintIsh(_sqrtRatioBX96)
+  const amount1 = bigIntFromBigintIsh(_amount1)
+
+  if (sqrtRatioAX96 > sqrtRatioBX96) {
     ;[sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]
   }
-  return JSBI.divide(JSBI.multiply(JSBI.BigInt(amount1), Q96), JSBI.subtract(sqrtRatioBX96, sqrtRatioAX96))
+  const returnValue = (amount1 * Q96_BIGINT) / (sqrtRatioBX96 - sqrtRatioAX96)
+
+  if (typeof _sqrtRatioAX96 === 'bigint') {
+    return returnValue as T
+  } else {
+    return JSBI.BigInt(returnValue.toString(10)) as T
+  }
 }
 
 /**
@@ -65,27 +105,40 @@ function maxLiquidityForAmount1(sqrtRatioAX96: JSBI, sqrtRatioBX96: JSBI, amount
  * @param useFullPrecision if false, liquidity will be maximized according to what the router can calculate,
  * not what core can theoretically support
  */
-export function maxLiquidityForAmounts(
-  sqrtRatioCurrentX96: JSBI,
-  sqrtRatioAX96: JSBI,
-  sqrtRatioBX96: JSBI,
-  amount0: BigintIsh,
-  amount1: BigintIsh,
+export function maxLiquidityForAmounts<T extends bigint | JSBI>(
+  _sqrtRatioCurrentX96: T,
+  _sqrtRatioAX96: T,
+  _sqrtRatioBX96: T,
+  _amount0: BigintIsh,
+  _amount1: BigintIsh,
   useFullPrecision: boolean
-): JSBI {
-  if (JSBI.greaterThan(sqrtRatioAX96, sqrtRatioBX96)) {
+): T {
+  const sqrtRatioCurrentX96 = bigIntFromBigintIsh(_sqrtRatioCurrentX96)
+  let sqrtRatioAX96 = bigIntFromBigintIsh(_sqrtRatioAX96)
+  let sqrtRatioBX96 = bigIntFromBigintIsh(_sqrtRatioBX96)
+  const amount0 = bigIntFromBigintIsh(_amount0)
+  const amount1 = bigIntFromBigintIsh(_amount1)
+
+  if (sqrtRatioAX96 > sqrtRatioBX96) {
     ;[sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]
   }
 
   const maxLiquidityForAmount0 = useFullPrecision ? maxLiquidityForAmount0Precise : maxLiquidityForAmount0Imprecise
 
-  if (JSBI.lessThanOrEqual(sqrtRatioCurrentX96, sqrtRatioAX96)) {
-    return maxLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, amount0)
-  } else if (JSBI.lessThan(sqrtRatioCurrentX96, sqrtRatioBX96)) {
+  let returnValue: bigint
+  if (sqrtRatioCurrentX96 <= sqrtRatioAX96) {
+    returnValue = maxLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, amount0)
+  } else if (sqrtRatioCurrentX96 < sqrtRatioBX96) {
     const liquidity0 = maxLiquidityForAmount0(sqrtRatioCurrentX96, sqrtRatioBX96, amount0)
     const liquidity1 = maxLiquidityForAmount1(sqrtRatioAX96, sqrtRatioCurrentX96, amount1)
-    return JSBI.lessThan(liquidity0, liquidity1) ? liquidity0 : liquidity1
+    returnValue = liquidity0 < liquidity1 ? liquidity0 : liquidity1
   } else {
-    return maxLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, amount1)
+    returnValue = maxLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, amount1)
+  }
+
+  if (typeof _sqrtRatioCurrentX96 === 'bigint') {
+    return returnValue as T
+  } else {
+    return JSBI.BigInt(returnValue.toString(10)) as T
   }
 }
