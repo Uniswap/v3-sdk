@@ -1,0 +1,576 @@
+{
+  "poolName": "SHIB - WETH 500",
+  "tokenA": {
+    "chainId": 1,
+    "address": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+    "decimals": 18
+  },
+  "tokenB": {
+    "chainId": 1,
+    "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "decimals": 18
+  },
+  "fee": 500,
+  "liquidity": "32391504326547460469621",
+  "sqrtRatioX96": "4978602236714915775648950",
+  "tickCurrent": -193509,
+  "ticks": [
+    {
+      "index": -286230,
+      "liquidityNet": "16577780792160432511",
+      "liquidityGross": "16577780792160432511"
+    },
+    {
+      "index": -233120,
+      "liquidityNet": "975770712391583144379",
+      "liquidityGross": "975770712391583144379"
+    },
+    {
+      "index": -207240,
+      "liquidityNet": "6601393608435415407533",
+      "liquidityGross": "6601393608435415407533"
+    },
+    {
+      "index": -200310,
+      "liquidityNet": "22788814099344550056038",
+      "liquidityGross": "22788814099344550056038"
+    },
+    {
+      "index": -198080,
+      "liquidityNet": "2008948125583751429160",
+      "liquidityGross": "2008948125583751429160"
+    },
+    {
+      "index": -191150,
+      "liquidityNet": "-24797762224928301485198",
+      "liquidityGross": "24797762224928301485198"
+    },
+    {
+      "index": -189360,
+      "liquidityNet": "261273839969392937085901",
+      "liquidityGross": "261273839969392937085901"
+    },
+    {
+      "index": -189340,
+      "liquidityNet": "-261273839969392937085901",
+      "liquidityGross": "261273839969392937085901"
+    },
+    {
+      "index": -102020,
+      "liquidityNet": "-16577780792160432511",
+      "liquidityGross": "16577780792160432511"
+    },
+    {
+      "index": 0,
+      "liquidityNet": "-6601393608435415407533",
+      "liquidityGross": "6601393608435415407533"
+    },
+    {
+      "index": 887270,
+      "liquidityNet": "-975770712391583144379",
+      "liquidityGross": "975770712391583144379"
+    }
+  ],
+  "tests": [
+    {
+      "amountSpecified": "117350431656501874192202144",
+      "exactInput": true,
+      "expectedAmountCalculated": "377299588209436553"
+    },
+    {
+      "amountSpecified": "36794539395776636242588422",
+      "exactInput": true,
+      "expectedAmountCalculated": "135547826251688006"
+    },
+    {
+      "amountSpecified": "53637373686389011642777328",
+      "exactInput": true,
+      "expectedAmountCalculated": "191750114653803747"
+    },
+    {
+      "amountSpecified": "129320455737730973103636784",
+      "exactInput": true,
+      "expectedAmountCalculated": "408069410447948511"
+    },
+    {
+      "amountSpecified": "89168342530649932950145616",
+      "exactInput": true,
+      "expectedAmountCalculated": "300046732740058163"
+    },
+    {
+      "amountSpecified": "122612845947615405498088512",
+      "exactInput": true,
+      "expectedAmountCalculated": "390969153565286859"
+    },
+    {
+      "amountSpecified": "132750622708852577411248048",
+      "exactInput": true,
+      "expectedAmountCalculated": "416677480938519174"
+    },
+    {
+      "amountSpecified": "148795497537203002468326336",
+      "exactInput": true,
+      "expectedAmountCalculated": "455697724390294046"
+    },
+    {
+      "amountSpecified": "147606069381713152150207728",
+      "exactInput": true,
+      "expectedAmountCalculated": "452874061068105656"
+    },
+    {
+      "amountSpecified": "53582813394780046661730556",
+      "exactInput": true,
+      "expectedAmountCalculated": "191573422987656737"
+    },
+    {
+      "amountSpecified": "166728085268246872342449056",
+      "exactInput": true,
+      "expectedAmountCalculated": "497001611985998664"
+    },
+    {
+      "amountSpecified": "175591859944278821801039744",
+      "exactInput": true,
+      "expectedAmountCalculated": "516577226800803923"
+    },
+    {
+      "amountSpecified": "107735804184027825778499536",
+      "exactInput": true,
+      "expectedAmountCalculated": "351728834678519919"
+    },
+    {
+      "amountSpecified": "51630488384678626709665217",
+      "exactInput": true,
+      "expectedAmountCalculated": "185228519847336025"
+    },
+    {
+      "amountSpecified": "21340479446373968418071326",
+      "exactInput": true,
+      "expectedAmountCalculated": "80878613969202705"
+    },
+    {
+      "amountSpecified": "67983767112448642326894176",
+      "exactInput": true,
+      "expectedAmountCalculated": "237064187529208104"
+    },
+    {
+      "amountSpecified": "120070703376352223060683376",
+      "exactInput": true,
+      "expectedAmountCalculated": "384393976497450678"
+    },
+    {
+      "amountSpecified": "29995828787974520729377596",
+      "exactInput": true,
+      "expectedAmountCalculated": "111878629354779498"
+    },
+    {
+      "amountSpecified": "148179435729677587976390859",
+      "exactInput": true,
+      "expectedAmountCalculated": "454236558388242569"
+    },
+    {
+      "amountSpecified": "3669081205020770706022336",
+      "exactInput": true,
+      "expectedAmountCalculated": "14378613797988019"
+    },
+    {
+      "amountSpecified": "134965323722947721995066336",
+      "exactInput": true,
+      "expectedAmountCalculated": "422185526299807575"
+    },
+    {
+      "amountSpecified": "15532331073853075255692586",
+      "exactInput": true,
+      "expectedAmountCalculated": "59509793751076873"
+    },
+    {
+      "amountSpecified": "48158559486411181559561017",
+      "exactInput": true,
+      "expectedAmountCalculated": "173836482677814075"
+    },
+    {
+      "amountSpecified": "127434353679887573735657248",
+      "exactInput": true,
+      "expectedAmountCalculated": "403297063040988044"
+    },
+    {
+      "amountSpecified": "100623227177996370557009349",
+      "exactInput": true,
+      "expectedAmountCalculated": "332299080595067582"
+    },
+    {
+      "amountSpecified": "96157946481061620546813264",
+      "exactInput": true,
+      "expectedAmountCalculated": "319870261767086731"
+    },
+    {
+      "amountSpecified": "6084641585666770102294700",
+      "exactInput": true,
+      "expectedAmountCalculated": "23734473590548376"
+    },
+    {
+      "amountSpecified": "51471641790265678923487493",
+      "exactInput": true,
+      "expectedAmountCalculated": "184710359383548670"
+    },
+    {
+      "amountSpecified": "95953522206784405316034864",
+      "exactInput": true,
+      "expectedAmountCalculated": "319296916195510888"
+    },
+    {
+      "amountSpecified": "46928230223168905044278314",
+      "exactInput": true,
+      "expectedAmountCalculated": "169765808418883632"
+    },
+    {
+      "amountSpecified": "162206738002352002368247616",
+      "exactInput": true,
+      "expectedAmountCalculated": "486806654086133806"
+    },
+    {
+      "amountSpecified": "70074948376717999333028992",
+      "exactInput": true,
+      "expectedAmountCalculated": "243483988055566863"
+    },
+    {
+      "amountSpecified": "99670747157275841643100384",
+      "exactInput": true,
+      "expectedAmountCalculated": "329663047629788117"
+    },
+    {
+      "amountSpecified": "70144575558086623631739390",
+      "exactInput": true,
+      "expectedAmountCalculated": "243696950953345599"
+    },
+    {
+      "amountSpecified": "41602771931112892352051156",
+      "exactInput": true,
+      "expectedAmountCalculated": "151938708113883316"
+    },
+    {
+      "amountSpecified": "11535300137775193174610252",
+      "exactInput": true,
+      "expectedAmountCalculated": "44530805581651019"
+    },
+    {
+      "amountSpecified": "50231418586875041962361227",
+      "exactInput": true,
+      "expectedAmountCalculated": "180654727930974003"
+    },
+    {
+      "amountSpecified": "98265665779725369612347920",
+      "exactInput": true,
+      "expectedAmountCalculated": "325759488024078554"
+    },
+    {
+      "amountSpecified": "172670563581074325897651856",
+      "exactInput": true,
+      "expectedAmountCalculated": "510184701069745186"
+    },
+    {
+      "amountSpecified": "102035808040168472802375552",
+      "exactInput": true,
+      "expectedAmountCalculated": "336193497359991557"
+    },
+    {
+      "amountSpecified": "81914308257519454786445024",
+      "exactInput": true,
+      "expectedAmountCalculated": "278982911762538620"
+    },
+    {
+      "amountSpecified": "85730704797625106851807760",
+      "exactInput": true,
+      "expectedAmountCalculated": "290128068753012216"
+    },
+    {
+      "amountSpecified": "39891178362697652332170425",
+      "exactInput": true,
+      "expectedAmountCalculated": "146136540465463306"
+    },
+    {
+      "amountSpecified": "57530898888095196279762992",
+      "exactInput": true,
+      "expectedAmountCalculated": "204272325136913144"
+    },
+    {
+      "amountSpecified": "6078798146492302811528336",
+      "exactInput": true,
+      "expectedAmountCalculated": "23711945514393241"
+    },
+    {
+      "amountSpecified": "69515933248968118677591154",
+      "exactInput": true,
+      "expectedAmountCalculated": "241772338140351912"
+    },
+    {
+      "amountSpecified": "42335472532141170393642144",
+      "exactInput": true,
+      "expectedAmountCalculated": "154411626621539525"
+    },
+    {
+      "amountSpecified": "99457798582259531364510528",
+      "exactInput": true,
+      "expectedAmountCalculated": "329072586021986223"
+    },
+    {
+      "amountSpecified": "171889155522293485435608080",
+      "exactInput": true,
+      "expectedAmountCalculated": "508465005820484539"
+    },
+    {
+      "amountSpecified": "145794506702276669578973136",
+      "exactInput": true,
+      "expectedAmountCalculated": "448552698973660036"
+    },
+    {
+      "amountSpecified": "365420879995407666",
+      "exactInput": false,
+      "expectedAmountCalculated": "112847407341361223724414710"
+    },
+    {
+      "amountSpecified": "316285468321073424",
+      "exactInput": false,
+      "expectedAmountCalculated": "94882040367125781643928601"
+    },
+    {
+      "amountSpecified": "706082698897491826",
+      "exactInput": false,
+      "expectedAmountCalculated": "382890537843740233739716216"
+    },
+    {
+      "amountSpecified": "200667359402801911",
+      "exactInput": false,
+      "expectedAmountCalculated": "56404560863932141879862195"
+    },
+    {
+      "amountSpecified": "92808890899142581",
+      "exactInput": false,
+      "expectedAmountCalculated": "24638770154064681263989767"
+    },
+    {
+      "amountSpecified": "336901140972141248",
+      "exactInput": false,
+      "expectedAmountCalculated": "102293179613115497824772742"
+    },
+    {
+      "amountSpecified": "366663325983845370",
+      "exactInput": false,
+      "expectedAmountCalculated": "113315396383392480491171198"
+    },
+    {
+      "amountSpecified": "468117107096679050",
+      "exactInput": false,
+      "expectedAmountCalculated": "154081349358005961255919536"
+    },
+    {
+      "amountSpecified": "623135779956238118",
+      "exactInput": false,
+      "expectedAmountCalculated": "231409777571550236824253129"
+    },
+    {
+      "amountSpecified": "430851449118517928",
+      "exactInput": false,
+      "expectedAmountCalculated": "138482593851704619704836675"
+    },
+    {
+      "amountSpecified": "291153110084621628",
+      "exactInput": false,
+      "expectedAmountCalculated": "86084155055249589934948089"
+    },
+    {
+      "amountSpecified": "9939849414955509",
+      "exactInput": false,
+      "expectedAmountCalculated": "2530855421268274396538564"
+    },
+    {
+      "amountSpecified": "536641305636854210",
+      "exactInput": false,
+      "expectedAmountCalculated": "184934343807845995865344224"
+    },
+    {
+      "amountSpecified": "287024959792594174",
+      "exactInput": false,
+      "expectedAmountCalculated": "84663230725295318709358578"
+    },
+    {
+      "amountSpecified": "325012840779529808",
+      "exactInput": false,
+      "expectedAmountCalculated": "97997641714727331274374195"
+    },
+    {
+      "amountSpecified": "400527314484740976",
+      "exactInput": false,
+      "expectedAmountCalculated": "126344757966985464486869506"
+    },
+    {
+      "amountSpecified": "245022362829082754",
+      "exactInput": false,
+      "expectedAmountCalculated": "70578284844379656668637107"
+    },
+    {
+      "amountSpecified": "95334073652228385",
+      "exactInput": false,
+      "expectedAmountCalculated": "25342093588501617033139420"
+    },
+    {
+      "amountSpecified": "603992112495893635",
+      "exactInput": false,
+      "expectedAmountCalculated": "219305812597241757587908145"
+    },
+    {
+      "amountSpecified": "695679665393226400",
+      "exactInput": false,
+      "expectedAmountCalculated": "330103333337388350147140324"
+    },
+    {
+      "amountSpecified": "169430391461762516",
+      "exactInput": false,
+      "expectedAmountCalculated": "46827092462287848194315597"
+    },
+    {
+      "amountSpecified": "720515231032444426",
+      "exactInput": false,
+      "expectedAmountCalculated": "382890537843740233739716216"
+    },
+    {
+      "amountSpecified": "458619679802252372",
+      "exactInput": false,
+      "expectedAmountCalculated": "150031119872096402171587921"
+    },
+    {
+      "amountSpecified": "512638552627085250",
+      "exactInput": false,
+      "expectedAmountCalculated": "173788834783430092238407479"
+    },
+    {
+      "amountSpecified": "215580110640466006",
+      "exactInput": false,
+      "expectedAmountCalculated": "61092862372703603379801826"
+    },
+    {
+      "amountSpecified": "578059589985058506",
+      "exactInput": false,
+      "expectedAmountCalculated": "205097850344439027916362012"
+    },
+    {
+      "amountSpecified": "464422662536489794",
+      "exactInput": false,
+      "expectedAmountCalculated": "152499616309419510284518760"
+    },
+    {
+      "amountSpecified": "244236147228803414",
+      "exactInput": false,
+      "expectedAmountCalculated": "70320937178353880017087735"
+    },
+    {
+      "amountSpecified": "117316819635759245",
+      "exactInput": false,
+      "expectedAmountCalculated": "31543041051742423875144471"
+    },
+    {
+      "amountSpecified": "496509951405576208",
+      "exactInput": false,
+      "expectedAmountCalculated": "166508568596926115003068315"
+    },
+    {
+      "amountSpecified": "240523324631898497",
+      "exactInput": false,
+      "expectedAmountCalculated": "69108685392859673376981933"
+    },
+    {
+      "amountSpecified": "734047114584648110",
+      "exactInput": false,
+      "expectedAmountCalculated": "382890537843740233739716216"
+    },
+    {
+      "amountSpecified": "394099441648151302",
+      "exactInput": false,
+      "expectedAmountCalculated": "123830256977102030671257792"
+    },
+    {
+      "amountSpecified": "505266377670126942",
+      "exactInput": false,
+      "expectedAmountCalculated": "170440738613836871423845206"
+    },
+    {
+      "amountSpecified": "505934906261262092",
+      "exactInput": false,
+      "expectedAmountCalculated": "170742928714692386612976844"
+    },
+    {
+      "amountSpecified": "554930257679618958",
+      "exactInput": false,
+      "expectedAmountCalculated": "193686934813706975742005394"
+    },
+    {
+      "amountSpecified": "121424196392847305",
+      "exactInput": false,
+      "expectedAmountCalculated": "32717453281222586999548991"
+    },
+    {
+      "amountSpecified": "21835031603379347",
+      "exactInput": false,
+      "expectedAmountCalculated": "5592414559995562606999828"
+    },
+    {
+      "amountSpecified": "396392952218872056",
+      "exactInput": false,
+      "expectedAmountCalculated": "124725185657311033945662526"
+    },
+    {
+      "amountSpecified": "456690069954687178",
+      "exactInput": false,
+      "expectedAmountCalculated": "149214588070372665383256238"
+    },
+    {
+      "amountSpecified": "513775706809963896",
+      "exactInput": false,
+      "expectedAmountCalculated": "174308369001290961243997455"
+    },
+    {
+      "amountSpecified": "10867521365258033",
+      "exactInput": false,
+      "expectedAmountCalculated": "2768324424217237242723651"
+    },
+    {
+      "amountSpecified": "591222129398354822",
+      "exactInput": false,
+      "expectedAmountCalculated": "212025634172112274729372467"
+    },
+    {
+      "amountSpecified": "310104624885031636",
+      "exactInput": false,
+      "expectedAmountCalculated": "92694595182144590386343283"
+    },
+    {
+      "amountSpecified": "266220116584667310",
+      "exactInput": false,
+      "expectedAmountCalculated": "77603046823889699774332449"
+    },
+    {
+      "amountSpecified": "516758032649071564",
+      "exactInput": false,
+      "expectedAmountCalculated": "175674868689298965770445024"
+    },
+    {
+      "amountSpecified": "734481937826377456",
+      "exactInput": false,
+      "expectedAmountCalculated": "382890537843740233739716216"
+    },
+    {
+      "amountSpecified": "283643165373389304",
+      "exactInput": false,
+      "expectedAmountCalculated": "83504194963434296074411707"
+    },
+    {
+      "amountSpecified": "329003723925267898",
+      "exactInput": false,
+      "expectedAmountCalculated": "99432973226377543662239589"
+    },
+    {
+      "amountSpecified": "289048950348645902",
+      "exactInput": false,
+      "expectedAmountCalculated": "85359056245368372822842037"
+    }
+  ]
+}

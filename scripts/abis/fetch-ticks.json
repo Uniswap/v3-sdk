@@ -1,0 +1,180 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "zeroWordsOnEdges",
+        "type": "uint16"
+      }
+    ],
+    "name": "getPoolData",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "int16",
+            "name": "minWord",
+            "type": "int16"
+          },
+          {
+            "internalType": "int16",
+            "name": "maxWord",
+            "type": "int16"
+          },
+          {
+            "internalType": "int24",
+            "name": "currentTick",
+            "type": "int24"
+          },
+          {
+            "internalType": "int24",
+            "name": "tickSpacing",
+            "type": "int24"
+          },
+          {
+            "internalType": "uint24",
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "internalType": "uint160",
+            "name": "sqrtPriceX96",
+            "type": "uint160"
+          },
+          {
+            "internalType": "uint128",
+            "name": "liquidity",
+            "type": "uint128"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "tokenAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "uint8",
+                "name": "decimals",
+                "type": "uint8"
+              },
+              {
+                "internalType": "string",
+                "name": "symbol",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct FetchUniswapTicksV5.PopulatedTicksResultToken",
+            "name": "token0",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "tokenAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "uint8",
+                "name": "decimals",
+                "type": "uint8"
+              },
+              {
+                "internalType": "string",
+                "name": "symbol",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct FetchUniswapTicksV5.PopulatedTicksResultToken",
+            "name": "token1",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "int24",
+                "name": "tick",
+                "type": "int24"
+              },
+              {
+                "internalType": "int128",
+                "name": "liquidityNet",
+                "type": "int128"
+              },
+              {
+                "internalType": "uint128",
+                "name": "liquidityGross",
+                "type": "uint128"
+              }
+            ],
+            "internalType": "struct ITickLens.PopulatedTick[][]",
+            "name": "allTicks",
+            "type": "tuple[][]"
+          }
+        ],
+        "internalType": "struct FetchUniswapTicksV5.PopulatedTicksResult",
+        "name": "result",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pool",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "zeroWordsOnEdges",
+        "type": "uint16"
+      }
+    ],
+    "name": "getPoolTickRange",
+    "outputs": [
+      {
+        "internalType": "int16",
+        "name": "minWord",
+        "type": "int16"
+      },
+      {
+        "internalType": "int16",
+        "name": "maxWord",
+        "type": "int16"
+      },
+      {
+        "internalType": "int24",
+        "name": "currentTick",
+        "type": "int24"
+      },
+      {
+        "internalType": "int24",
+        "name": "tickSpacing",
+        "type": "int24"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  }
+]

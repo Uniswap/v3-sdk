@@ -1,0 +1,1071 @@
+{
+  "poolName": "USDC - USDT 100",
+  "tokenA": {
+    "chainId": 1,
+    "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "decimals": 6
+  },
+  "tokenB": {
+    "chainId": 1,
+    "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "decimals": 6
+  },
+  "fee": 100,
+  "liquidity": "322564773212036051",
+  "sqrtRatioX96": "79234941334917143306414271079",
+  "tickCurrent": 1,
+  "ticks": [
+    {
+      "index": -887272,
+      "liquidityNet": "21501874394",
+      "liquidityGross": "21501874394"
+    },
+    {
+      "index": -92109,
+      "liquidityNet": "15090395",
+      "liquidityGross": "15090395"
+    },
+    {
+      "index": -69082,
+      "liquidityNet": "10836954",
+      "liquidityGross": "10836954"
+    },
+    {
+      "index": -23028,
+      "liquidityNet": "15811602770",
+      "liquidityGross": "15811602770"
+    },
+    {
+      "index": -12502,
+      "liquidityNet": "3289565163",
+      "liquidityGross": "3289565163"
+    },
+    {
+      "index": -9164,
+      "liquidityNet": "-15811602770",
+      "liquidityGross": "15811602770"
+    },
+    {
+      "index": -1626,
+      "liquidityNet": "13277338584",
+      "liquidityGross": "13277338584"
+    },
+    {
+      "index": -492,
+      "liquidityNet": "535269421298",
+      "liquidityGross": "535269421298"
+    },
+    {
+      "index": -490,
+      "liquidityNet": "-535269421298",
+      "liquidityGross": "535269421298"
+    },
+    {
+      "index": -488,
+      "liquidityNet": "-10836954",
+      "liquidityGross": "10836954"
+    },
+    {
+      "index": -296,
+      "liquidityNet": "38647527064",
+      "liquidityGross": "38647527064"
+    },
+    {
+      "index": -203,
+      "liquidityNet": "1554107998427",
+      "liquidityGross": "1554107998427"
+    },
+    {
+      "index": -162,
+      "liquidityNet": "8532710072160",
+      "liquidityGross": "8532710072160"
+    },
+    {
+      "index": -105,
+      "liquidityNet": "3381762057401",
+      "liquidityGross": "3381762057401"
+    },
+    {
+      "index": -102,
+      "liquidityNet": "3401248542803",
+      "liquidityGross": "3401248542803"
+    },
+    {
+      "index": -101,
+      "liquidityNet": "-5510928517765",
+      "liquidityGross": "11554491626555"
+    },
+    {
+      "index": -100,
+      "liquidityNet": "89179463",
+      "liquidityGross": "89179463"
+    },
+    {
+      "index": -98,
+      "liquidityNet": "7691293177",
+      "liquidityGross": "7691293177"
+    },
+    {
+      "index": -77,
+      "liquidityNet": "2009741",
+      "liquidityGross": "2009741"
+    },
+    {
+      "index": -55,
+      "liquidityNet": "1984511767671",
+      "liquidityGross": "1984511767671"
+    },
+    {
+      "index": -51,
+      "liquidityNet": "1667992655480",
+      "liquidityGross": "1667992655480"
+    },
+    {
+      "index": -50,
+      "liquidityNet": "2886857740953",
+      "liquidityGross": "2886857740953"
+    },
+    {
+      "index": -49,
+      "liquidityNet": "8232418560141",
+      "liquidityGross": "8232418560141"
+    },
+    {
+      "index": -44,
+      "liquidityNet": "282776802323",
+      "liquidityGross": "282776802323"
+    },
+    {
+      "index": -41,
+      "liquidityNet": "6656168833",
+      "liquidityGross": "6656168833"
+    },
+    {
+      "index": -38,
+      "liquidityNet": "3494709585741",
+      "liquidityGross": "3494709585741"
+    },
+    {
+      "index": -36,
+      "liquidityNet": "21329472506",
+      "liquidityGross": "21329472506"
+    },
+    {
+      "index": -33,
+      "liquidityNet": "31359188923285",
+      "liquidityGross": "31359188923285"
+    },
+    {
+      "index": -32,
+      "liquidityNet": "2466012341184",
+      "liquidityGross": "2466012341184"
+    },
+    {
+      "index": -31,
+      "liquidityNet": "24697252465",
+      "liquidityGross": "24697252465"
+    },
+    {
+      "index": -30,
+      "liquidityNet": "30678732038222",
+      "liquidityGross": "30678732038222"
+    },
+    {
+      "index": -29,
+      "liquidityNet": "253117554576056",
+      "liquidityGross": "253117554576056"
+    },
+    {
+      "index": -27,
+      "liquidityNet": "512682451",
+      "liquidityGross": "512682451"
+    },
+    {
+      "index": -26,
+      "liquidityNet": "18524526717276",
+      "liquidityGross": "18524526717276"
+    },
+    {
+      "index": -24,
+      "liquidityNet": "616340389472",
+      "liquidityGross": "616340389472"
+    },
+    {
+      "index": -23,
+      "liquidityNet": "318712660322513",
+      "liquidityGross": "318712660322513"
+    },
+    {
+      "index": -22,
+      "liquidityNet": "-29353938060129",
+      "liquidityGross": "33364439786441"
+    },
+    {
+      "index": -21,
+      "liquidityNet": "4658464619528",
+      "liquidityGross": "4671776957194"
+    },
+    {
+      "index": -20,
+      "liquidityNet": "254356244365968",
+      "liquidityGross": "254356244365968"
+    },
+    {
+      "index": -19,
+      "liquidityNet": "17062568645117",
+      "liquidityGross": "17062568645117"
+    },
+    {
+      "index": -18,
+      "liquidityNet": "987884056477377",
+      "liquidityGross": "987908720979571"
+    },
+    {
+      "index": -17,
+      "liquidityNet": "3433515561177",
+      "liquidityGross": "3433515561177"
+    },
+    {
+      "index": -16,
+      "liquidityNet": "19641506844497007",
+      "liquidityGross": "19648514258111307"
+    },
+    {
+      "index": -15,
+      "liquidityNet": "109305911842500",
+      "liquidityGross": "109305911842500"
+    },
+    {
+      "index": -14,
+      "liquidityNet": "1240760544187501",
+      "liquidityGross": "1240760544187501"
+    },
+    {
+      "index": -13,
+      "liquidityNet": "1066103759278916",
+      "liquidityGross": "1066103759278916"
+    },
+    {
+      "index": -12,
+      "liquidityNet": "5574866736559963",
+      "liquidityGross": "5574866736559963"
+    },
+    {
+      "index": -11,
+      "liquidityNet": "390128784187761",
+      "liquidityGross": "390128784187761"
+    },
+    {
+      "index": -10,
+      "liquidityNet": "1645844640315220",
+      "liquidityGross": "1645844640315220"
+    },
+    {
+      "index": -9,
+      "liquidityNet": "8988893586857",
+      "liquidityGross": "8988893586857"
+    },
+    {
+      "index": -8,
+      "liquidityNet": "1954116799328704",
+      "liquidityGross": "1954116799328704"
+    },
+    {
+      "index": -7,
+      "liquidityNet": "322008576633303",
+      "liquidityGross": "322008576633303"
+    },
+    {
+      "index": -6,
+      "liquidityNet": "9114032631242196",
+      "liquidityGross": "9114032631242196"
+    },
+    {
+      "index": -5,
+      "liquidityNet": "1833874297947038",
+      "liquidityGross": "1834074362954412"
+    },
+    {
+      "index": -4,
+      "liquidityNet": "7793586924463290",
+      "liquidityGross": "7828242995820718"
+    },
+    {
+      "index": -3,
+      "liquidityNet": "21036151454139478",
+      "liquidityGross": "21491026185633352"
+    },
+    {
+      "index": -2,
+      "liquidityNet": "12608030158935555",
+      "liquidityGross": "13374157218882859"
+    },
+    {
+      "index": -1,
+      "liquidityNet": "81183462720038",
+      "liquidityGross": "13170543697554968"
+    },
+    {
+      "index": 0,
+      "liquidityNet": "-11525234498617269",
+      "liquidityGross": "22387612022276945"
+    },
+    {
+      "index": 1,
+      "liquidityNet": "247745955487151376",
+      "liquidityGross": "289276715292882164"
+    },
+    {
+      "index": 2,
+      "liquidityNet": "-197236556799501529",
+      "liquidityGross": "331121322023637313"
+    },
+    {
+      "index": 3,
+      "liquidityNet": "-96123531063782450",
+      "liquidityGross": "96123533818302008"
+    },
+    {
+      "index": 4,
+      "liquidityNet": "-60143393184518",
+      "liquidityGross": "60154820201126"
+    },
+    {
+      "index": 5,
+      "liquidityNet": "-87331699989704",
+      "liquidityGross": "89931595688116"
+    },
+    {
+      "index": 6,
+      "liquidityNet": "-908142556384773",
+      "liquidityGross": "908142556384773"
+    },
+    {
+      "index": 7,
+      "liquidityNet": "-1515522606371431",
+      "liquidityGross": "1517163101320297"
+    },
+    {
+      "index": 8,
+      "liquidityNet": "-4637148339381965",
+      "liquidityGross": "4637148339381965"
+    },
+    {
+      "index": 9,
+      "liquidityNet": "-136369038775435",
+      "liquidityGross": "136372892732379"
+    },
+    {
+      "index": 10,
+      "liquidityNet": "-728635526864005",
+      "liquidityGross": "728635526864005"
+    },
+    {
+      "index": 11,
+      "liquidityNet": "-14760838119437",
+      "liquidityGross": "14783009318875"
+    },
+    {
+      "index": 12,
+      "liquidityNet": "-322873020565551",
+      "liquidityGross": "324898305629661"
+    },
+    {
+      "index": 13,
+      "liquidityNet": "-279958297345",
+      "liquidityGross": "279958297345"
+    },
+    {
+      "index": 14,
+      "liquidityNet": "-45115982299175",
+      "liquidityGross": "45115982299175"
+    },
+    {
+      "index": 15,
+      "liquidityNet": "-19582872879102365",
+      "liquidityGross": "19582872879102365"
+    },
+    {
+      "index": 16,
+      "liquidityNet": "-680722190517",
+      "liquidityGross": "680722190517"
+    },
+    {
+      "index": 17,
+      "liquidityNet": "-413653212713022",
+      "liquidityGross": "413653212713022"
+    },
+    {
+      "index": 18,
+      "liquidityNet": "-249748037503529",
+      "liquidityGross": "249748037503529"
+    },
+    {
+      "index": 19,
+      "liquidityNet": "-3813819660317",
+      "liquidityGross": "3814125373495"
+    },
+    {
+      "index": 20,
+      "liquidityNet": "-1654884460675",
+      "liquidityGross": "1654884460675"
+    },
+    {
+      "index": 21,
+      "liquidityNet": "-22726459045699",
+      "liquidityGross": "22726459045699"
+    },
+    {
+      "index": 22,
+      "liquidityNet": "-264654057572406",
+      "liquidityGross": "264654057572406"
+    },
+    {
+      "index": 23,
+      "liquidityNet": "-1043427989359",
+      "liquidityGross": "1043427989359"
+    },
+    {
+      "index": 24,
+      "liquidityNet": "-54086676599596",
+      "liquidityGross": "54086676599596"
+    },
+    {
+      "index": 25,
+      "liquidityNet": "-31240248249272",
+      "liquidityGross": "31240248249272"
+    },
+    {
+      "index": 26,
+      "liquidityNet": "-88810856164189",
+      "liquidityGross": "88810856164189"
+    },
+    {
+      "index": 29,
+      "liquidityNet": "-2725162457",
+      "liquidityGross": "2725162457"
+    },
+    {
+      "index": 30,
+      "liquidityNet": "-4875835772144",
+      "liquidityGross": "4875835772144"
+    },
+    {
+      "index": 33,
+      "liquidityNet": "-797024325197",
+      "liquidityGross": "797024325197"
+    },
+    {
+      "index": 34,
+      "liquidityNet": "394587415327",
+      "liquidityGross": "394587415327"
+    },
+    {
+      "index": 37,
+      "liquidityNet": "-1012642532055",
+      "liquidityGross": "1012642532055"
+    },
+    {
+      "index": 42,
+      "liquidityNet": "-2466012341184",
+      "liquidityGross": "2466012341184"
+    },
+    {
+      "index": 44,
+      "liquidityNet": "-8232418560141",
+      "liquidityGross": "8232418560141"
+    },
+    {
+      "index": 45,
+      "liquidityNet": "-1984511767671",
+      "liquidityGross": "1984511767671"
+    },
+    {
+      "index": 49,
+      "liquidityNet": "-2556467064846",
+      "liquidityGross": "2556467064846"
+    },
+    {
+      "index": 50,
+      "liquidityNet": "-3021781554395",
+      "liquidityGross": "3021781554395"
+    },
+    {
+      "index": 51,
+      "liquidityNet": "-3381762057401",
+      "liquidityGross": "3381762057401"
+    },
+    {
+      "index": 59,
+      "liquidityNet": "-394587415327",
+      "liquidityGross": "394587415327"
+    },
+    {
+      "index": 92,
+      "liquidityNet": "-3197243830835",
+      "liquidityGross": "3197243830835"
+    },
+    {
+      "index": 95,
+      "liquidityNet": "-20032",
+      "liquidityGross": "20032"
+    },
+    {
+      "index": 99,
+      "liquidityNet": "-204004711968",
+      "liquidityGross": "204004711968"
+    },
+    {
+      "index": 100,
+      "liquidityNet": "-7780472640",
+      "liquidityGross": "7780472640"
+    },
+    {
+      "index": 198,
+      "liquidityNet": "-1554107998427",
+      "liquidityGross": "1554107998427"
+    },
+    {
+      "index": 304,
+      "liquidityNet": "-38647527064",
+      "liquidityGross": "38647527064"
+    },
+    {
+      "index": 1020,
+      "liquidityNet": "-6055691053",
+      "liquidityGross": "6055691053"
+    },
+    {
+      "index": 1408,
+      "liquidityNet": "-13277338584",
+      "liquidityGross": "13277338584"
+    },
+    {
+      "index": 9169,
+      "liquidityNet": "-3289565163",
+      "liquidityGross": "3289565163"
+    },
+    {
+      "index": 23027,
+      "liquidityNet": "107977567",
+      "liquidityGross": "107977567"
+    },
+    {
+      "index": 29958,
+      "liquidityNet": "-107977567",
+      "liquidityGross": "107977567"
+    },
+    {
+      "index": 89527,
+      "liquidityNet": "-15090395",
+      "liquidityGross": "15090395"
+    },
+    {
+      "index": 887272,
+      "liquidityNet": "-21503884135",
+      "liquidityGross": "21503884135"
+    }
+  ],
+  "tests": [
+    {
+      "amountSpecified": "9300814510743",
+      "exactInput": true,
+      "expectedAmountCalculated": "9301207720837"
+    },
+    {
+      "amountSpecified": "20728753059416",
+      "exactInput": true,
+      "expectedAmountCalculated": "20728069615574"
+    },
+    {
+      "amountSpecified": "23540663214495",
+      "exactInput": true,
+      "expectedAmountCalculated": "23539247649280"
+    },
+    {
+      "amountSpecified": "7846477548357",
+      "exactInput": true,
+      "expectedAmountCalculated": "7846844650791"
+    },
+    {
+      "amountSpecified": "24741684490886",
+      "exactInput": true,
+      "expectedAmountCalculated": "24739898775260"
+    },
+    {
+      "amountSpecified": "2715334414765",
+      "exactInput": true,
+      "expectedAmountCalculated": "2715504648153"
+    },
+    {
+      "amountSpecified": "4236983920437",
+      "exactInput": true,
+      "expectedAmountCalculated": "4237229563098"
+    },
+    {
+      "amountSpecified": "15158146885342",
+      "exactInput": true,
+      "expectedAmountCalculated": "15158372908343"
+    },
+    {
+      "amountSpecified": "15893553911109",
+      "exactInput": true,
+      "expectedAmountCalculated": "15893701047836"
+    },
+    {
+      "amountSpecified": "19303983327891",
+      "exactInput": true,
+      "expectedAmountCalculated": "19303600896916"
+    },
+    {
+      "amountSpecified": "13330470003862",
+      "exactInput": true,
+      "expectedAmountCalculated": "13330831541147"
+    },
+    {
+      "amountSpecified": "23732973646810",
+      "exactInput": true,
+      "expectedAmountCalculated": "23731501316403"
+    },
+    {
+      "amountSpecified": "18241814035615",
+      "exactInput": true,
+      "expectedAmountCalculated": "18241625416062"
+    },
+    {
+      "amountSpecified": "12791562608923",
+      "exactInput": true,
+      "expectedAmountCalculated": "12791947060153"
+    },
+    {
+      "amountSpecified": "6033833961249",
+      "exactInput": true,
+      "expectedAmountCalculated": "6034150165422"
+    },
+    {
+      "amountSpecified": "14060985646624",
+      "exactInput": true,
+      "expectedAmountCalculated": "14061303730112"
+    },
+    {
+      "amountSpecified": "13450711510705",
+      "exactInput": true,
+      "expectedAmountCalculated": "13451066876216"
+    },
+    {
+      "amountSpecified": "22545797466437",
+      "exactInput": true,
+      "expectedAmountCalculated": "22544661875430"
+    },
+    {
+      "amountSpecified": "9189914992953",
+      "exactInput": true,
+      "expectedAmountCalculated": "9190306674094"
+    },
+    {
+      "amountSpecified": "6039358995760",
+      "exactInput": true,
+      "expectedAmountCalculated": "6039675386027"
+    },
+    {
+      "amountSpecified": "20205504707964",
+      "exactInput": true,
+      "expectedAmountCalculated": "20204937277625"
+    },
+    {
+      "amountSpecified": "15859435142918",
+      "exactInput": true,
+      "expectedAmountCalculated": "15859586216817"
+    },
+    {
+      "amountSpecified": "10917643746557",
+      "exactInput": true,
+      "expectedAmountCalculated": "10918050587808"
+    },
+    {
+      "amountSpecified": "13346767997526",
+      "exactInput": true,
+      "expectedAmountCalculated": "13347128720905"
+    },
+    {
+      "amountSpecified": "5842076430297",
+      "exactInput": true,
+      "expectedAmountCalculated": "5842386058433"
+    },
+    {
+      "amountSpecified": "10998940003877",
+      "exactInput": true,
+      "expectedAmountCalculated": "10999347102557"
+    },
+    {
+      "amountSpecified": "14140507828280",
+      "exactInput": true,
+      "expectedAmountCalculated": "14140820320657"
+    },
+    {
+      "amountSpecified": "18433892672990",
+      "exactInput": true,
+      "expectedAmountCalculated": "18433670940281"
+    },
+    {
+      "amountSpecified": "14573127175236",
+      "exactInput": true,
+      "expectedAmountCalculated": "14573406289818"
+    },
+    {
+      "amountSpecified": "20335952023489",
+      "exactInput": true,
+      "expectedAmountCalculated": "20335356264421"
+    },
+    {
+      "amountSpecified": "3657530833099",
+      "exactInput": true,
+      "expectedAmountCalculated": "3657749452060"
+    },
+    {
+      "amountSpecified": "23720713941956",
+      "exactInput": true,
+      "expectedAmountCalculated": "23719245255881"
+    },
+    {
+      "amountSpecified": "18074057904791",
+      "exactInput": true,
+      "expectedAmountCalculated": "18073897506444"
+    },
+    {
+      "amountSpecified": "6296830280549",
+      "exactInput": true,
+      "expectedAmountCalculated": "6297155133011"
+    },
+    {
+      "amountSpecified": "18555020671363",
+      "exactInput": true,
+      "expectedAmountCalculated": "18554777617698"
+    },
+    {
+      "amountSpecified": "16593207900596",
+      "exactInput": true,
+      "expectedAmountCalculated": "16593268355537"
+    },
+    {
+      "amountSpecified": "3360035660414",
+      "exactInput": true,
+      "expectedAmountCalculated": "3360239596413"
+    },
+    {
+      "amountSpecified": "18750462996227",
+      "exactInput": true,
+      "expectedAmountCalculated": "18750184824457"
+    },
+    {
+      "amountSpecified": "10718210787826",
+      "exactInput": true,
+      "expectedAmountCalculated": "10718616824002"
+    },
+    {
+      "amountSpecified": "11499194761119",
+      "exactInput": true,
+      "expectedAmountCalculated": "11499602533649"
+    },
+    {
+      "amountSpecified": "4739433193925",
+      "exactInput": true,
+      "expectedAmountCalculated": "4739700583817"
+    },
+    {
+      "amountSpecified": "3252626395342",
+      "exactInput": true,
+      "expectedAmountCalculated": "3252824895295"
+    },
+    {
+      "amountSpecified": "6959506965132",
+      "exactInput": true,
+      "expectedAmountCalculated": "6959851707153"
+    },
+    {
+      "amountSpecified": "7465482637085",
+      "exactInput": true,
+      "expectedAmountCalculated": "7465840732308"
+    },
+    {
+      "amountSpecified": "23316705157448",
+      "exactInput": true,
+      "expectedAmountCalculated": "23315354618804"
+    },
+    {
+      "amountSpecified": "11658855509439",
+      "exactInput": true,
+      "expectedAmountCalculated": "11659262817813"
+    },
+    {
+      "amountSpecified": "25205681581993",
+      "exactInput": true,
+      "expectedAmountCalculated": "25203742450679"
+    },
+    {
+      "amountSpecified": "8460206240309",
+      "exactInput": true,
+      "expectedAmountCalculated": "8460585959497"
+    },
+    {
+      "amountSpecified": "1343542550361",
+      "exactInput": true,
+      "expectedAmountCalculated": "1343632495553"
+    },
+    {
+      "amountSpecified": "9086311756550",
+      "exactInput": true,
+      "expectedAmountCalculated": "9086701940438"
+    },
+    {
+      "amountSpecified": "28636496561324",
+      "exactInput": false,
+      "expectedAmountCalculated": "28639759494303"
+    },
+    {
+      "amountSpecified": "44873076897907",
+      "exactInput": false,
+      "expectedAmountCalculated": "44890215408872"
+    },
+    {
+      "amountSpecified": "24136874935735",
+      "exactInput": false,
+      "expectedAmountCalculated": "24138469940427"
+    },
+    {
+      "amountSpecified": "46086909165336",
+      "exactInput": false,
+      "expectedAmountCalculated": "46105773558230"
+    },
+    {
+      "amountSpecified": "12224739860689",
+      "exactInput": false,
+      "expectedAmountCalculated": "12224339676590"
+    },
+    {
+      "amountSpecified": "35710067722296",
+      "exactInput": false,
+      "expectedAmountCalculated": "35717532722920"
+    },
+    {
+      "amountSpecified": "24246013370808",
+      "exactInput": false,
+      "expectedAmountCalculated": "24247642159245"
+    },
+    {
+      "amountSpecified": "45560547162085",
+      "exactInput": false,
+      "expectedAmountCalculated": "45578647440871"
+    },
+    {
+      "amountSpecified": "7693953902688",
+      "exactInput": false,
+      "expectedAmountCalculated": "7693590306590"
+    },
+    {
+      "amountSpecified": "30472271787352",
+      "exactInput": false,
+      "expectedAmountCalculated": "30476411290835"
+    },
+    {
+      "amountSpecified": "28841550717791",
+      "exactInput": false,
+      "expectedAmountCalculated": "28844905166275"
+    },
+    {
+      "amountSpecified": "23339186483536",
+      "exactInput": false,
+      "expectedAmountCalculated": "23340543888516"
+    },
+    {
+      "amountSpecified": "32404768459883",
+      "exactInput": false,
+      "expectedAmountCalculated": "32409985279654"
+    },
+    {
+      "amountSpecified": "26575429358984",
+      "exactInput": false,
+      "expectedAmountCalculated": "26577856373349"
+    },
+    {
+      "amountSpecified": "42443000940977",
+      "exactInput": false,
+      "expectedAmountCalculated": "42457036768906"
+    },
+    {
+      "amountSpecified": "15909065605307",
+      "exactInput": false,
+      "expectedAmountCalculated": "15908920250600"
+    },
+    {
+      "amountSpecified": "38609776280514",
+      "exactInput": false,
+      "expectedAmountCalculated": "38619722647218"
+    },
+    {
+      "amountSpecified": "19894731175537",
+      "exactInput": false,
+      "expectedAmountCalculated": "19895232809950"
+    },
+    {
+      "amountSpecified": "33569821978444",
+      "exactInput": false,
+      "expectedAmountCalculated": "33575770176591"
+    },
+    {
+      "amountSpecified": "7185628875486",
+      "exactInput": false,
+      "expectedAmountCalculated": "7185277979023"
+    },
+    {
+      "amountSpecified": "10145137676368",
+      "exactInput": false,
+      "expectedAmountCalculated": "10144735329278"
+    },
+    {
+      "amountSpecified": "39556744415985",
+      "exactInput": false,
+      "expectedAmountCalculated": "39567613601265"
+    },
+    {
+      "amountSpecified": "13528403376613",
+      "exactInput": false,
+      "expectedAmountCalculated": "13528052185071"
+    },
+    {
+      "amountSpecified": "29238862524772",
+      "exactInput": false,
+      "expectedAmountCalculated": "29242398844384"
+    },
+    {
+      "amountSpecified": "28884358655956",
+      "exactInput": false,
+      "expectedAmountCalculated": "28887732411361"
+    },
+    {
+      "amountSpecified": "7432578577742",
+      "exactInput": false,
+      "expectedAmountCalculated": "7432221311575"
+    },
+    {
+      "amountSpecified": "20802949470329",
+      "exactInput": false,
+      "expectedAmountCalculated": "20803650039303"
+    },
+    {
+      "amountSpecified": "10477631366064",
+      "exactInput": false,
+      "expectedAmountCalculated": "10477226631715"
+    },
+    {
+      "amountSpecified": "11921732322882",
+      "exactInput": false,
+      "expectedAmountCalculated": "11921327258345"
+    },
+    {
+      "amountSpecified": "38460467978811",
+      "exactInput": false,
+      "expectedAmountCalculated": "38470274031760"
+    },
+    {
+      "amountSpecified": "2455296609426",
+      "exactInput": false,
+      "expectedAmountCalculated": "2455140707955"
+    },
+    {
+      "amountSpecified": "19144857664426",
+      "exactInput": false,
+      "expectedAmountCalculated": "19145209463658"
+    },
+    {
+      "amountSpecified": "7475732522044",
+      "exactInput": false,
+      "expectedAmountCalculated": "7475374181592"
+    },
+    {
+      "amountSpecified": "7043248297926",
+      "exactInput": false,
+      "expectedAmountCalculated": "7042901245796"
+    },
+    {
+      "amountSpecified": "32387743149735",
+      "exactInput": false,
+      "expectedAmountCalculated": "32392949750124"
+    },
+    {
+      "amountSpecified": "6397345156610",
+      "exactInput": false,
+      "expectedAmountCalculated": "6397017122438"
+    },
+    {
+      "amountSpecified": "24692064830243",
+      "exactInput": false,
+      "expectedAmountCalculated": "24693835057302"
+    },
+    {
+      "amountSpecified": "41650467378312",
+      "exactInput": false,
+      "expectedAmountCalculated": "41663579279398"
+    },
+    {
+      "amountSpecified": "1849183106277",
+      "exactInput": false,
+      "expectedAmountCalculated": "1849062216380"
+    },
+    {
+      "amountSpecified": "4694639688023",
+      "exactInput": false,
+      "expectedAmountCalculated": "4694374184501"
+    },
+    {
+      "amountSpecified": "36840645882928",
+      "exactInput": false,
+      "expectedAmountCalculated": "36849018371418"
+    },
+    {
+      "amountSpecified": "10265546380511",
+      "exactInput": false,
+      "expectedAmountCalculated": "10265143089739"
+    },
+    {
+      "amountSpecified": "31703649057023",
+      "exactInput": false,
+      "expectedAmountCalculated": "31708455745517"
+    },
+    {
+      "amountSpecified": "21790702258882",
+      "exactInput": false,
+      "expectedAmountCalculated": "21791640899738"
+    },
+    {
+      "amountSpecified": "6728740212909",
+      "exactInput": false,
+      "expectedAmountCalculated": "6728402098060"
+    },
+    {
+      "amountSpecified": "22895481207595",
+      "exactInput": false,
+      "expectedAmountCalculated": "22896712934568"
+    },
+    {
+      "amountSpecified": "24598749396770",
+      "exactInput": false,
+      "expectedAmountCalculated": "24600489587321"
+    },
+    {
+      "amountSpecified": "23660549129589",
+      "exactInput": false,
+      "expectedAmountCalculated": "23662000410704"
+    },
+    {
+      "amountSpecified": "28551686686046",
+      "exactInput": false,
+      "expectedAmountCalculated": "28554912235932"
+    },
+    {
+      "amountSpecified": "43975633957492",
+      "exactInput": false,
+      "expectedAmountCalculated": "43991576597559"
+    }
+  ]
+}
