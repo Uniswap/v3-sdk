@@ -1,10 +1,11 @@
 import { Interface } from '@ethersproject/abi'
-import { BigintIsh, Currency, CurrencyAmount, Percent, TradeType, validateAndParseAddress } from '@uniswap/sdk-core'
+import { Signer } from '@ethersproject/abstract-signer'
+import { BigintIsh, Currency, CurrencyAmount, Percent, TradeType, validateAndParseAddress, SUPPORTED_CHAINS, CHAIN_TO_ADDRESSES_MAP } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { Trade } from './entities/trade'
 import { ADDRESS_ZERO } from './constants'
 import { PermitOptions, SelfPermit } from './selfPermit'
-import { encodeRouteToPath } from './utils'
+import { approveTokenTransfer, encodeRouteToPath, getAllowance } from './utils'
 import { MethodParameters, toHex } from './utils/calldata'
 import ISwapRouter from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
 import { Multicall } from './multicall'
@@ -54,7 +55,7 @@ export abstract class SwapRouter {
   /**
    * Cannot be constructed.
    */
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Produces the on-chain method name to call and the hex encoded parameters to pass as arguments for a given trade.
@@ -208,5 +209,77 @@ export abstract class SwapRouter {
       calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(totalValue.quotient),
     }
+  }
+
+  /**
+   * Utility function that creates calldata for Trades with swapCallParameters and directly calls the function using a given Signer.
+   * @param trades to produce call parameters for
+   * @param options for the call parameters
+   * @param signer to sign the transaction
+   */
+  public static async executeTrade (
+    trades: Trade<Currency, Currency, TradeType> | Trade<Currency, Currency, TradeType>[],
+    options: SwapOptions,
+    signer: Signer
+  ): Promise<void> {
+    const methodParameters = this.swapCallParameters(trades, options)
+
+    if (!Array.isArray(trades)) {
+      trades = [trades]
+    }
+    const firstTrade = trades[0]
+    const tokenIn = firstTrade.inputAmount.currency.wrapped
+
+    const chainId = tokenIn.chainId
+    const chain = SUPPORTED_CHAINS[chainId]
+
+    invariant(chain !== undefined, 'Unsupported Chain')
+
+    const contractAddresses = CHAIN_TO_ADDRESSES_MAP[chain]
+    const routerAddress = contractAddresses.swapRouter02Address
+
+    invariant(routerAddress !== undefined, 'Router not deployed on requested Chain')
+
+    const signerAddress = await signer.getAddress()    
+    const inputIsNative = firstTrade.inputAmount.currency.isNative
+
+    if (inputIsNative === false && !options.inputTokenPermit) {
+      const provider = signer.provider
+
+      invariant(provider !== undefined, 'No provider')
+
+      const allowance = await getAllowance(
+        routerAddress,
+        tokenIn.address,
+        signerAddress,
+        provider
+      )
+      const maxAmountIn = BigInt(firstTrade.maximumAmountIn(new Percent(0, 1)).toFixed(0))
+
+      if (allowance < maxAmountIn) {
+        await approveTokenTransfer(
+          routerAddress,
+          tokenIn.address,
+          maxAmountIn,
+          signer
+        )
+      }
+    }
+
+    const tx = {
+      data: methodParameters.calldata,
+      to: routerAddress,
+      value: methodParameters.value,
+      from: signerAddress
+    }
+
+    await signer.sendTransaction(tx)
+  }
+
+  /**
+   * TODO: Utility Function that abstracts away Trade.
+   */
+  public static async swap(
+  ): Promise<void> {
   }
 }
