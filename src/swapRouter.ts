@@ -10,6 +10,9 @@ import { MethodParameters, toHex } from './utils/calldata'
 import ISwapRouter from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
 import { Multicall } from './multicall'
 import { FeeOptions, Payments } from './payments'
+import { Pool } from './entities/pool'
+import { Route } from './entities/route'
+import { SwapQuoter } from './quoter'
 
 /**
  * Options for producing the arguments to send calls to the router.
@@ -217,11 +220,20 @@ export abstract class SwapRouter {
    * @param options for the call parameters
    * @param signer to sign the transaction
    */
-  public static async executeTrade (
+  public static async executeTrade(
     trades: Trade<Currency, Currency, TradeType> | Trade<Currency, Currency, TradeType>[],
-    options: SwapOptions,
+    options: SwapOptions | undefined,
     signer: Signer
   ): Promise<void> {
+
+    if (options === undefined) {
+      options = {
+        slippageTolerance: new Percent(50, 10_000),
+        deadline: Math.floor(Date.now() / 1000) + 60 * 5, // 5 minutes from the current Unix time
+        recipient: await signer.getAddress(),
+      }
+    }
+
     const methodParameters = this.swapCallParameters(trades, options)
 
     if (!Array.isArray(trades)) {
@@ -240,7 +252,7 @@ export abstract class SwapRouter {
 
     invariant(routerAddress !== undefined, 'Router not deployed on requested Chain')
 
-    const signerAddress = await signer.getAddress()    
+    const signerAddress = await signer.getAddress()
     const inputIsNative = firstTrade.inputAmount.currency.isNative
 
     if (inputIsNative === false && !options.inputTokenPermit) {
@@ -277,9 +289,86 @@ export abstract class SwapRouter {
   }
 
   /**
-   * TODO: Utility Function that abstracts away Trade.
+   * Executes a swap on a Pool. Creates a Route and uses swapUsingRoutes internally. 
+   * Fetches the output amount from the SwapQuoter.
+   * @template TInput The input token, either Ether or an ERC-20
+   * @template TOutput The output token, either Ether or an ERC-20
+   * @param pool to execute the swap on.
+   * @param amount The Input amount for EXACT_IN trades, the Output amount for EXACT_OUT trades
+   * @param tradeType of the swap, either EXACT_IN or EXACT_OUT
+   * @param swapOptions Optional SwapOptions that define deadline, recipient and slippage of the trade
+   * @param signer to sign the transaction
    */
-  public static async swap(
-  ): Promise<void> {
+  public static async executeQuotedSwapOnPool<
+    TInput extends Currency,
+    TOutput extends Currency>(
+      pool: Pool,
+      amount: CurrencyAmount<TInput | TOutput>,
+      tradeType: TradeType,
+      swapOptions: SwapOptions | undefined,
+      signer: Signer
+    ): Promise<void> {
+    const secondCurrency = amount.currency.equals(pool.token0) ? pool.token1 : pool.token0
+
+    invariant((
+      secondCurrency.equals(pool.token0) && amount.currency.equals(pool.token1)
+    ) || (
+        secondCurrency.equals(pool.token1) && amount.currency.equals(pool.token0)
+      ), 'CurrencyAmount not matching Pool')
+
+    const { inputToken, outputToken } = tradeType === TradeType.EXACT_INPUT ?
+      { inputToken: amount.currency, outputToken: secondCurrency } :
+      { inputToken: secondCurrency, outputToken: amount.currency }
+
+    const tradeRoute = new Route(
+      [pool],
+      inputToken,
+      outputToken
+    )
+    await this.executeQuotedSwapUsingRoute(tradeRoute, amount, tradeType, swapOptions, signer)
   }
+
+  /**
+   * Executes trades along a route. Uses the SwapQuoter to quote the amounts.
+   * @template TInput The input token, either Ether or an ERC-20
+   * @template TOutput The output token, either Ether or an ERC-20
+   * @param route along which the trade is created
+   * @param amount The Input amount for EXACT_IN trades, the Output amount for EXACT_OUT trades
+   * @param tradeType of the swap, either EXACT_IN or EXACT_OUT
+   * @param swapOptions Optional SwapOptions that define deadline, recipient and slippage of the trade
+   * @param signer to sign the transaction
+   */
+  public static async executeQuotedSwapUsingRoute<
+    TInput extends Currency,
+    TOutput extends Currency
+  >(
+    route: Route<TInput, TOutput>,
+    amount: CurrencyAmount<TInput | TOutput>,
+    tradeType: TradeType,
+    swapOptions: SwapOptions | undefined,
+    signer: Signer
+  ): Promise<void> {
+
+    let inputAmount: CurrencyAmount<TInput>
+    let outputAmount: CurrencyAmount<TOutput>
+
+    let provider = signer.provider
+
+    invariant(provider !== undefined, 'Signer has no provider capability')
+
+    if (tradeType === TradeType.EXACT_INPUT) {
+      inputAmount = amount as CurrencyAmount<TInput>
+      outputAmount = await SwapQuoter.callQuoter(route, amount, tradeType, provider) as CurrencyAmount<TOutput>
+    } else {
+      outputAmount = amount as CurrencyAmount<TOutput>
+      inputAmount = await SwapQuoter.callQuoter(route, amount, tradeType, provider) as CurrencyAmount<TInput>
+    }
+
+    let trade = Trade.createUncheckedTrade({route, inputAmount, outputAmount, tradeType})
+
+    await this.executeTrade(trade, swapOptions, signer)    
+  }
+
+  // TODO: swap using Trade functions that require fully initialised Pools; Requires PoolContract feature.
+
 }
