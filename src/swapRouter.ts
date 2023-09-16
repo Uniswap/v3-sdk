@@ -1,5 +1,6 @@
 import { Interface } from '@ethersproject/abi'
 import { Signer } from '@ethersproject/abstract-signer'
+import { TransactionResponse } from '@ethersproject/providers'
 import { BigintIsh, Currency, CurrencyAmount, Percent, TradeType, validateAndParseAddress, SUPPORTED_CHAINS, CHAIN_TO_ADDRESSES_MAP } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { BestTradeOptions, Trade } from './entities/trade'
@@ -224,7 +225,7 @@ export abstract class SwapRouter {
     trades: Trade<Currency, Currency, TradeType> | Trade<Currency, Currency, TradeType>[],
     options: SwapOptions | undefined,
     signer: Signer
-  ): Promise<void> {
+  ): Promise<TransactionResponse> {
 
     if (options === undefined) {
       options = {
@@ -285,7 +286,7 @@ export abstract class SwapRouter {
       from: signerAddress
     }
 
-    await signer.sendTransaction(tx)
+    return signer.sendTransaction(tx)
   }
 
   /**
@@ -308,7 +309,7 @@ export abstract class SwapRouter {
       tradeType: TradeType,
       swapOptions: SwapOptions | undefined,
       signer: Signer
-    ): Promise<void> {
+    ): Promise<TransactionResponse> {
     const secondCurrency = amount.currency.equals(pool.token0) ? pool.token1 : pool.token0
 
     invariant((
@@ -326,7 +327,7 @@ export abstract class SwapRouter {
       inputToken,
       outputToken
     )
-    await this.executeQuotedSwapFromRoute(tradeRoute, amount, tradeType, swapOptions, signer)
+    return this.executeQuotedSwapFromRoute(tradeRoute, amount, tradeType, swapOptions, signer)
   }
 
   /**
@@ -348,7 +349,7 @@ export abstract class SwapRouter {
       tradeType: TradeType,
       swapOptions: SwapOptions | undefined,
       signer: Signer
-    ): Promise<void> {
+    ): Promise<TransactionResponse> {
 
     let inputAmount: CurrencyAmount<TInput>
     let outputAmount: CurrencyAmount<TOutput>
@@ -367,7 +368,7 @@ export abstract class SwapRouter {
 
     let trade = Trade.createUncheckedTrade({ route, inputAmount, outputAmount, tradeType })
 
-    await this.executeTrade(trade, swapOptions, signer)
+    return this.executeTrade(trade, swapOptions, signer)
   }
 
   /**
@@ -394,7 +395,7 @@ export abstract class SwapRouter {
       bestTradeOptions: BestTradeOptions | undefined,
       swapOptions: SwapOptions | undefined,
       signer: Signer
-    ): Promise<void> {
+    ): Promise<TransactionResponse> {
     if (bestTradeOptions === undefined) bestTradeOptions = { maxNumResults: 3, maxHops: 3 }
 
     // TODO: Fetch full tick data for pools without tickdata after merge
@@ -408,7 +409,7 @@ export abstract class SwapRouter {
 
     invariant(trades.length > 0, 'Could not find a trade route on given Pools')
 
-    await this.executeTrade(trades[0], swapOptions, signer)
+    return this.executeTrade(trades[0], swapOptions, signer)
   }
 
   /**
@@ -428,9 +429,9 @@ export abstract class SwapRouter {
       tradeType: TradeType,
       swapOptions: SwapOptions | undefined,
       signer: Signer
-  ): Promise<void> {
+  ): Promise<TransactionResponse> {
     let trade = await Trade.fromRoute(route, amount,tradeType)
 
-    await this.executeTrade(trade, swapOptions, signer)
+    return this.executeTrade(trade, swapOptions, signer)
   }
 }
