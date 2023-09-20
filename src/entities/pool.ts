@@ -1,4 +1,4 @@
-import { BigintIsh, CurrencyAmount, Price, Token } from '@uniswap/sdk-core'
+import { BigintIsh, CurrencyAmount, Price, Token, V3_CORE_FACTORY_ADDRESSES } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { FACTORY_ADDRESS, FeeAmount, TICK_SPACINGS } from '../constants'
@@ -11,6 +11,10 @@ import { Tick, TickConstructorArgs } from './tick'
 import { NoTickDataProvider, TickDataProvider } from './tickDataProvider'
 import { TickListDataProvider } from './tickListDataProvider'
 import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
+import { ethers } from 'ethers'
+import { RPCTickDataProvider } from './rpcTickDataProvider'
+import { abi as poolAbi } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
+import { abi as factoryAbi } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json'
 
 interface StepComputations {
   sqrtPriceStartX96: bigint
@@ -20,6 +24,34 @@ interface StepComputations {
   amountIn: bigint
   amountOut: bigint
   feeAmount: bigint
+}
+
+interface SnapshotCumulativeInside {
+  tickCumulativeInside: bigint
+  secondsPerLiquidityInsideX128: bigint
+  secondsInside: bigint
+}
+
+interface ObserveResponse {
+  tickCumulatives: bigint[]
+  secondsPerLiquidityCumulativeX128s: bigint[]
+}
+
+interface TransactionOverrides {
+  gasPrice?: BigInt
+  gasLimit?: BigInt
+  value?: BigInt
+  nonce?: BigInt
+}
+
+interface Slot0Response {
+  sqrtPriceX96: BigInt
+  tick: number
+  observationIndex: number
+  observationCardinality: number
+  observationCardinalityNext: number
+  feeProtocol: number
+  unlocked: boolean
 }
 
 /**
@@ -47,6 +79,8 @@ export class Pool {
 
   private _token0Price?: Price<Token, Token>
   private _token1Price?: Price<Token, Token>
+
+  private _provider?: ethers.providers.Provider
 
   public static getAddress(
     tokenA: Token,
@@ -81,9 +115,14 @@ export class Pool {
     sqrtRatioX96: BigintIsh,
     liquidity: BigintIsh,
     tickCurrent: number,
-    ticks: TickDataProvider | (Tick | TickConstructorArgs)[] = NO_TICK_DATA_PROVIDER_DEFAULT
+    _ticks?: TickDataProvider | (Tick | TickConstructorArgs)[],
+    provider?: ethers.providers.Provider
   ) {
     invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
+
+    const ticks = _ticks || NO_TICK_DATA_PROVIDER_DEFAULT
+
+    this._provider = provider
 
     const tickCurrentSqrtRatioX96 = TickMath.getSqrtRatioAtTickBigInt(tickCurrent)
     const nextTickSqrtRatioX96 = TickMath.getSqrtRatioAtTickBigInt(tickCurrent + 1)
@@ -99,6 +138,9 @@ export class Pool {
     this._liquidity = bigIntFromBigintIsh(liquidity)
     this.tickCurrent = tickCurrent
     this.tickDataProvider = Array.isArray(ticks) ? new TickListDataProvider(ticks, TICK_SPACINGS[fee]) : ticks
+    if (this.tickDataProvider instanceof NoTickDataProvider && this._provider) {
+      this.tickDataProvider = new RPCTickDataProvider(this._provider, Pool.getAddress(tokenA, tokenB, fee))
+    }
   }
 
   /**
@@ -322,5 +364,171 @@ export class Pool {
 
   public get tickSpacing(): number {
     return TICK_SPACINGS[this.fee]
+  }
+
+  // ---- RPC Functions - Fetch data from on-chain state ----
+
+  public static async rpcCreatePool(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    tokenA: string,
+    tokenB: string,
+    fee: FeeAmount,
+    transactionOverrides?: TransactionOverrides,
+    factoryAddress?: string
+  ): Promise<ethers.providers.TransactionResponse> {
+    const signer = _signer.connect(provider)
+
+    let factory: string
+    if (factoryAddress) {
+      factory = factoryAddress
+    } else {
+      const network = await provider.getNetwork()
+      factory = V3_CORE_FACTORY_ADDRESSES[network.chainId]
+    }
+
+    const contract = new ethers.Contract(factory, factoryAbi, signer)
+
+    const response = contract.createPool(tokenA, tokenB, fee, Pool.ethersTransactionOverrides(transactionOverrides))
+
+    return response
+  }
+
+  private static ethersTransactionOverrides(transactionOverrides?: TransactionOverrides): any {
+    return {
+      gasPrice: transactionOverrides?.gasPrice
+        ? ethers.BigNumber.from(transactionOverrides.gasPrice.toString(10))
+        : undefined,
+      gasLimit: transactionOverrides?.gasLimit
+        ? ethers.BigNumber.from(transactionOverrides.gasLimit.toString(10))
+        : undefined,
+      value: transactionOverrides?.value ? ethers.BigNumber.from(transactionOverrides.value.toString(10)) : undefined,
+      nonce: transactionOverrides?.nonce ? ethers.BigNumber.from(transactionOverrides.nonce.toString(10)) : undefined,
+    }
+  }
+
+  public async rpcContract(poolAddress?: string, signer?: ethers.Signer): Promise<ethers.Contract> {
+    invariant(this._provider, 'provider not initialized')
+
+    const provider = signer ? signer.connect(this._provider) : this._provider
+    return new ethers.Contract(poolAddress || Pool.getAddress(this.token0, this.token1, this.fee), poolAbi, provider)
+  }
+
+  public async rpcSlot0(poolAddress?: string, blockNum?: number): Promise<Slot0Response> {
+    invariant(this._provider, 'provider not initialized')
+
+    const contract = await this.rpcContract(poolAddress)
+
+    const response = await contract.slot0({ blockTag: blockNum || 'latest' })
+
+    return {
+      sqrtPriceX96: BigInt(response.sqrtPriceX96.toString()),
+      tick: response.tick as number,
+      observationIndex: response.observationIndex as number,
+      observationCardinality: response.observationCardinality as number,
+      observationCardinalityNext: response.observationCardinalityNext as number,
+      feeProtocol: response.feeProtocol as number,
+      unlocked: response.unlocked as boolean,
+    }
+  }
+
+  public async rpcSnapshotCumulativesInside(
+    tickLower: number,
+    tickUpper: number,
+    poolAddress?: string,
+    blockNum?: number
+  ): Promise<SnapshotCumulativeInside> {
+    invariant(this._provider, 'provider not initialized')
+
+    const contract = await this.rpcContract(poolAddress)
+
+    const response = await contract.snapshotCumulativesInside(tickLower, tickUpper, { blockTag: blockNum || 'latest' })
+
+    return {
+      secondsInside: BigInt(response.secondsInside.toString()),
+      secondsPerLiquidityInsideX128: BigInt(response.secondsPerLiquidityInsideX128.toString()),
+      tickCumulativeInside: BigInt(response.tickCumulativeInside.toString()),
+    }
+  }
+
+  public async rpcObserve(secondsAgo: number[], poolAddress?: string, blockNum?: number): Promise<ObserveResponse> {
+    invariant(this._provider, 'provider not initialized')
+
+    const contract = await this.rpcContract(poolAddress)
+
+    const response = await contract.observe(secondsAgo, { blockTag: blockNum || 'latest' })
+
+    return {
+      secondsPerLiquidityCumulativeX128s: response.secondsPerLiquidityCumulativeX128s.map((num) =>
+        BigInt(num.toString())
+      ),
+      tickCumulatives: response.tickCumulatives.map((num) => BigInt(num.toString())),
+    }
+  }
+
+  public async rpcIncreaseObservationCardinalityNext(
+    signer: ethers.Signer,
+    observationCardinalityNext: number,
+    poolAddress?: string,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    invariant(this._provider, 'provider not initialized')
+
+    const contract = await this.rpcContract(poolAddress, signer)
+
+    const response = await contract.increaseObservationCardinalityNext(
+      observationCardinalityNext,
+      Pool.ethersTransactionOverrides(transactionOverrides)
+    )
+
+    return response
+  }
+
+  public async rpcCollect(
+    signer: ethers.Signer,
+    recipient: string,
+    tickLower: number,
+    tickUpper: number,
+    amount0Requested: BigInt,
+    amount1Requested: BigInt,
+    poolAddress?: string,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    invariant(this._provider, 'provider not initialized')
+
+    const contract = await this.rpcContract(poolAddress, signer)
+
+    const response = await contract.collect(
+      recipient,
+      tickLower,
+      tickUpper,
+      amount0Requested,
+      amount1Requested,
+      Pool.ethersTransactionOverrides(transactionOverrides)
+    )
+
+    return response
+  }
+
+  public async rpcBurn(
+    signer: ethers.Signer,
+    tickLower: number,
+    tickUpper: number,
+    amount: BigInt,
+    poolAddress?: string,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    invariant(this._provider, 'provider not initialized')
+
+    const contract = await this.rpcContract(poolAddress, signer)
+
+    const response = await contract.burn(
+      tickLower,
+      tickUpper,
+      amount,
+      Pool.ethersTransactionOverrides(transactionOverrides)
+    )
+
+    return response
   }
 }

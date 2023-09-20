@@ -132,4 +132,16 @@ export abstract class TickMath {
       ? tickHigh
       : tickLow
   }
+
+  public static tickToWord(tick: number): number {
+    return tick >> 8
+  }
+
+  public static tickToWordCompressed(tick: number, tickSpacing: number): number {
+    let compressed = Math.floor(tick / tickSpacing)
+    if (tick < 0 && tick % tickSpacing !== 0) {
+      compressed -= 1
+    }
+    return TickMath.tickToWord(compressed)
+  }
 }
