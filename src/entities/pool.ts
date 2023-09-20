@@ -414,6 +414,15 @@ export class Pool {
     return new ethers.Contract(poolAddress || Pool.getAddress(this.token0, this.token1, this.fee), poolAbi, provider)
   }
 
+  public async rpcPoolExists(poolAddress?: string, blockNum?: number): Promise<boolean> {
+    try {
+      await this.rpcSlot0(poolAddress, blockNum)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   public async rpcSlot0(poolAddress?: string, blockNum?: number): Promise<Slot0Response> {
     invariant(this._provider, 'provider not initialized')
 
