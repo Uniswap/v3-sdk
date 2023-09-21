@@ -1,6 +1,6 @@
-import { Interface, defaultAbiCoder } from '@ethersproject/abi'
-import { BigNumber } from '@ethersproject/bignumber';
-import { Provider } from '@ethersproject/abstract-provider';
+import { Interface, defaultAbiCoder} from '@ethersproject/abi'
+import { BigNumber } from '@ethersproject/bignumber'
+import { Provider } from '@ethersproject/abstract-provider'
 import { BigintIsh, Currency, CurrencyAmount, TradeType, CHAIN_TO_ADDRESSES_MAP, SUPPORTED_CHAINS } from '@uniswap/sdk-core'
 import { encodeRouteToPath, MethodParameters, toHex } from './utils'
 import IQuoter from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json'
@@ -114,7 +114,7 @@ export abstract class SwapQuoter {
     amount: CurrencyAmount<TInput | TOutput>,
     tradeType: TradeType,
     provider: Provider
-  ): Promise<BigInt> {
+  ): Promise<CurrencyAmount<TInput | TOutput>> {
     const chainId = amount.currency.chainId
     const chain = SUPPORTED_CHAINS[chainId]
 
@@ -139,11 +139,17 @@ export abstract class SwapQuoter {
       data: methodParameters.calldata
     })
 
-    const decodedEthersValue: BigNumber = defaultAbiCoder.decode(['uint256'], quoteCallReturnValue)
+    const decodedEthersValue: BigNumber = defaultAbiCoder.decode(['uint256'], quoteCallReturnValue)[0]
     const bigintQuoterValue = decodedEthersValue.toBigInt()
 
     invariant(typeof bigintQuoterValue === "bigint" , 'Could not decode quoter response')
 
-    return bigintQuoterValue
+    if (tradeType === TradeType.EXACT_INPUT) {
+      const outputCurrency = route.output
+      return CurrencyAmount.fromRawAmount(outputCurrency, bigintQuoterValue)
+    } else {
+      const inputCurrency = route.input
+      return CurrencyAmount.fromRawAmount(inputCurrency, bigintQuoterValue)
+    }
   }
 }
