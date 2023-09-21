@@ -80,7 +80,7 @@ export class Pool {
   private _token0Price?: Price<Token, Token>
   private _token1Price?: Price<Token, Token>
 
-  private _provider?: ethers.providers.Provider
+  public readonly _provider?: ethers.providers.Provider
 
   public static getAddress(
     tokenA: Token,
