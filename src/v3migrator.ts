@@ -8,25 +8,83 @@ import { Interface } from '@ethersproject/abi'
 import IV3Migrator from '@uniswap/v3-periphery/artifacts/contracts/V3Migrator.sol/V3Migrator.json'
 import invariant from "tiny-invariant"
 
+/**
+ * Parameters to create calldata for migrating liquidity from V2 to V3
+ */
 export interface MigrationParameters {
+    /**
+     * The address of the V2 Pair.
+     */
     pairAddress: string
+
+    /**
+     * The Pool to which the liquidity will be migrated.
+     */
     targetPool: Pool
+
+    /**
+     * The amount of V2 liquidity to migrate.
+     */
     liquidityToMigrate: bigint
+
+    /**
+     * The percentage of the V2 liquidity to migrate to V3.
+     * The rest of the liquidity is refunded to msg.sender.
+     */
     percentageToMigrate: Percent
+
+    /**
+     * Lower Tick of the V3 Position to create.
+     */
     tickLower: number
+
+    /**
+     * Upper Tick of the V3 Position to create.
+     */
     tickUpper: number
+
+    /**
+     * Optional. Minimum Liquidity of token0 in V3 Position.
+     */
     amount0Min: bigint | undefined
+
+    /**
+     * Optional. Minimum Liquidity of token1 in V3 Position.
+     */
     amount1Min: bigint | undefined
+
+    /**
+     * Recipient of the V3 Position NFT that will be minted.
+     */
     recipient: string
-    deadline: bigint,
+
+    /**
+     * Epoch second time of when the transaction expires.
+     */
+    deadline: bigint
+
+    /**
+     * Wether to refund the unused V2 liquidity as ETH (true) or WETH (false).
+     */
     refundAsEth: boolean | undefined
 }
 
+/**
+ * Represents the Uniswap V3 Migrator Contract. Has static functions to help create/execute 'migrate' calls.
+ */
 export abstract class V3Migrator {
     public static INTERFACE: Interface = new Interface(IV3Migrator.abi)
 
+    /**
+     * Cannot be constructed
+     */
     private constructor() { }
 
+    /**
+     * Produces on-chain calldata to call the migrate function
+     * @param params MigrationParams that define the transaction
+     * @returns MethodParameters that include the calldata and value for the transaction calling 'migrate'
+     */
     public static migrateCallParameters(
         params: MigrationParameters
     ): MethodParameters {
@@ -64,6 +122,13 @@ export abstract class V3Migrator {
         }
     }
 
+    /**
+     * Calls the V3 Migrator contract 'migrate' function. Includes some sanity checks.
+     * @param params MigrationParams that define the transaction parameters
+     * @param provider to connect to the network
+     * @param signer to sign the transaction
+     * @returns Promise<TransactionResponse> TransactionResponse of the transaction.
+     */
     public static async callMigrate(
         params: MigrationParameters,
         provider: Provider,

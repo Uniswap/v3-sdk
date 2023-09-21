@@ -1,4 +1,5 @@
-import { Interface, defaultAbiCoder, BigNumber } from '@ethersproject/abi'
+import { Interface, defaultAbiCoder } from '@ethersproject/abi'
+import { BigNumber } from '@ethersproject/bignumber';
 import { Provider } from '@ethersproject/abstract-provider';
 import { BigintIsh, Currency, CurrencyAmount, TradeType, CHAIN_TO_ADDRESSES_MAP, SUPPORTED_CHAINS } from '@uniswap/sdk-core'
 import { encodeRouteToPath, MethodParameters, toHex } from './utils'
