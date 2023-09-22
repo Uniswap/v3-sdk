@@ -20,6 +20,10 @@ export class RPCTickDataProvider implements TickDataProvider {
     this.poolAddress = poolAddress
   }
 
+  async rpcFetchTicks(): Promise<void> {
+    await this.fetchTicks()
+  }
+
   async getTick(tick: number): Promise<{ liquidityNet: BigintIsh; liquidityGross: BigintIsh }> {
     if (!this.ticksInitialized) {
       this.fetchTicks()
