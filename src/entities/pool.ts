@@ -371,7 +371,7 @@ export class Pool {
 
   // ---- RPC Functions - Fetch data from on-chain state ----
 
-  public async initializeTicks(provider: ethers.providers.Provider | undefined): Promise<void> {
+  public async initializeTicks(provider?: ethers.providers.Provider | undefined): Promise<void> {
     if ((this.tickDataProvider instanceof NoTickDataProvider)) {
       invariant(provider !== undefined, 'Pool has no RPC connection and no Provider was provided.')
       this._tickDataProvider = new RPCTickDataProvider(

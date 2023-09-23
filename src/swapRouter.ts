@@ -14,6 +14,9 @@ import { FeeOptions, Payments } from './payments'
 import { Pool } from './entities/pool'
 import { Route } from './entities/route'
 import { SwapQuoter } from './quoter'
+import { NoTickDataProvider } from './entities'
+import { RPCTickDataProvider } from './entities/rpcTickDataProvider'
+import { fetchTickDataForAllPoolsInRoute } from './utils/fetchTicksForRoute'
 
 /**
  * Options for producing the arguments to send calls to the router.
@@ -398,7 +401,15 @@ export abstract class SwapRouter {
     ): Promise<TransactionResponse> {
     if (bestTradeOptions === undefined) bestTradeOptions = { maxNumResults: 3, maxHops: 3 }
 
-    // TODO: Fetch full tick data for pools without tickdata after merge
+    const provider = signer.provider
+
+    invariant(provider !== undefined, 'Signer is not connected to a network.')
+    // TODO: Ensure the blocknumber is consistent between these calls
+    let promises = []
+    for (let pool of pools) {
+      promises.push(pool.initializeTicks())
+    }
+    await Promise.all(promises)
 
     let trades: Trade<TInput, TOutput, TradeType.EXACT_INPUT>[] | Trade<TInput, TOutput, TradeType.EXACT_OUTPUT>[]
     if (tradeType === TradeType.EXACT_INPUT) {
@@ -429,8 +440,14 @@ export abstract class SwapRouter {
       tradeType: TradeType,
       swapOptions: SwapOptions | undefined,
       signer: Signer
-  ): Promise<TransactionResponse> {
-    let trade = await Trade.fromRoute(route, amount,tradeType)
+    ): Promise<TransactionResponse> {
+    const provider = signer.provider
+
+    invariant(provider !== undefined, 'Signer has no network connection')
+
+    await fetchTickDataForAllPoolsInRoute(route, provider)
+
+    let trade = await Trade.fromRoute(route, amount, tradeType)
 
     return this.executeTrade(trade, swapOptions, signer)
   }
