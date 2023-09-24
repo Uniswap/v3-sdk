@@ -14,8 +14,6 @@ import { FeeOptions, Payments } from './payments'
 import { Pool } from './entities/pool'
 import { Route } from './entities/route'
 import { SwapQuoter } from './quoter'
-import { NoTickDataProvider } from './entities'
-import { RPCTickDataProvider } from './entities/rpcTickDataProvider'
 import { fetchTickDataForAllPoolsInRoute } from './utils/fetchTicksForRoute'
 
 /**
