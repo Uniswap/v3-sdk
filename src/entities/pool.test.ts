@@ -247,7 +247,7 @@ describe('Pool', () => {
       it('correctly handles two BigIntegers', async () => {
         const inputAmount = CurrencyAmount.fromRawAmount(USDC, 100)
         const [outputAmount] = await pool.getOutputAmount(inputAmount)
-        pool.getInputAmount(outputAmount)
+        await pool.getInputAmount(outputAmount)
         expect(outputAmount.currency.equals(DAI)).toBe(true)
         // if output is correct, function has succeeded
       })
