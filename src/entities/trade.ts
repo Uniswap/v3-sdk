@@ -105,11 +105,10 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     }
 
     const inputCurrency = this.swaps[0].inputAmount.currency
-    const totalInputFromRoutes = this.swaps
+    this._inputAmount = this.swaps
       .map(({ inputAmount }) => inputAmount)
       .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(inputCurrency, 0))
 
-    this._inputAmount = totalInputFromRoutes
     return this._inputAmount
   }
 
@@ -128,11 +127,10 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
     }
 
     const outputCurrency = this.swaps[0].outputAmount.currency
-    const totalOutputFromRoutes = this.swaps
+    this._outputAmount = this.swaps
       .map(({ outputAmount }) => outputAmount)
       .reduce((total, cur) => total.add(cur), CurrencyAmount.fromRawAmount(outputCurrency, 0))
 
-    this._outputAmount = totalOutputFromRoutes
     return this._outputAmount
   }
 
