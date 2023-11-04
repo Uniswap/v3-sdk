@@ -58,7 +58,7 @@ export abstract class SwapRouter {
 
   /**
    * Produces the on-chain method name to call and the hex encoded parameters to pass as arguments for a given trade.
-   * @param trade to produce call parameters for
+   * @param trades to produce call parameters for
    * @param options options for the call parameters
    */
   public static swapCallParameters(

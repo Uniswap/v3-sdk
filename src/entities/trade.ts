@@ -433,6 +433,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Get the minimum amount that must be received from this trade for the given slippage tolerance
    * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
+   * @param amountOut The exact amount of currency out
    * @returns The amount out
    */
   public minimumAmountOut(slippageTolerance: Percent, amountOut = this.outputAmount): CurrencyAmount<TOutput> {
@@ -451,6 +452,7 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
   /**
    * Get the maximum amount in that can be spent via this trade for the given slippage tolerance
    * @param slippageTolerance The tolerance of unfavorable slippage from the execution price of this trade
+   * @param amountIn The exact amount of currency in
    * @returns The amount in
    */
   public maximumAmountIn(slippageTolerance: Percent, amountIn = this.inputAmount): CurrencyAmount<TInput> {
