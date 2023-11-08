@@ -1,17 +1,17 @@
 {
-  "name": "@uniswap/v3-sdk",
+  "name": "@florian-s-a-w/uniswap-v3-sdk",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "version": "3.10.0",
+  "version": "3.14.0",
   "description": "⚒️ An SDK for building applications on top of Uniswap V3",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/Uniswap/uniswap-v3-sdk.git",
+  "repository": "https://github.com/uniswapfoundation/uniswap-v3-sdk.git",
   "keywords": [
     "uniswap",
     "ethereum"
@@ -24,7 +24,7 @@
   "dependencies": {
     "@ethersproject/abi": "^5.0.12",
     "@ethersproject/solidity": "^5.0.9",
-    "@uniswap/sdk-core": "npm:@koraykoska/uniswap-sdk-core@^3.2.6",
+    "@uniswap/sdk-core": "npm:@koraykoska/uniswap-sdk-core@^6.0.9",
     "@uniswap/swap-router-contracts": "^1.2.1",
     "@uniswap/v3-periphery": "^1.1.1",
     "@uniswap/v3-staker": "1.0.2",

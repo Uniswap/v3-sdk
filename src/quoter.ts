@@ -1,7 +1,7 @@
 import { Interface, defaultAbiCoder} from '@ethersproject/abi'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Provider } from '@ethersproject/abstract-provider'
-import { BigintIsh, Currency, CurrencyAmount, TradeType, CHAIN_TO_ADDRESSES_MAP, SUPPORTED_CHAINS } from '@uniswap/sdk-core'
+import { BigintIsh, Currency, CurrencyAmount, TradeType, CHAIN_TO_ADDRESSES_MAP, SUPPORTED_CHAINS, SupportedChainsType, ChainId } from '@uniswap/sdk-core'
 import { encodeRouteToPath, MethodParameters, toHex } from './utils'
 import IQuoter from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json'
 import IQuoterV2 from '@uniswap/swap-router-contracts/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json'
@@ -29,6 +29,24 @@ interface BaseQuoteParams {
   sqrtPriceLimitX96: string
   tokenIn: string
   tokenOut: string
+}
+
+const quoterV2Addresses: Record<SupportedChainsType, string> = {
+  [ChainId.MAINNET]: "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+  [ChainId.OPTIMISM]: "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+  [ChainId.ARBITRUM_ONE]: "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+  [ChainId.POLYGON]: "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+  [ChainId.POLYGON_MUMBAI]: "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+  [ChainId.GOERLI]: "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+  [ChainId.CELO]: "0x82825d0554fA07f7FC52Ab63c961F330fdEFa8E8",
+  [ChainId.CELO_ALFAJORES]: "0x82825d0554fA07f7FC52Ab63c961F330fdEFa8E8",
+  [ChainId.BNB]: "0x78D78E420Da98ad378D7799bE8f4AF69033EB077",
+  [ChainId.OPTIMISM_GOERLI]: "0x9569CbA925c8ca2248772A9A4976A516743A246F",
+  [ChainId.ARBITRUM_GOERLI]: "0x1dd92b83591781D0C6d98d07391eea4b9a6008FA",
+  [ChainId.SEPOLIA]: "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3",
+  [ChainId.AVALANCHE]: "0xbe0F5544EC67e9B3b2D979aaA43f18Fd87E6257F",
+  [ChainId.BASE]: "0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a",
+  [ChainId.BASE_GOERLI]: "0xedf539058e28E5937dAef3f69cEd0b25fbE66Ae9"
 }
 
 /**
@@ -122,7 +140,7 @@ export abstract class SwapQuoter {
 
     const contractAddresses = CHAIN_TO_ADDRESSES_MAP[chain]
     // TODO: Add QuoterV2 here when the issue in the sdk-core is resolved.
-    const quoterV2Address = contractAddresses.quoterAddress
+    const quoterV2Address = quoterV2Addresses[chain]
 
     invariant(contractAddresses)
 

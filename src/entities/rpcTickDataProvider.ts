@@ -1,10 +1,10 @@
 import { BigintIsh } from '@uniswap/sdk-core'
 import { TickList } from '../utils/tickList'
-import { Tick, TickConstructorArgs } from './tick'
+import { Tick } from './tick'
 import { TickDataProvider } from './tickDataProvider'
 import { ethers } from 'ethers'
-import { TickMath } from 'src/utils'
-import { RPCPool } from 'src/utils/rpcPool'
+import { TickMath } from '../utils'
+import { RPCPool } from '../utils/rpcPool'
 
 /**
  * A data provider for ticks that is backed by an in-memory array of ticks.

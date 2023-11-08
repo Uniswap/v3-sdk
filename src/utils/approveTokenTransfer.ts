@@ -2,7 +2,7 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { Provider } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
 import { BigintIsh } from '@uniswap/sdk-core'
-import { ERC20_ABI } from 'src/constants'
+import { ERC20_ABI } from '../constants'
 
 /**
  * Approves an address to transfer ERC20 Tokens on behalf of a Signer
