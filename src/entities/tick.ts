@@ -2,7 +2,7 @@ import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { BigintIsh } from '@uniswap/sdk-core'
 import { TickMath } from '../utils'
-import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
+import { bigIntFromBigintIsh } from '../utils/bigintIsh'
 
 export interface TickConstructorArgs {
   index: number

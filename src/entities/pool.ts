@@ -10,11 +10,11 @@ import { TickMath } from '../utils/tickMath'
 import { Tick, TickConstructorArgs } from './tick'
 import { NoTickDataProvider, TickDataProvider } from './tickDataProvider'
 import { TickListDataProvider } from './tickListDataProvider'
-import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
+import { bigIntFromBigintIsh } from '../utils/bigintIsh'
 import { ethers } from 'ethers'
 import { RPCTickDataProvider } from './rpcTickDataProvider'
-import { abi as poolAbi } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
-import { abi as factoryAbi } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json'
+import poolAbi from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
+import factoryAbi from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json'
 
 interface StepComputations {
   sqrtPriceStartX96: bigint
@@ -75,7 +75,10 @@ export class Pool {
   }
   public readonly _liquidity: bigint
   public readonly tickCurrent: number
-  public readonly tickDataProvider: TickDataProvider
+  public get tickDataProvider(): TickDataProvider {
+    return this._tickDataProvider
+  }
+  private _tickDataProvider: TickDataProvider
 
   private _token0Price?: Price<Token, Token>
   private _token1Price?: Price<Token, Token>
@@ -137,9 +140,9 @@ export class Pool {
     this._sqrtRatioX96 = bigIntFromBigintIsh(sqrtRatioX96)
     this._liquidity = bigIntFromBigintIsh(liquidity)
     this.tickCurrent = tickCurrent
-    this.tickDataProvider = Array.isArray(ticks) ? new TickListDataProvider(ticks, TICK_SPACINGS[fee]) : ticks
+    this._tickDataProvider = Array.isArray(ticks) ? new TickListDataProvider(ticks, TICK_SPACINGS[fee]) : ticks
     if (this.tickDataProvider instanceof NoTickDataProvider && this._provider) {
-      this.tickDataProvider = new RPCTickDataProvider(this._provider, Pool.getAddress(tokenA, tokenB, fee))
+      this._tickDataProvider = new RPCTickDataProvider(this._provider, Pool.getAddress(tokenA, tokenB, fee))
     }
   }
 
@@ -368,6 +371,26 @@ export class Pool {
 
   // ---- RPC Functions - Fetch data from on-chain state ----
 
+  public async initializeTicks(provider?: ethers.providers.Provider | undefined): Promise<void> {
+    if ((this.tickDataProvider instanceof NoTickDataProvider)) {
+      invariant(provider !== undefined, 'Pool has no RPC connection and no Provider was provided.')
+      this._tickDataProvider = new RPCTickDataProvider(
+        provider, 
+        Pool.getAddress(this.token0, this.token1, this.fee)
+        )
+    }
+    await this.initializeTicksFromRpc()
+    // If the TickDataProvider is neither a NoTickDataProvider nor an RPCTickDataProvider ticks are present
+  }
+
+  public async initializeTicksFromRpc(): Promise<void> {
+    invariant(!(this.tickDataProvider instanceof NoTickDataProvider), 'Pool has no RPC connection')
+    if (this.tickDataProvider instanceof RPCTickDataProvider) {
+      await this.tickDataProvider.rpcFetchTicks()
+    }
+    // If the TickDataProvider is neither a NoTickDataProvider nor an RPCTickDataProvider ticks are present
+  }
+
   public static async rpcCreatePool(
     _signer: ethers.Signer,
     provider: ethers.providers.Provider,
@@ -387,7 +410,7 @@ export class Pool {
       factory = V3_CORE_FACTORY_ADDRESSES[network.chainId]
     }
 
-    const contract = new ethers.Contract(factory, factoryAbi, signer)
+    const contract = new ethers.Contract(factory, factoryAbi.abi, signer)
 
     const response = contract.createPool(tokenA, tokenB, fee, Pool.ethersTransactionOverrides(transactionOverrides))
 
@@ -411,7 +434,7 @@ export class Pool {
     invariant(this._provider, 'provider not initialized')
 
     const provider = signer ? signer.connect(this._provider) : this._provider
-    return new ethers.Contract(poolAddress || Pool.getAddress(this.token0, this.token1, this.fee), poolAbi, provider)
+    return new ethers.Contract(poolAddress || Pool.getAddress(this.token0, this.token1, this.fee), poolAbi.abi, provider)
   }
 
   public async rpcPoolExists(poolAddress?: string, blockNum?: number): Promise<boolean> {
@@ -468,10 +491,10 @@ export class Pool {
     const response = await contract.observe(secondsAgo, { blockTag: blockNum || 'latest' })
 
     return {
-      secondsPerLiquidityCumulativeX128s: response.secondsPerLiquidityCumulativeX128s.map((num) =>
+      secondsPerLiquidityCumulativeX128s: response.secondsPerLiquidityCumulativeX128s.map((num: any) =>
         BigInt(num.toString())
       ),
-      tickCumulatives: response.tickCumulatives.map((num) => BigInt(num.toString())),
+      tickCumulatives: response.tickCumulatives.map((num: any) => BigInt(num.toString())),
     }
   }
 

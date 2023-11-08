@@ -1,10 +1,10 @@
 import { BigintIsh } from '@uniswap/sdk-core'
 import { TickList } from '../utils/tickList'
-import { Tick, TickConstructorArgs } from './tick'
+import { Tick } from './tick'
 import { TickDataProvider } from './tickDataProvider'
 import { ethers } from 'ethers'
-import { TickMath } from 'src/utils'
-import { RPCPool } from 'src/utils/rpcPool'
+import { TickMath } from '../utils'
+import { RPCPool } from '../utils/rpcPool'
 
 /**
  * A data provider for ticks that is backed by an in-memory array of ticks.
@@ -18,6 +18,10 @@ export class RPCTickDataProvider implements TickDataProvider {
   constructor(provider: ethers.providers.Provider, poolAddress: string) {
     this.provider = provider
     this.poolAddress = poolAddress
+  }
+
+  async rpcFetchTicks(): Promise<void> {
+    await this.fetchTicks()
   }
 
   async getTick(tick: number): Promise<{ liquidityNet: BigintIsh; liquidityGross: BigintIsh }> {
