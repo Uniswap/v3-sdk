@@ -1,7 +1,7 @@
 import { Interface, defaultAbiCoder} from '@ethersproject/abi'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Provider } from '@ethersproject/abstract-provider'
-import { BigintIsh, Currency, CurrencyAmount, TradeType, CHAIN_TO_ADDRESSES_MAP, SUPPORTED_CHAINS, SupportedChainsType, ChainId } from '@uniswap/sdk-core'
+import { BigintIsh, Currency, CurrencyAmount, TradeType, CHAIN_TO_ADDRESSES_MAP, SUPPORTED_CHAINS, SupportedChainsType, ChainId, Token } from '@uniswap/sdk-core'
 import { encodeRouteToPath, MethodParameters, toHex } from './utils'
 import IQuoter from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json'
 import IQuoterV2 from '@uniswap/swap-router-contracts/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json'
@@ -55,6 +55,123 @@ const quoterV2Addresses: Record<SupportedChainsType, string> = {
 export abstract class SwapQuoter {
   public static V1INTERFACE: Interface = new Interface(IQuoter.abi)
   public static V2INTERFACE: Interface = new Interface(IQuoterV2.abi)
+
+  /**
+   * Fetches quotes for single hop exactInput swaps without the need to initialise a Route
+   * @param amountIn The exact input amount
+   * @param tokenOut The output token
+   * @param poolFee The fee of the Pool used
+   * @param provider a provider to make onchain calls
+   * @returns The quoted output amount of the swap
+   */
+  public static async quoteExactInputSingle<TInput extends Token, TOutput extends Token>(
+    amountIn: CurrencyAmount<TInput>,
+    tokenOut: TOutput,
+    poolFee: FeeAmount,
+    provider: Provider
+  ): Promise<CurrencyAmount<TOutput>> {
+
+    invariant(amountIn.currency.chainId === tokenOut.chainId, 'Tokens need to be on same chain')
+
+    const chainId = amountIn.currency.chainId
+    const chain = SUPPORTED_CHAINS[chainId]
+
+    invariant(chain !== undefined, 'Unsupported Chain')
+
+    //const contractAddresses = CHAIN_TO_ADDRESSES_MAP[chain]
+    // TODO: Get Quoter V2 address from core when issue is resolved.
+    const quoterV2Address = quoterV2Addresses[chain]
+
+    invariant(quoterV2Address !== undefined, 'No Quoter found on this chain')
+
+    const quoteAmount: string = toHex(amountIn.quotient)
+    let calldata: string
+    const swapInterface: Interface = this.V2INTERFACE
+
+    const v2QuoteParams = {
+      tokenIn: amountIn.currency.address,
+      tokenOut: tokenOut.address,
+      fee: poolFee,
+      sqrtPriceLimitX96: 0,
+      amountIn: quoteAmount
+    }
+
+    calldata = swapInterface.encodeFunctionData(
+      'quoteExactInputSingle',
+      [v2QuoteParams]
+    )
+
+    const quoteCallReturnValue = await provider.call({
+      to: quoterV2Address,
+      data: calldata
+    })
+
+    const decodedEthersValue: BigNumber = defaultAbiCoder.decode(['uint256'], quoteCallReturnValue)[0]
+    const bigintQuoterValue = decodedEthersValue.toBigInt()
+
+    invariant(typeof bigintQuoterValue === "bigint" , 'Could not decode quoter response')
+
+    return CurrencyAmount.fromRawAmount(tokenOut, bigintQuoterValue)
+  }
+
+  /**
+   * Fetches quotes for single hop exactOutput swaps without the need to initialise a Route
+   * @param tokenIn The input Token of the Swap
+   * @param amountOut The exact output amount of the swap
+   * @param poolFee to identify the Pool used
+   * @param provider to make onchain calls
+   * @returns The inputamount needed for the swap
+   */
+  public static async quoteExactOutputSingle<TInput extends Token, TOutput extends Token>(
+    tokenIn: TInput,
+    amountOut: CurrencyAmount<TOutput>,
+    poolFee: FeeAmount,
+    provider: Provider
+  ): Promise<CurrencyAmount<TInput>> {
+
+    invariant(amountOut.currency.chainId === tokenIn.chainId, 'Tokens need to be on same chain')
+
+    const chainId = amountOut.currency.chainId
+    const chain = SUPPORTED_CHAINS[chainId]
+
+    invariant(chain !== undefined, 'Unsupported Chain')
+
+    // const contractAddresses = CHAIN_TO_ADDRESSES_MAP[chain]
+    // TODO: Get Quoter V2 address from core when issue is resolved.
+    const quoterV2Address = quoterV2Addresses[chain]
+
+    invariant(quoterV2Address !== undefined, 'No Quoter found on this chain')
+
+
+    const quoteAmount: string = toHex(amountOut.quotient)
+    let calldata: string
+    const swapInterface: Interface = this.V2INTERFACE
+
+    const v2QuoteParams = {
+      tokenIn: tokenIn.address,
+      tokenOut: amountOut.currency.address,
+      fee: poolFee,
+      sqrtPriceLimitX96: 0,
+      amountIn: quoteAmount
+    }
+
+    calldata = swapInterface.encodeFunctionData(
+      'quoteExactOutputSingle',
+      [v2QuoteParams]
+    )
+
+    const quoteCallReturnValue = await provider.call({
+      to: quoterV2Address,
+      data: calldata
+    })
+
+    const decodedEthersValue: BigNumber = defaultAbiCoder.decode(['uint256'], quoteCallReturnValue)[0]
+    const bigintQuoterValue = decodedEthersValue.toBigInt()
+
+    invariant(typeof bigintQuoterValue === "bigint" , 'Could not decode quoter response')
+
+    return CurrencyAmount.fromRawAmount(tokenIn, bigintQuoterValue)
+  }
 
   /**
    * Produces the on-chain method name of the appropriate function within QuoterV2,
