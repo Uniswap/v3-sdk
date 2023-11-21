@@ -1,7 +1,7 @@
 import { Interface } from '@ethersproject/abi'
 import { Signer } from '@ethersproject/abstract-signer'
 import { TransactionResponse } from '@ethersproject/providers'
-import { BigintIsh, Currency, CurrencyAmount, Percent, TradeType, validateAndParseAddress, SUPPORTED_CHAINS, CHAIN_TO_ADDRESSES_MAP } from '@uniswap/sdk-core'
+import { BigintIsh, Currency, CurrencyAmount, Percent, TradeType, validateAndParseAddress, SUPPORTED_CHAINS, SupportedChainsType, ChainId } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { BestTradeOptions, Trade } from './entities/trade'
 import { ADDRESS_ZERO } from './constants'
@@ -49,6 +49,24 @@ export interface SwapOptions {
    * Optional information for taking a fee on output.
    */
   fee?: FeeOptions
+}
+
+const swapRouterAddresses: Record<SupportedChainsType, string | undefined> = {
+  [ChainId.MAINNET]: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  [ChainId.OPTIMISM]: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  [ChainId.ARBITRUM_ONE]: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  [ChainId.POLYGON]: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  [ChainId.POLYGON_MUMBAI]: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  [ChainId.GOERLI]: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  [ChainId.CELO]: "0x5615CDAb10dc425a742d643d949a7F474C01abc4",
+  [ChainId.CELO_ALFAJORES]: "0x5615CDAb10dc425a742d643d949a7F474C01abc4",
+  [ChainId.BNB]: "0x83c346ba3d4Bf36b308705e24Fad80999401854b",
+  [ChainId.OPTIMISM_GOERLI]: undefined,
+  [ChainId.ARBITRUM_GOERLI]: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  [ChainId.SEPOLIA]: undefined,
+  [ChainId.AVALANCHE]: undefined,
+  [ChainId.BASE]: undefined,
+  [ChainId.BASE_GOERLI]: undefined
 }
 
 /**
@@ -249,8 +267,7 @@ export abstract class SwapRouter {
 
     invariant(chain !== undefined, 'Unsupported Chain')
 
-    const contractAddresses = CHAIN_TO_ADDRESSES_MAP[chain]
-    const routerAddress = contractAddresses.swapRouter02Address
+    const routerAddress = swapRouterAddresses[chain]
 
     invariant(routerAddress !== undefined, 'Router not deployed on requested Chain')
 
@@ -268,7 +285,7 @@ export abstract class SwapRouter {
         signerAddress,
         provider
       )
-      const maxAmountIn = BigInt(firstTrade.maximumAmountIn(new Percent(0, 1)).toFixed(0))
+      const maxAmountIn = BigInt(firstTrade.inputAmount.toExact()) * firstTrade.inputAmount._decimalScale
 
       if (allowance < maxAmountIn) {
         await approveTokenTransfer(
@@ -284,7 +301,10 @@ export abstract class SwapRouter {
       data: methodParameters.calldata,
       to: routerAddress,
       value: methodParameters.value,
-      from: signerAddress
+      from: signerAddress,
+      gasLimit: 5000000,
+      maxFeePerGas: 100000000000,
+      maxPriorityFeePerGas: 100000000000,
     }
 
     return signer.sendTransaction(tx)

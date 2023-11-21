@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "3.14.1",
+  "version": "3.15.11",
   "description": "⚒️ An SDK for building applications on top of Uniswap V3",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

@@ -3,6 +3,7 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
 import { BigintIsh } from '@uniswap/sdk-core'
 import { ERC20_ABI } from '../constants'
+import { BigNumber } from 'ethers'
 
 /**
  * Approves an address to transfer ERC20 Tokens on behalf of a Signer
@@ -18,8 +19,13 @@ export async function approveTokenTransfer(
     signer: Signer
 ): Promise<void> {
     const tokenContract = new Contract(tokenAddress, ERC20_ABI, signer)
+   
     if (typeof amount !== "string") {
-        amount = amount.toString(10)
+        if (BigNumber.isBigNumber(amount)) {
+            amount = amount.toString()
+        } else {
+            amount = amount.toString(10)
+        }
     }
     await tokenContract["approve"](contractAddress, amount)
 }
@@ -39,6 +45,6 @@ export async function getAllowance(
     provider: Provider
 ): Promise<bigint> {
     const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider)
-    const allowance = tokenContract["allowance"](signerAddress, contractAddress)
+    const allowance = await tokenContract["allowance"](signerAddress, contractAddress)
     return BigInt(allowance.toString(10))
 }
