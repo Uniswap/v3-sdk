@@ -301,10 +301,7 @@ export abstract class SwapRouter {
       data: methodParameters.calldata,
       to: routerAddress,
       value: methodParameters.value,
-      from: signerAddress,
-      gasLimit: 5000000,
-      maxFeePerGas: 100000000000,
-      maxPriorityFeePerGas: 100000000000,
+      from: signerAddress
     }
 
     return signer.sendTransaction(tx)
