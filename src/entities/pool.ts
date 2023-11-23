@@ -112,7 +112,7 @@ export class Pool {
   ): Promise<Pool> {
     const contract = new ethers.Contract(
       poolAddress || Pool.getAddress(tokenA, tokenB, fee, initCodeHashManualOverride, factoryAddressOverride),
-      poolAbi,
+      poolAbi.abi,
       provider
     )
     const slot0 = await contract.slot0()
