@@ -1,4 +1,12 @@
-import { BigintIsh, Percent, Price, CurrencyAmount, Token, MaxUint256BigInt } from '@uniswap/sdk-core'
+import {
+  BigintIsh,
+  Percent,
+  Price,
+  CurrencyAmount,
+  Token,
+  MaxUint256BigInt,
+  NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
+} from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { ZERO } from '../internalConstants'
@@ -8,6 +16,10 @@ import { SqrtPriceMath } from '../utils/sqrtPriceMath'
 import { TickMath } from '../utils/tickMath'
 import { encodeSqrtRatioX96BigInt } from '../utils/encodeSqrtRatioX96'
 import { Pool } from './pool'
+import { ethers } from 'ethers'
+import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
+import { ERC20_ABI, FeeAmount } from '../constants'
+import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
 
 interface PositionConstructorArgs {
   pool: Pool
@@ -32,6 +44,35 @@ export class Position {
   private _token0Amount: CurrencyAmount<Token> | null = null
   private _token1Amount: CurrencyAmount<Token> | null = null
   private _mintAmounts: Readonly<{ amount0: bigint; amount1: bigint }> | null = null
+
+  /**
+   * Initializes the position from a given position id using on-chain data.
+   *
+   * @param provider The provider to use to fetch data.
+   * @param positionId The position id to fetch.
+   * @returns Instance of Position.
+   */
+  public static async initFromChain(provider: ethers.providers.Provider, positionId: BigintIsh): Promise<Pool> {
+    const chainId = (await provider.getNetwork()).chainId
+
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const position = await contract.positions(ethers.BigNumber.from(bigIntFromBigintIsh(positionId).toString(10)))
+
+    const token0Contract = new ethers.Contract(position.token0, ERC20_ABI, provider)
+    const token1Contract = new ethers.Contract(position.token1, ERC20_ABI, provider)
+
+    return new Position({
+      pool: await Pool.initFromChain(
+        provider,
+        new Token(chainId, position.token0, await token0Contract.decimals()),
+        new Token(chainId, position.token1, token1Contract.decimals()),
+        position.fee
+      ),
+      liquidity: position.liquidity,
+      tickLower: position.tickLower,
+      tickUpper: position.tickUpper,
+    })
+  }
 
   /**
    * Constructs a position for a given pool with the given liquidity
