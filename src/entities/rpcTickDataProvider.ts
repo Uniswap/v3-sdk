@@ -15,6 +15,12 @@ export class RPCTickDataProvider implements TickDataProvider {
   private poolAddress: string
   private ticksInitialized: boolean = false
 
+  /**
+   * Constructs an on-chain tick data fetcher. To be used in conjunction with classes that need to fetch ticks like Pool.
+   *
+   * @param provider The provider to use for fetching ticks.
+   * @param poolAddress The pool address to fetch ticks from.
+   */
   constructor(provider: ethers.providers.Provider, poolAddress: string) {
     this.provider = provider
     this.poolAddress = poolAddress
