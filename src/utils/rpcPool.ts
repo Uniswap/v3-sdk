@@ -1,7 +1,7 @@
 import { Token } from '@uniswap/sdk-core'
-import { FeeAmount, Pool, Tick } from '../'
+import { FeeAmount, Tick } from '../'
 import { ethers } from 'ethers'
-import { abi as poolAbi } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
+import poolAbi from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
 import { Contract, Provider } from 'ethers-multicall'
 
 export interface PoolData {
@@ -21,7 +21,7 @@ export abstract class RPCPool {
     poolAddress: string,
     blockNum: number
   ): Promise<PoolData> {
-    const poolContract = new ethers.Contract(poolAddress, poolAbi, provider)
+    const poolContract = new ethers.Contract(poolAddress, poolAbi.abi, provider)
 
     const [slot0, liquidity, tickSpacing, fee, token0, token1] = await Promise.all([
       poolContract.slot0({
@@ -64,7 +64,7 @@ export abstract class RPCPool {
   ): Promise<number[]> {
     const multicallProvider = new Provider(provider)
     await multicallProvider.init()
-    const poolContract = new Contract(poolAddress, poolAbi)
+    const poolContract = new Contract(poolAddress, poolAbi.abi)
 
     const calls: any[] = []
     const wordPosIndices: number[] = []
@@ -74,7 +74,7 @@ export abstract class RPCPool {
       calls.push(poolContract.tickBitmap(i))
     }
 
-    const results: bigint[] = (await multicallProvider.all(calls)).map((ethersResponse) => {
+    const results: bigint[] = (await multicallProvider.all(calls)).map((ethersResponse: any) => {
       return BigInt(ethersResponse.toString())
     })
 
@@ -106,7 +106,7 @@ export abstract class RPCPool {
   ): Promise<Tick[]> {
     const multicallProvider = new Provider(provider)
     await multicallProvider.init()
-    const poolContract = new Contract(poolAddress, poolAbi)
+    const poolContract = new Contract(poolAddress, poolAbi.abi)
 
     const calls: any[] = []
 
