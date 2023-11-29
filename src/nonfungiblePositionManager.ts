@@ -6,6 +6,7 @@ import {
   validateAndParseAddress,
   Currency,
   NativeCurrency,
+  NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 import { Position } from './entities/position'
@@ -14,9 +15,11 @@ import { Interface } from '@ethersproject/abi'
 import INonfungiblePositionManager from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
-import { Pool } from './entities'
+import { Pool, TransactionOverrides } from './entities'
 import { Multicall } from './multicall'
 import { Payments } from './payments'
+import { ethers } from 'ethers'
+import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 
 const MaxUint128 = `0x${(2n ** 128n - 1n).toString(16)}`
 
@@ -187,11 +190,82 @@ export abstract class NonfungiblePositionManager {
     ])
   }
 
+  /**
+   * Create and if necessary initialize the pool.
+   *
+   * This tx requires gas.
+   *
+   * @param _signer The signer to use to sign the transaction.
+   * @param provider The provider to use to propagate the tx.
+   * @param pool The pool to create and initialize.
+   * @param transactionOverrides If you want to set custom gas limit, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for inclusion.
+   */
+  public static async createOnChain(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    pool: Pool,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    const signer = _signer.connect(provider)
+
+    const chainId = (await provider.getNetwork()).chainId
+
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, signer)
+
+    const response = contract.createAndInitializePoolIfNecessary(
+      pool.token0.address,
+      pool.token1.address,
+      pool.fee,
+      toHex(pool.sqrtRatioX96),
+      Pool.ethersTransactionOverrides(transactionOverrides)
+    )
+
+    return response
+  }
+
   public static createCallParameters(pool: Pool): MethodParameters {
     return {
       calldata: this.encodeCreate(pool),
       value: toHex(0),
     }
+  }
+
+  /**
+   * Add liquidity to position on-chain.
+   *
+   * This tx requires gas.
+   *
+   * @param _signer The signer to use to sign the transaction.
+   * @param provider The provider to use to propagate the tx.
+   * @param position The position to add liquidity to.
+   * @param options Add liquidity Options.
+   * @param transactionOverrides If you want to set custom gas limit, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for inclusion.
+   */
+  public static async addOnChain(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    position: Position,
+    options: AddLiquidityOptions,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    const signer = _signer.connect(provider)
+
+    const chainId = (await provider.getNetwork()).chainId
+
+    const data = this.addCallParameters(position, options)
+
+    const response = signer.sendTransaction({
+      to: NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      data: data.calldata,
+      value: data.value,
+      gasPrice: transactionOverrides?.gasPrice?.toString(10),
+      gasLimit: transactionOverrides?.gasLimit?.toString(10),
+      nonce: transactionOverrides?.nonce?.toString(10),
+    })
+
+    return response
   }
 
   public static addCallParameters(position: Position, options: AddLiquidityOptions): MethodParameters {
@@ -321,6 +395,41 @@ export abstract class NonfungiblePositionManager {
     return calldatas
   }
 
+  /**
+   * Collect fees on-chain.
+   *
+   * This tx requires gas.
+   *
+   * @param _signer The signer to use to sign the transaction.
+   * @param provider The provider to use to propagate the tx.
+   * @param options Collect Options.
+   * @param transactionOverrides If you want to set custom gas limit, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for inclusion.
+   */
+  public static async collectOnChain(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    options: CollectOptions,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    const signer = _signer.connect(provider)
+
+    const chainId = (await provider.getNetwork()).chainId
+
+    const data = this.collectCallParameters(options)
+
+    const response = signer.sendTransaction({
+      to: NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      data: data.calldata,
+      value: data.value,
+      gasPrice: transactionOverrides?.gasPrice?.toString(10),
+      gasLimit: transactionOverrides?.gasLimit?.toString(10),
+      nonce: transactionOverrides?.nonce?.toString(10),
+    })
+
+    return response
+  }
+
   public static collectCallParameters(options: CollectOptions): MethodParameters {
     const calldatas: string[] = NonfungiblePositionManager.encodeCollect(options)
 
@@ -328,6 +437,43 @@ export abstract class NonfungiblePositionManager {
       calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(0),
     }
+  }
+
+  /**
+   * Remove a position on-chain.
+   *
+   * This tx requires gas.
+   *
+   * @param _signer The signer to use to sign the transaction.
+   * @param provider The provider to use to propagate the tx.
+   * @param position The position to remove.
+   * @param options Remove Options.
+   * @param transactionOverrides If you want to set custom gas limit, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for inclusion.
+   */
+  public static async removeOnChain(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    position: Position,
+    options: RemoveLiquidityOptions,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    const signer = _signer.connect(provider)
+
+    const chainId = (await provider.getNetwork()).chainId
+
+    const data = this.removeCallParameters(position, options)
+
+    const response = signer.sendTransaction({
+      to: NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      data: data.calldata,
+      value: data.value,
+      gasPrice: transactionOverrides?.gasPrice?.toString(10),
+      gasLimit: transactionOverrides?.gasLimit?.toString(10),
+      nonce: transactionOverrides?.nonce?.toString(10),
+    })
+
+    return response
   }
 
   /**
@@ -409,6 +555,41 @@ export abstract class NonfungiblePositionManager {
       calldata: Multicall.encodeMulticall(calldatas),
       value: toHex(0),
     }
+  }
+
+  /**
+   * Safe transfer from on-chain.
+   *
+   * This tx requires gas.
+   *
+   * @param _signer The signer to use to sign the transaction.
+   * @param provider The provider to use to propagate the tx.
+   * @param options SafeTransferOptions.
+   * @param transactionOverrides If you want to set custom gas limit, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for inclusion.
+   */
+  public static async safeTransferFromOnChain(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    options: SafeTransferOptions,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    const signer = _signer.connect(provider)
+
+    const chainId = (await provider.getNetwork()).chainId
+
+    const data = this.safeTransferFromParameters(options)
+
+    const response = signer.sendTransaction({
+      to: NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      data: data.calldata,
+      value: data.value,
+      gasPrice: transactionOverrides?.gasPrice?.toString(10),
+      gasLimit: transactionOverrides?.gasLimit?.toString(10),
+      nonce: transactionOverrides?.nonce?.toString(10),
+    })
+
+    return response
   }
 
   public static safeTransferFromParameters(options: SafeTransferOptions): MethodParameters {

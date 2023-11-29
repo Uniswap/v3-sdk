@@ -37,7 +37,7 @@ interface ObserveResponse {
   secondsPerLiquidityCumulativeX128s: bigint[]
 }
 
-interface TransactionOverrides {
+export interface TransactionOverrides {
   gasPrice?: BigInt
   gasLimit?: BigInt
   value?: BigInt
@@ -460,7 +460,7 @@ export class Pool {
     return response
   }
 
-  private static ethersTransactionOverrides(transactionOverrides?: TransactionOverrides): any {
+  public static ethersTransactionOverrides(transactionOverrides?: TransactionOverrides): any {
     return {
       gasPrice: transactionOverrides?.gasPrice
         ? ethers.BigNumber.from(transactionOverrides.gasPrice.toString(10))
