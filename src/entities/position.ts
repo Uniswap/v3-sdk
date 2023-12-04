@@ -6,6 +6,7 @@ import {
   Token,
   MaxUint256BigInt,
   NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
+  Fraction,
 } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
@@ -15,17 +16,20 @@ import { tickToPrice } from '../utils/priceTickConversions'
 import { SqrtPriceMath } from '../utils/sqrtPriceMath'
 import { TickMath } from '../utils/tickMath'
 import { encodeSqrtRatioX96BigInt } from '../utils/encodeSqrtRatioX96'
-import { Pool } from './pool'
+import { Pool, TransactionOverrides } from './pool'
 import { ethers } from 'ethers'
 import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { ERC20_ABI, FeeAmount } from '../constants'
 import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
+import { nearestUsableTick } from 'src/utils'
+import { IncreaseOptions, NonfungiblePositionManager } from 'src/nonfungiblePositionManager'
 
 interface PositionConstructorArgs {
   pool: Pool
   tickLower: number
   tickUpper: number
   liquidity: BigintIsh
+  positionId?: BigintIsh
 }
 
 /**
@@ -39,6 +43,8 @@ export class Position {
     return JSBI.BigInt(this._liquidity.toString(10))
   }
   public readonly _liquidity: bigint
+
+  public readonly positionId?: bigint
 
   // cached resuts for the getters
   private _token0Amount: CurrencyAmount<Token> | null = null
@@ -74,6 +80,7 @@ export class Position {
       liquidity: position.liquidity,
       tickLower: position.tickLower,
       tickUpper: position.tickUpper,
+      positionId: positionId,
     })
   }
 
@@ -161,8 +168,9 @@ export class Position {
    * @param liquidity The amount of liquidity that is in the position
    * @param tickLower The lower tick of the position
    * @param tickUpper The upper tick of the position
+   * @param positionId (optional) The positionId of the existing position on-chain.
    */
-  public constructor({ pool, liquidity, tickLower, tickUpper }: PositionConstructorArgs) {
+  public constructor({ pool, liquidity, tickLower, tickUpper, positionId }: PositionConstructorArgs) {
     invariant(tickLower < tickUpper, 'TICK_ORDER')
     invariant(tickLower >= TickMath.MIN_TICK && tickLower % pool.tickSpacing === 0, 'TICK_LOWER')
     invariant(tickUpper <= TickMath.MAX_TICK && tickUpper % pool.tickSpacing === 0, 'TICK_UPPER')
@@ -175,6 +183,45 @@ export class Position {
     } else {
       this._liquidity = BigInt(liquidity.toString(10))
     }
+
+    this.positionId = positionId ? bigIntFromBigintIsh(positionId) : undefined
+  }
+
+  public static createWithAmounts(
+    pool: Pool,
+    token0Amount: CurrencyAmount<Token>,
+    token1Amount: CurrencyAmount<Token>
+  ): Position {
+    return Position.fromAmounts({
+      pool: pool,
+      tickLower: nearestUsableTick(pool.tickCurrent, pool.tickSpacing) - pool.tickSpacing * 2,
+      tickUpper: nearestUsableTick(pool.tickCurrent, pool.tickSpacing) + pool.tickSpacing * 2,
+      amount0: token0Amount.quotient,
+      amount1: token1Amount.quotient,
+      useFullPrecision: true,
+    })
+  }
+
+  public async increasePositionByPercentageOnChain(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    percentage: Fraction,
+    options: IncreaseOptions,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    const toBeIncreasedByPosition = Position.createWithAmounts(
+      this.pool,
+      this.amount0.multiply(percentage),
+      this.amount1.multiply(percentage)
+    )
+
+    return NonfungiblePositionManager.increasePositionOnChain(
+      _signer,
+      provider,
+      toBeIncreasedByPosition,
+      options,
+      transactionOverrides
+    )
   }
 
   /**
