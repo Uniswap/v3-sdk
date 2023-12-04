@@ -22,7 +22,7 @@ import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contr
 import { ERC20_ABI, FeeAmount } from '../constants'
 import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
 import { nearestUsableTick } from 'src/utils'
-import { IncreaseOptions, NonfungiblePositionManager } from 'src/nonfungiblePositionManager'
+import { IncreaseOptions, NonfungiblePositionManager, RemoveLiquidityOptions } from 'src/nonfungiblePositionManager'
 
 interface PositionConstructorArgs {
   pool: Pool
@@ -187,38 +187,93 @@ export class Position {
     this.positionId = positionId ? bigIntFromBigintIsh(positionId) : undefined
   }
 
-  public static createWithAmounts(
-    pool: Pool,
-    token0Amount: CurrencyAmount<Token>,
-    token1Amount: CurrencyAmount<Token>
-  ): Position {
-    return Position.fromAmounts({
-      pool: pool,
-      tickLower: nearestUsableTick(pool.tickCurrent, pool.tickSpacing) - pool.tickSpacing * 2,
-      tickUpper: nearestUsableTick(pool.tickCurrent, pool.tickSpacing) + pool.tickSpacing * 2,
-      amount0: token0Amount.quotient,
-      amount1: token1Amount.quotient,
+  /**
+   * Increase the position by the given percentage of the current position size and create a transaction for the change.
+   *
+   * e.g.: 10% => Add 10% of current amount0 and amount1 to the position, so the new position will be 10% higher than before.
+   *
+   * This function requires gas.
+   *
+   * @param signer The signer to use to sign and send the transaction.
+   * @param provider The provider to use to propagate the transaction.
+   * @param percentage The percentage of the current amounts to increase by.
+   * @param options The increase options.
+   * @param transactionOverrides If you want to customize gas limit, gas price, etc.
+   *
+   * @returns The transaction response including hash. You need to wait for transaction inclusion yourself.
+   */
+  public async increasePositionByPercentageOnChain({
+    signer,
+    provider,
+    percentage,
+    options,
+    transactionOverrides,
+  }: {
+    signer: ethers.Signer
+    provider: ethers.providers.Provider
+    percentage: Fraction
+    options: IncreaseOptions
+    transactionOverrides?: TransactionOverrides
+  }): Promise<ethers.providers.TransactionResponse> {
+    const toBeIncreasedByPosition = Position.fromAmounts({
+      pool: this.pool,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper,
+      amount0: this.amount0.multiply(percentage).toExact(),
+      amount1: this.amount1.multiply(percentage).toExact(),
       useFullPrecision: true,
     })
-  }
-
-  public async increasePositionByPercentageOnChain(
-    _signer: ethers.Signer,
-    provider: ethers.providers.Provider,
-    percentage: Fraction,
-    options: IncreaseOptions,
-    transactionOverrides?: TransactionOverrides
-  ): Promise<ethers.providers.TransactionResponse> {
-    const toBeIncreasedByPosition = Position.createWithAmounts(
-      this.pool,
-      this.amount0.multiply(percentage),
-      this.amount1.multiply(percentage)
-    )
 
     return NonfungiblePositionManager.increasePositionOnChain(
-      _signer,
+      signer,
       provider,
       toBeIncreasedByPosition,
+      options,
+      transactionOverrides
+    )
+  }
+
+  /**
+   * Decrease the position by the given percentage of the current position size and create a transaction for the change.
+   *
+   * e.g.: 10% => Remove 10% of current amount0 and amount1 from the position, so the new position will be 10% lower than before.
+   *
+   * This function requires gas.
+   *
+   * @param signer The signer to use to sign and send the transaction.
+   * @param provider The provider to use to propagate the transaction.
+   * @param percentage The percentage of the current amounts to decrease by.
+   * @param options The remove liquidity options.
+   * @param transactionOverrides If you want to customize gas limit, gas price, etc.
+   *
+   * @returns The transaction response including hash. You need to wait for transaction inclusion yourself.
+   */
+  public async decreasePositionByPercentageOnChain({
+    signer,
+    provider,
+    percentage,
+    options,
+    transactionOverrides,
+  }: {
+    signer: ethers.Signer
+    provider: ethers.providers.Provider
+    percentage: Fraction
+    options: RemoveLiquidityOptions
+    transactionOverrides?: TransactionOverrides
+  }): Promise<ethers.providers.TransactionResponse> {
+    const toBeDecreasedByPosition = Position.fromAmounts({
+      pool: this.pool,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper,
+      amount0: this.amount0.multiply(percentage).toExact(),
+      amount1: this.amount1.multiply(percentage).toExact(),
+      useFullPrecision: true,
+    })
+
+    return NonfungiblePositionManager.removeOnChain(
+      signer,
+      provider,
+      toBeDecreasedByPosition,
       options,
       transactionOverrides
     )
