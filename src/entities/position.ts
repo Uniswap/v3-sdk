@@ -52,7 +52,10 @@ export class Position {
    * @param positionId The position id to fetch.
    * @returns Instance of Position.
    */
-  public static async fetchWithPositionId(provider: ethers.providers.Provider, positionId: BigintIsh): Promise<Pool> {
+  public static async fetchWithPositionId(
+    provider: ethers.providers.Provider,
+    positionId: BigintIsh
+  ): Promise<Position> {
     const chainId = (await provider.getNetwork()).chainId
 
     const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
@@ -72,6 +75,84 @@ export class Position {
       tickLower: position.tickLower,
       tickUpper: position.tickUpper,
     })
+  }
+
+  /**
+   * Returns the number of positions the given address owns. Using this, position identifiers can be fetched.
+   * A position can always be fetched with the combination of (address, index), so for an address with 3 positions,
+   * there are positions on index 0, 1 and 2.
+   *
+   * Use `getPositionForAddressAndIndex` to fetch individual positions in a paginated manner.
+   *
+   * @param provider The provider to use for fetching the position count.
+   * @param address The address to fetch position count for.
+   * @returns The number of positions of the given address.
+   */
+  public static async getPositionCount(provider: ethers.providers.Provider, address: string): Promise<bigint> {
+    const chainId = (await provider.getNetwork()).chainId
+
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const balance = await contract.balanceOf(address)
+
+    return BigInt(balance.toString(10))
+  }
+
+  /**
+   * Returns the position of the given address at the given index.
+   * You need to know the number of positions an address has first. You can use
+   * `getPositionCount` for that.
+   *
+   * @param provider The provider to use to fetch the position.
+   * @param address The address to fetch a position for.
+   * @param index The index of the position for the given address to fetch.
+   * @returns The initialized position.
+   */
+  public static async getPositionForAddressAndIndex(
+    provider: ethers.providers.Provider,
+    address: string,
+    index: BigintIsh
+  ): Promise<Position> {
+    const chainId = (await provider.getNetwork()).chainId
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+
+    const positionId = contract.tokenOfOwnerByIndex(
+      address,
+      ethers.BigNumber.from(bigIntFromBigintIsh(index).toString(10))
+    )
+
+    return await Position.fetchWithPositionId(provider, BigInt(positionId.toString(10)))
+  }
+
+  /**
+   * WARNING: This is a potentially heavy call that takes up lots of RPC resources and can take many seconds
+   * to resolve. This is the case if the address given has many positions (whether closed or open) on the network.
+   * (e.g. thousands of positions are a real problem, but even 500 will take at least a few seconds).
+   *
+   * To create a paginated version of this, call `getPositionCount` and then `getPositionForAddressAndIndex` as many times
+   * as you need to render your current page.
+   *
+   * Fetches all positions of the given address.
+   *
+   * @param provider The provider to use to fetch positions for.
+   * @param address The address to fetch positions for.
+   * @returns The initialized positions as an array.
+   */
+  public static async getAllPositionsForAddress(
+    provider: ethers.providers.Provider,
+    address: string
+  ): Promise<Position[]> {
+    const balance = await Position.getPositionCount(provider, address)
+
+    const chainId = (await provider.getNetwork()).chainId
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+
+    const positionIdsPromises = []
+    for (let i = 0n; i < balance; i += 1n) {
+      positionIdsPromises.push(contract.tokenOfOwnerByIndex(address, ethers.BigNumber.from(i.toString(10))))
+    }
+    const positionIds = (await Promise.all(positionIdsPromises)).map((id) => BigInt(id.toString(10)))
+
+    return await Promise.all(positionIds.map((id) => Position.fetchWithPositionId(provider, id)))
   }
 
   /**
