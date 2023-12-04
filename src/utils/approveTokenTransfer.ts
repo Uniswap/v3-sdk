@@ -1,9 +1,9 @@
 import { Signer } from '@ethersproject/abstract-signer'
-import { Provider } from '@ethersproject/abstract-provider'
+import { Provider, TransactionReceipt, TransactionResponse } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
 import { BigintIsh } from '@uniswap/sdk-core'
 import { ERC20_ABI } from '../constants'
-import { BigNumber } from 'ethers'
+import { BigNumber} from 'ethers'
 
 /**
  * Approves an address to transfer ERC20 Tokens on behalf of a Signer
@@ -17,7 +17,7 @@ export async function approveTokenTransfer(
     tokenAddress: string,
     amount: BigintIsh,
     signer: Signer
-): Promise<void> {
+): Promise<TransactionReceipt> {
     const tokenContract = new Contract(tokenAddress, ERC20_ABI, signer)
    
     if (typeof amount !== "string") {
@@ -27,7 +27,8 @@ export async function approveTokenTransfer(
             amount = amount.toString(10)
         }
     }
-    await tokenContract["approve"](contractAddress, amount)
+    const tx: TransactionResponse = await tokenContract["approve"](contractAddress, amount)
+    return await tx.wait()
 }
 
 /**
