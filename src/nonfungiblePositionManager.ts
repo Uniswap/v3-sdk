@@ -20,6 +20,7 @@ import { Multicall } from './multicall'
 import { Payments } from './payments'
 import { ethers } from 'ethers'
 import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
+import { bigIntFromBigintIsh } from './utils/bigintIsh'
 
 const MaxUint128 = `0x${(2n ** 128n - 1n).toString(16)}`
 
@@ -672,5 +673,36 @@ export abstract class NonfungiblePositionManager {
       calldata: calldata,
       value: toHex(0),
     }
+  }
+
+  /**
+   * Returns a URI describing a particular positionId.
+   *
+   * @param provider The provider to fetch from.
+   * @param positionId The tokenId to fetch.
+   *
+   * @returns The positionId URI as a base64 string with URI data.
+   */
+  public static async tokenURI(provider: ethers.providers.Provider, positionId: BigintIsh): Promise<string> {
+    const chainId = (await provider.getNetwork()).chainId
+
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+
+    return await contract.tokenURI(ethers.BigNumber.from(bigIntFromBigintIsh(positionId).toString(10)))
+  }
+
+  /**
+   * Returns the base URI of positions.
+   *
+   * @param provider The provider to fetch from.
+   *
+   * @returns The base URI.
+   */
+  public static async baseURI(provider: ethers.providers.Provider): Promise<string> {
+    const chainId = (await provider.getNetwork()).chainId
+
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+
+    return await contract.baseURI()
   }
 }
