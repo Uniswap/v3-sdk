@@ -52,7 +52,7 @@ export class Position {
    * @param positionId The position id to fetch.
    * @returns Instance of Position.
    */
-  public static async initFromChain(provider: ethers.providers.Provider, positionId: BigintIsh): Promise<Pool> {
+  public static async fetchWithPositionId(provider: ethers.providers.Provider, positionId: BigintIsh): Promise<Pool> {
     const chainId = (await provider.getNetwork()).chainId
 
     const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)

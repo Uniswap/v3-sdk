@@ -232,22 +232,22 @@ export abstract class NonfungiblePositionManager {
   }
 
   /**
-   * Add liquidity to position on-chain.
+   * Creates a new position and mints the NFT of the position on-chain.
    *
    * This tx requires gas.
    *
    * @param _signer The signer to use to sign the transaction.
    * @param provider The provider to use to propagate the tx.
    * @param position The position to add liquidity to.
-   * @param options Add liquidity Options.
+   * @param options Mint liquidity Options.
    * @param transactionOverrides If you want to set custom gas limit, nonce, etc. optional.
    * @returns The transaction response. You will still need to wait for inclusion.
    */
-  public static async addOnChain(
+  public static async createPositionOnChain(
     _signer: ethers.Signer,
     provider: ethers.providers.Provider,
     position: Position,
-    options: AddLiquidityOptions,
+    options: MintOptions,
     transactionOverrides?: TransactionOverrides
   ): Promise<ethers.providers.TransactionResponse> {
     const signer = _signer.connect(provider)
@@ -266,6 +266,65 @@ export abstract class NonfungiblePositionManager {
     })
 
     return response
+  }
+
+  /**
+   * Add liquidity to position on-chain.
+   *
+   * This tx requires gas.
+   *
+   * @param _signer The signer to use to sign the transaction.
+   * @param provider The provider to use to propagate the tx.
+   * @param position The position to add liquidity to.
+   * @param options Increase liquidity Options.
+   * @param transactionOverrides If you want to set custom gas limit, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for inclusion.
+   */
+  public static async increasePositionOnChain(
+    _signer: ethers.Signer,
+    provider: ethers.providers.Provider,
+    position: Position,
+    options: IncreaseOptions,
+    transactionOverrides?: TransactionOverrides
+  ): Promise<ethers.providers.TransactionResponse> {
+    const signer = _signer.connect(provider)
+
+    const chainId = (await provider.getNetwork()).chainId
+
+    const data = this.addCallParameters(position, options)
+
+    const response = signer.sendTransaction({
+      to: NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      data: data.calldata,
+      value: data.value,
+      gasPrice: transactionOverrides?.gasPrice?.toString(10),
+      gasLimit: transactionOverrides?.gasLimit?.toString(10),
+      nonce: transactionOverrides?.nonce?.toString(10),
+    })
+
+    return response
+  }
+
+  /**
+   * Returns calldata for creating a position and minting the NFT.
+   *
+   * @param position The position to create.
+   * @param options The mint options
+   * @returns calldata and value to be used for signing and sending a transaction.
+   */
+  public static createPositionCallParameters(position: Position, options: MintOptions): MethodParameters {
+    return this.addCallParameters(position, options)
+  }
+
+  /**
+   * Returns calldata for increasing an existing position.
+   *
+   * @param position The position to create.
+   * @param options The increase options
+   * @returns calldata and value to be used for signing and sending a transaction.
+   */
+  public static increasePositionCallParameters(position: Position, options: IncreaseOptions): MethodParameters {
+    return this.addCallParameters(position, options)
   }
 
   public static addCallParameters(position: Position, options: AddLiquidityOptions): MethodParameters {
