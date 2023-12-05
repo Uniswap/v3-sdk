@@ -37,7 +37,7 @@ interface ObserveResponse {
   secondsPerLiquidityCumulativeX128s: bigint[]
 }
 
-interface TransactionOverrides {
+export interface TransactionOverrides {
   gasPrice?: BigInt
   gasLimit?: BigInt
   value?: BigInt
@@ -101,6 +101,40 @@ export class Pool {
     })
   }
 
+  public static async initFromChain(
+    provider: ethers.providers.Provider,
+    tokenA: Token,
+    tokenB: Token,
+    fee: FeeAmount,
+    poolAddress?: string,
+    initCodeHashManualOverride?: string,
+    factoryAddressOverride?: string
+  ): Promise<Pool> {
+    const contract = new ethers.Contract(
+      poolAddress || Pool.getAddress(tokenA, tokenB, fee, initCodeHashManualOverride, factoryAddressOverride),
+      poolAbi.abi,
+      provider
+    )
+    const slot0 = await contract.slot0()
+    const sqrtRatioX96 = slot0.sqrtPriceX96
+    const tickCurrent = slot0.tick
+    const liquidity = await contract.liquidity()
+
+    return new Pool(tokenA, tokenB, fee, sqrtRatioX96, liquidity, tickCurrent, undefined, provider)
+  }
+
+  /**
+   * Initialize a pool from the latest chain data.
+   *
+   * @param provider The provider to fetch data from.
+   * @param tokenA First token address of the pool
+   * @param tokenB Second token address of the pool
+   * @param fee The fee of the pool to fetch
+   * @param poolAddress The pool address, optional, will be calculated if not given
+   * @param initCodeHashManualOverride Init code hash override for pool address calculation. Used if pool address not given.
+   * @param factoryAddressOverride Factory address override for pool address calculation. Used if pool address not given.
+   * @returns The initialized Pool instance.
+   */
   public static async initFromChain(
     provider: ethers.providers.Provider,
     tokenA: Token,
@@ -394,12 +428,9 @@ export class Pool {
   // ---- RPC Functions - Fetch data from on-chain state ----
 
   public async initializeTicks(provider?: ethers.providers.Provider | undefined): Promise<void> {
-    if ((this.tickDataProvider instanceof NoTickDataProvider)) {
+    if (this.tickDataProvider instanceof NoTickDataProvider) {
       invariant(provider !== undefined, 'Pool has no RPC connection and no Provider was provided.')
-      this._tickDataProvider = new RPCTickDataProvider(
-        provider, 
-        Pool.getAddress(this.token0, this.token1, this.fee)
-        )
+      this._tickDataProvider = new RPCTickDataProvider(provider, Pool.getAddress(this.token0, this.token1, this.fee))
     }
     await this.initializeTicksFromRpc()
     // If the TickDataProvider is neither a NoTickDataProvider nor an RPCTickDataProvider ticks are present
@@ -413,6 +444,18 @@ export class Pool {
     // If the TickDataProvider is neither a NoTickDataProvider nor an RPCTickDataProvider ticks are present
   }
 
+  /**
+   * Create a new Uniswap V3 pool with the given details (this will cost gas).
+   *
+   * @param _signer The wallet to use to sign the transaction.
+   * @param provider The provider to use to propagate the transaction.
+   * @param tokenA First token of the pool
+   * @param tokenB Second token of the pool
+   * @param fee The fee amount of the pool
+   * @param transactionOverrides In case you want to override details of the transaction like gas, nonce, etc. optional.
+   * @param factoryAddress The factory address to use. Only customize if you are using a fork. optional.
+   * @returns The transaction response. You will still need to wait for tx inclusion.
+   */
   public static async rpcCreatePool(
     _signer: ethers.Signer,
     provider: ethers.providers.Provider,
@@ -439,7 +482,7 @@ export class Pool {
     return response
   }
 
-  private static ethersTransactionOverrides(transactionOverrides?: TransactionOverrides): any {
+  public static ethersTransactionOverrides(transactionOverrides?: TransactionOverrides): any {
     return {
       gasPrice: transactionOverrides?.gasPrice
         ? ethers.BigNumber.from(transactionOverrides.gasPrice.toString(10))
@@ -456,9 +499,19 @@ export class Pool {
     invariant(this._provider, 'provider not initialized')
 
     const provider = signer ? signer.connect(this._provider) : this._provider
-    return new ethers.Contract(poolAddress || Pool.getAddress(this.token0, this.token1, this.fee), poolAbi.abi, provider)
+    return new ethers.Contract(
+      poolAddress || Pool.getAddress(this.token0, this.token1, this.fee),
+      poolAbi.abi,
+      provider
+    )
   }
 
+  /**
+   * Returns whether this pool exists on-chain.
+   * @param poolAddress The address to check. optional.
+   * @param blockNum The block number at which to check. Latest is assumed.
+   * @returns true if the pool exists on-chain. false otherwise.
+   */
   public async rpcPoolExists(poolAddress?: string, blockNum?: number): Promise<boolean> {
     try {
       await this.rpcSlot0(poolAddress, blockNum)
@@ -468,6 +521,13 @@ export class Pool {
     }
   }
 
+  /**
+   * Returns the slot0 value of the pool from on-chain data.
+   *
+   * @param poolAddress Optional. The pool address.
+   * @param blockNum Optional. The block number at which to fetch slot0. Latest is assumed.
+   * @returns Slot0Response.
+   */
   public async rpcSlot0(poolAddress?: string, blockNum?: number): Promise<Slot0Response> {
     invariant(this._provider, 'provider not initialized')
 
@@ -486,6 +546,15 @@ export class Pool {
     }
   }
 
+  /**
+   * Returns the snapshot cumulative inside the pool from on-chain data.
+   *
+   * @param tickLower The lower tick to include into the range
+   * @param tickUpper The upper tick to include into the range
+   * @param poolAddress The pool address. optional.
+   * @param blockNum The block number at which to fetch. optional. Latest is assumed.
+   * @returns SnapshotCumulativeInside values.
+   */
   public async rpcSnapshotCumulativesInside(
     tickLower: number,
     tickUpper: number,
@@ -505,6 +574,14 @@ export class Pool {
     }
   }
 
+  /**
+   * Observation responses of the pool oracle.
+   *
+   * @param secondsAgo Array of timings for the oracle values.
+   * @param poolAddress The pool address. optional.
+   * @param blockNum The block number to fetch. optional.
+   * @returns ObserveResponse values.
+   */
   public async rpcObserve(secondsAgo: number[], poolAddress?: string, blockNum?: number): Promise<ObserveResponse> {
     invariant(this._provider, 'provider not initialized')
 
@@ -520,6 +597,15 @@ export class Pool {
     }
   }
 
+  /**
+   * Increase the observation cardinality for this pool (this tx requires gas).
+   *
+   * @param signer The signer to use to sign the transaction.
+   * @param observationCardinalityNext The next cardinality (you pay for).
+   * @param poolAddress The pool address. optional.
+   * @param transactionOverrides If you want to customize gas, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for tx inclusion.
+   */
   public async rpcIncreaseObservationCardinalityNext(
     signer: ethers.Signer,
     observationCardinalityNext: number,
@@ -538,6 +624,26 @@ export class Pool {
     return response
   }
 
+  /**
+   * Collects tokens owed to a position
+   *
+   * Does not recompute fees earned, which must be done either via mint or burn of any amount of liquidity.
+   * Collect must be called by the position owner. To withdraw only token0 or only token1, amount0Requested or amount1Requested may be set to zero.
+   * To withdraw all tokens owed, caller may pass any value greater than the actual tokens owed, e.g. type(uint128).max.
+   * Tokens owed may be from accumulated swap fees or burned liquidity.
+   *
+   * This tx requires gas.
+   *
+   * @param signer The signer to use to sign the transaction.
+   * @param recipient The recipient of the fees.
+   * @param tickLower The lower tick of the position for which to collect fees
+   * @param tickUpper The upper tick of the position for which to collect fees
+   * @param amount0Requested How much token0 should be withdrawn from the fees owed
+   * @param amount1Requested How much token1 should be withdrawn from the fees owed
+   * @param poolAddress The pool address. optional.
+   * @param transactionOverrides If you want to customize gas, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for tx inclusion.
+   */
   public async rpcCollect(
     signer: ethers.Signer,
     recipient: string,
@@ -564,6 +670,18 @@ export class Pool {
     return response
   }
 
+  /**
+   * Burn liquidity from the sender and account tokens owed for the liquidity to the position.
+   * This tx requires gas.
+   *
+   * @param signer The signer to use to sign the tx.
+   * @param tickLower The lower tick of the position for which to burn liquidity
+   * @param tickUpper The upper tick of the position for which to burn liquidity
+   * @param amount How much liquidity to burn
+   * @param poolAddress The pool address. optional.
+   * @param transactionOverrides If you want to customize gas, nonce, etc. optional.
+   * @returns The transaction response. You will still need to wait for tx inclusion.
+   */
   public async rpcBurn(
     signer: ethers.Signer,
     tickLower: number,

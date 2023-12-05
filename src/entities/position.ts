@@ -1,4 +1,13 @@
-import { BigintIsh, Percent, Price, CurrencyAmount, Token, MaxUint256BigInt } from '@uniswap/sdk-core'
+import {
+  BigintIsh,
+  Percent,
+  Price,
+  CurrencyAmount,
+  Token,
+  MaxUint256BigInt,
+  NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
+  Fraction,
+} from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import { ZERO } from '../internalConstants'
@@ -7,13 +16,20 @@ import { tickToPrice } from '../utils/priceTickConversions'
 import { SqrtPriceMath } from '../utils/sqrtPriceMath'
 import { TickMath } from '../utils/tickMath'
 import { encodeSqrtRatioX96BigInt } from '../utils/encodeSqrtRatioX96'
-import { Pool } from './pool'
+import { Pool, TransactionOverrides } from './pool'
+import { ethers } from 'ethers'
+import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
+import { ERC20_ABI, FeeAmount } from '../constants'
+import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
+import { nearestUsableTick } from 'src/utils'
+import { IncreaseOptions, NonfungiblePositionManager, RemoveLiquidityOptions } from 'src/nonfungiblePositionManager'
 
 interface PositionConstructorArgs {
   pool: Pool
   tickLower: number
   tickUpper: number
   liquidity: BigintIsh
+  positionId?: BigintIsh
 }
 
 /**
@@ -28,10 +44,123 @@ export class Position {
   }
   public readonly _liquidity: bigint
 
+  public readonly positionId?: bigint
+
   // cached resuts for the getters
   private _token0Amount: CurrencyAmount<Token> | null = null
   private _token1Amount: CurrencyAmount<Token> | null = null
   private _mintAmounts: Readonly<{ amount0: bigint; amount1: bigint }> | null = null
+
+  /**
+   * Initializes the position from a given position id using on-chain data.
+   *
+   * @param provider The provider to use to fetch data.
+   * @param positionId The position id to fetch.
+   * @returns Instance of Position.
+   */
+  public static async fetchWithPositionId(
+    provider: ethers.providers.Provider,
+    positionId: BigintIsh
+  ): Promise<Position> {
+    const chainId = (await provider.getNetwork()).chainId
+
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const position = await contract.positions(ethers.BigNumber.from(bigIntFromBigintIsh(positionId).toString(10)))
+
+    const token0Contract = new ethers.Contract(position.token0, ERC20_ABI, provider)
+    const token1Contract = new ethers.Contract(position.token1, ERC20_ABI, provider)
+
+    return new Position({
+      pool: await Pool.initFromChain(
+        provider,
+        new Token(chainId, position.token0, await token0Contract.decimals()),
+        new Token(chainId, position.token1, token1Contract.decimals()),
+        position.fee
+      ),
+      liquidity: position.liquidity,
+      tickLower: position.tickLower,
+      tickUpper: position.tickUpper,
+      positionId: positionId,
+    })
+  }
+
+  /**
+   * Returns the number of positions the given address owns. Using this, position identifiers can be fetched.
+   * A position can always be fetched with the combination of (address, index), so for an address with 3 positions,
+   * there are positions on index 0, 1 and 2.
+   *
+   * Use `getPositionForAddressAndIndex` to fetch individual positions in a paginated manner.
+   *
+   * @param provider The provider to use for fetching the position count.
+   * @param address The address to fetch position count for.
+   * @returns The number of positions of the given address.
+   */
+  public static async getPositionCount(provider: ethers.providers.Provider, address: string): Promise<bigint> {
+    const chainId = (await provider.getNetwork()).chainId
+
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const balance = await contract.balanceOf(address)
+
+    return BigInt(balance.toString(10))
+  }
+
+  /**
+   * Returns the position of the given address at the given index.
+   * You need to know the number of positions an address has first. You can use
+   * `getPositionCount` for that.
+   *
+   * @param provider The provider to use to fetch the position.
+   * @param address The address to fetch a position for.
+   * @param index The index of the position for the given address to fetch.
+   * @returns The initialized position.
+   */
+  public static async getPositionForAddressAndIndex(
+    provider: ethers.providers.Provider,
+    address: string,
+    index: BigintIsh
+  ): Promise<Position> {
+    const chainId = (await provider.getNetwork()).chainId
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+
+    const positionId = contract.tokenOfOwnerByIndex(
+      address,
+      ethers.BigNumber.from(bigIntFromBigintIsh(index).toString(10))
+    )
+
+    return await Position.fetchWithPositionId(provider, BigInt(positionId.toString(10)))
+  }
+
+  /**
+   * WARNING: This is a potentially heavy call that takes up lots of RPC resources and can take many seconds
+   * to resolve. This is the case if the address given has many positions (whether closed or open) on the network.
+   * (e.g. thousands of positions are a real problem, but even 500 will take at least a few seconds).
+   *
+   * To create a paginated version of this, call `getPositionCount` and then `getPositionForAddressAndIndex` as many times
+   * as you need to render your current page.
+   *
+   * Fetches all positions of the given address.
+   *
+   * @param provider The provider to use to fetch positions for.
+   * @param address The address to fetch positions for.
+   * @returns The initialized positions as an array.
+   */
+  public static async getAllPositionsForAddress(
+    provider: ethers.providers.Provider,
+    address: string
+  ): Promise<Position[]> {
+    const balance = await Position.getPositionCount(provider, address)
+
+    const chainId = (await provider.getNetwork()).chainId
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+
+    const positionIdsPromises = []
+    for (let i = 0n; i < balance; i += 1n) {
+      positionIdsPromises.push(contract.tokenOfOwnerByIndex(address, ethers.BigNumber.from(i.toString(10))))
+    }
+    const positionIds = (await Promise.all(positionIdsPromises)).map((id) => BigInt(id.toString(10)))
+
+    return await Promise.all(positionIds.map((id) => Position.fetchWithPositionId(provider, id)))
+  }
 
   /**
    * Constructs a position for a given pool with the given liquidity
@@ -39,8 +168,9 @@ export class Position {
    * @param liquidity The amount of liquidity that is in the position
    * @param tickLower The lower tick of the position
    * @param tickUpper The upper tick of the position
+   * @param positionId (optional) The positionId of the existing position on-chain.
    */
-  public constructor({ pool, liquidity, tickLower, tickUpper }: PositionConstructorArgs) {
+  public constructor({ pool, liquidity, tickLower, tickUpper, positionId }: PositionConstructorArgs) {
     invariant(tickLower < tickUpper, 'TICK_ORDER')
     invariant(tickLower >= TickMath.MIN_TICK && tickLower % pool.tickSpacing === 0, 'TICK_LOWER')
     invariant(tickUpper <= TickMath.MAX_TICK && tickUpper % pool.tickSpacing === 0, 'TICK_UPPER')
@@ -53,6 +183,100 @@ export class Position {
     } else {
       this._liquidity = BigInt(liquidity.toString(10))
     }
+
+    this.positionId = positionId ? bigIntFromBigintIsh(positionId) : undefined
+  }
+
+  /**
+   * Increase the position by the given percentage of the current position size and create a transaction for the change.
+   *
+   * e.g.: 10% => Add 10% of current amount0 and amount1 to the position, so the new position will be 10% higher than before.
+   *
+   * This function requires gas.
+   *
+   * @param signer The signer to use to sign and send the transaction.
+   * @param provider The provider to use to propagate the transaction.
+   * @param percentage The percentage of the current amounts to increase by.
+   * @param options The increase options.
+   * @param transactionOverrides If you want to customize gas limit, gas price, etc.
+   *
+   * @returns The transaction response including hash. You need to wait for transaction inclusion yourself.
+   */
+  public async increasePositionByPercentageOnChain({
+    signer,
+    provider,
+    percentage,
+    options,
+    transactionOverrides,
+  }: {
+    signer: ethers.Signer
+    provider: ethers.providers.Provider
+    percentage: Fraction
+    options: IncreaseOptions
+    transactionOverrides?: TransactionOverrides
+  }): Promise<ethers.providers.TransactionResponse> {
+    const toBeIncreasedByPosition = Position.fromAmounts({
+      pool: this.pool,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper,
+      amount0: this.amount0.multiply(percentage).toExact(),
+      amount1: this.amount1.multiply(percentage).toExact(),
+      useFullPrecision: true,
+    })
+
+    return NonfungiblePositionManager.increasePositionOnChain(
+      signer,
+      provider,
+      toBeIncreasedByPosition,
+      options,
+      transactionOverrides
+    )
+  }
+
+  /**
+   * Decrease the position by the given percentage of the current position size and create a transaction for the change.
+   *
+   * e.g.: 10% => Remove 10% of current amount0 and amount1 from the position, so the new position will be 10% lower than before.
+   *
+   * This function requires gas.
+   *
+   * @param signer The signer to use to sign and send the transaction.
+   * @param provider The provider to use to propagate the transaction.
+   * @param percentage The percentage of the current amounts to decrease by.
+   * @param options The remove liquidity options.
+   * @param transactionOverrides If you want to customize gas limit, gas price, etc.
+   *
+   * @returns The transaction response including hash. You need to wait for transaction inclusion yourself.
+   */
+  public async decreasePositionByPercentageOnChain({
+    signer,
+    provider,
+    percentage,
+    options,
+    transactionOverrides,
+  }: {
+    signer: ethers.Signer
+    provider: ethers.providers.Provider
+    percentage: Fraction
+    options: RemoveLiquidityOptions
+    transactionOverrides?: TransactionOverrides
+  }): Promise<ethers.providers.TransactionResponse> {
+    const toBeDecreasedByPosition = Position.fromAmounts({
+      pool: this.pool,
+      tickLower: this.tickLower,
+      tickUpper: this.tickUpper,
+      amount0: this.amount0.multiply(percentage).toExact(),
+      amount1: this.amount1.multiply(percentage).toExact(),
+      useFullPrecision: true,
+    })
+
+    return NonfungiblePositionManager.removeOnChain(
+      signer,
+      provider,
+      toBeDecreasedByPosition,
+      options,
+      transactionOverrides
+    )
   }
 
   /**
