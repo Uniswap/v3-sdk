@@ -18,11 +18,10 @@ import { TickMath } from '../utils/tickMath'
 import { encodeSqrtRatioX96BigInt } from '../utils/encodeSqrtRatioX96'
 import { Pool, TransactionOverrides } from './pool'
 import { ethers } from 'ethers'
-import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
-import { ERC20_ABI, FeeAmount } from '../constants'
-import { bigIntFromBigintIsh } from 'src/utils/bigintIsh'
-import { nearestUsableTick } from 'src/utils'
-import { IncreaseOptions, NonfungiblePositionManager, RemoveLiquidityOptions } from 'src/nonfungiblePositionManager'
+import INonfungiblePositionManager from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
+import { ERC20_ABI } from '../constants'
+import { bigIntFromBigintIsh } from '../utils/bigintIsh'
+import { IncreaseOptions, NonfungiblePositionManager, RemoveLiquidityOptions } from '../nonfungiblePositionManager'
 
 interface PositionConstructorArgs {
   pool: Pool
@@ -64,7 +63,7 @@ export class Position {
   ): Promise<Position> {
     const chainId = (await provider.getNetwork()).chainId
 
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
     const position = await contract.positions(ethers.BigNumber.from(bigIntFromBigintIsh(positionId).toString(10)))
 
     const token0Contract = new ethers.Contract(position.token0, ERC20_ABI, provider)
@@ -98,7 +97,7 @@ export class Position {
   public static async getPositionCount(provider: ethers.providers.Provider, address: string): Promise<bigint> {
     const chainId = (await provider.getNetwork()).chainId
 
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
     const balance = await contract.balanceOf(address)
 
     return BigInt(balance.toString(10))
@@ -120,7 +119,7 @@ export class Position {
     index: BigintIsh
   ): Promise<Position> {
     const chainId = (await provider.getNetwork()).chainId
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
 
     const positionId = contract.tokenOfOwnerByIndex(
       address,
@@ -151,7 +150,7 @@ export class Position {
     const balance = await Position.getPositionCount(provider, address)
 
     const chainId = (await provider.getNetwork()).chainId
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
 
     const positionIdsPromises = []
     for (let i = 0n; i < balance; i += 1n) {
