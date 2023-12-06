@@ -19,7 +19,6 @@ import { Pool, TransactionOverrides } from './entities'
 import { Multicall } from './multicall'
 import { Payments } from './payments'
 import { ethers } from 'ethers'
-import { abi as positionManagerAbi } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { bigIntFromBigintIsh } from './utils/bigintIsh'
 
 const MaxUint128 = `0x${(2n ** 128n - 1n).toString(16)}`
@@ -212,7 +211,7 @@ export abstract class NonfungiblePositionManager {
 
     const chainId = (await provider.getNetwork()).chainId
 
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, signer)
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, signer)
 
     const response = contract.createAndInitializePoolIfNecessary(
       pool.token0.address,
@@ -686,7 +685,7 @@ export abstract class NonfungiblePositionManager {
   public static async tokenURI(provider: ethers.providers.Provider, positionId: BigintIsh): Promise<string> {
     const chainId = (await provider.getNetwork()).chainId
 
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
 
     return await contract.tokenURI(ethers.BigNumber.from(bigIntFromBigintIsh(positionId).toString(10)))
   }
@@ -701,7 +700,7 @@ export abstract class NonfungiblePositionManager {
   public static async baseURI(provider: ethers.providers.Provider): Promise<string> {
     const chainId = (await provider.getNetwork()).chainId
 
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], positionManagerAbi, provider)
+    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
 
     return await contract.baseURI()
   }

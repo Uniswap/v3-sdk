@@ -101,28 +101,6 @@ export class Pool {
     })
   }
 
-  public static async initFromChain(
-    provider: ethers.providers.Provider,
-    tokenA: Token,
-    tokenB: Token,
-    fee: FeeAmount,
-    poolAddress?: string,
-    initCodeHashManualOverride?: string,
-    factoryAddressOverride?: string
-  ): Promise<Pool> {
-    const contract = new ethers.Contract(
-      poolAddress || Pool.getAddress(tokenA, tokenB, fee, initCodeHashManualOverride, factoryAddressOverride),
-      poolAbi.abi,
-      provider
-    )
-    const slot0 = await contract.slot0()
-    const sqrtRatioX96 = slot0.sqrtPriceX96
-    const tickCurrent = slot0.tick
-    const liquidity = await contract.liquidity()
-
-    return new Pool(tokenA, tokenB, fee, sqrtRatioX96, liquidity, tickCurrent, undefined, provider)
-  }
-
   /**
    * Initialize a pool from the latest chain data.
    *

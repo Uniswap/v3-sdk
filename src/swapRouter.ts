@@ -285,7 +285,7 @@ export abstract class SwapRouter {
         signerAddress,
         provider
       )
-      const maxAmountIn = BigInt(firstTrade.inputAmount.toExact()) * firstTrade.inputAmount._decimalScale
+      const maxAmountIn = firstTrade.inputAmount.quotientBigInt
 
       if (allowance < maxAmountIn) {
         await approveTokenTransfer(
