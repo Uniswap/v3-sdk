@@ -78,7 +78,7 @@ export class Position {
       pool: await Pool.initFromChain(
         provider,
         new Token(chainId, position.token0, await token0Contract.decimals()),
-        new Token(chainId, position.token1, token1Contract.decimals()),
+        new Token(chainId, position.token1, await token1Contract.decimals()),
         position.fee
       ),
       liquidity: position.liquidity,
