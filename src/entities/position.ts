@@ -21,7 +21,7 @@ import { ethers } from 'ethers'
 import INonfungiblePositionManager from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { ERC20_ABI } from '../constants'
 import { bigIntFromBigintIsh } from '../utils/bigintIsh'
-import { IncreaseOptions, NonfungiblePositionManager, RemoveLiquidityOptions } from '../nonfungiblePositionManager'
+import { CollectOptions, IncreaseOptions, NonfungiblePositionManager, RemoveLiquidityOptions } from '../nonfungiblePositionManager'
 
 interface PositionConstructorArgs {
   pool: Pool
@@ -29,6 +29,8 @@ interface PositionConstructorArgs {
   tickUpper: number
   liquidity: BigintIsh
   positionId?: BigintIsh
+  tokensOwed0?: BigintIsh
+  tokensOwed1?: BigintIsh
 }
 
 /**
@@ -44,6 +46,9 @@ export class Position {
   public readonly _liquidity: bigint
 
   public readonly positionId?: bigint
+
+  public readonly tokensOwed0?: bigint
+  public readonly tokensOwed1?: bigint
 
   // cached resuts for the getters
   private _token0Amount: CurrencyAmount<Token> | null = null
@@ -73,13 +78,15 @@ export class Position {
       pool: await Pool.initFromChain(
         provider,
         new Token(chainId, position.token0, await token0Contract.decimals()),
-        new Token(chainId, position.token1, token1Contract.decimals()),
+        new Token(chainId, position.token1, await token1Contract.decimals()),
         position.fee
       ),
       liquidity: position.liquidity,
       tickLower: position.tickLower,
       tickUpper: position.tickUpper,
       positionId: positionId,
+      tokensOwed0: position.tokensOwed0,
+      tokensOwed1: position.tokensOwed1
     })
   }
 
@@ -168,8 +175,10 @@ export class Position {
    * @param tickLower The lower tick of the position
    * @param tickUpper The upper tick of the position
    * @param positionId (optional) The positionId of the existing position on-chain.
+   * @param tokensOwed0 (optional) The fees owed to the position in token0.
+   * @param tokensOwed1 (optional) The fees owed to the position in token1.
    */
-  public constructor({ pool, liquidity, tickLower, tickUpper, positionId }: PositionConstructorArgs) {
+  public constructor({ pool, liquidity, tickLower, tickUpper, positionId, tokensOwed0, tokensOwed1 }: PositionConstructorArgs) {
     invariant(tickLower < tickUpper, 'TICK_ORDER')
     invariant(tickLower >= TickMath.MIN_TICK && tickLower % pool.tickSpacing === 0, 'TICK_LOWER')
     invariant(tickUpper <= TickMath.MAX_TICK && tickUpper % pool.tickSpacing === 0, 'TICK_UPPER')
@@ -184,6 +193,8 @@ export class Position {
     }
 
     this.positionId = positionId ? bigIntFromBigintIsh(positionId) : undefined
+    this.tokensOwed0 = tokensOwed0 ? bigIntFromBigintIsh(tokensOwed0) : undefined
+    this.tokensOwed1 = tokensOwed1 ? bigIntFromBigintIsh(tokensOwed1) : undefined
   }
 
   /**
@@ -278,6 +289,45 @@ export class Position {
     )
   }
 
+  public async collectFeesOnChain({
+    signer,
+    provider,
+    percentage,
+    transactionOverrides
+  } : {
+    signer: ethers.Signer
+    provider: ethers.providers.Provider
+    percentage?: Fraction
+    transactionOverrides?: TransactionOverrides
+  }): Promise<ethers.providers.TransactionResponse>  {
+    invariant(this.tokensOwed0 !== undefined && this.tokensOwed1 !== undefined, 'No fee data saved in this Position object') 
+    invariant(this.positionId !== undefined, 'No PositionId saved for this Position') 
+
+    let currencyAmountOwed0 = CurrencyAmount.fromRawAmount(
+      this.pool.token0, this.tokensOwed0
+    )
+    let currencyAmountOwed1 = CurrencyAmount.fromRawAmount(
+      this.pool.token1, this.tokensOwed1
+    )
+      if (percentage !== undefined) {
+        currencyAmountOwed0 = currencyAmountOwed0.multiply(percentage)
+        currencyAmountOwed1 = currencyAmountOwed1.multiply(percentage)
+      }
+
+    const collectOptions: CollectOptions = {
+      tokenId: this.positionId,
+      expectedCurrencyOwed0: currencyAmountOwed0,
+      expectedCurrencyOwed1: currencyAmountOwed1,
+      recipient: await signer.getAddress()
+    }
+
+    return NonfungiblePositionManager.collectOnChain(
+      signer,
+      provider,
+      collectOptions,
+      transactionOverrides
+    )
+  }
   /**
    * Returns the price of token0 at the lower tick
    */
