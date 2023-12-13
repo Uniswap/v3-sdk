@@ -21,7 +21,12 @@ import { ethers } from 'ethers'
 import INonfungiblePositionManager from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { ERC20_ABI } from '../constants'
 import { bigIntFromBigintIsh } from '../utils/bigintIsh'
-import { CollectOptions, IncreaseOptions, NonfungiblePositionManager, RemoveLiquidityOptions } from '../nonfungiblePositionManager'
+import {
+  CollectOptions,
+  IncreaseOptions,
+  NonfungiblePositionManager,
+  RemoveLiquidityOptions,
+} from '../nonfungiblePositionManager'
 
 interface PositionConstructorArgs {
   pool: Pool
@@ -68,7 +73,11 @@ export class Position {
   ): Promise<Position> {
     const chainId = (await provider.getNetwork()).chainId
 
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
+    const contract = new ethers.Contract(
+      NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      INonfungiblePositionManager.abi,
+      provider
+    )
     const position = await contract.positions(ethers.BigNumber.from(bigIntFromBigintIsh(positionId).toString(10)))
 
     const token0Contract = new ethers.Contract(position.token0, ERC20_ABI, provider)
@@ -86,7 +95,7 @@ export class Position {
       tickUpper: position.tickUpper,
       positionId: positionId,
       tokensOwed0: position.tokensOwed0,
-      tokensOwed1: position.tokensOwed1
+      tokensOwed1: position.tokensOwed1,
     })
   }
 
@@ -104,7 +113,11 @@ export class Position {
   public static async getPositionCount(provider: ethers.providers.Provider, address: string): Promise<bigint> {
     const chainId = (await provider.getNetwork()).chainId
 
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
+    const contract = new ethers.Contract(
+      NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      INonfungiblePositionManager.abi,
+      provider
+    )
     const balance = await contract.balanceOf(address)
 
     return BigInt(balance.toString(10))
@@ -126,7 +139,11 @@ export class Position {
     index: BigintIsh
   ): Promise<Position> {
     const chainId = (await provider.getNetwork()).chainId
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
+    const contract = new ethers.Contract(
+      NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      INonfungiblePositionManager.abi,
+      provider
+    )
 
     const positionId = contract.tokenOfOwnerByIndex(
       address,
@@ -157,7 +174,11 @@ export class Position {
     const balance = await Position.getPositionCount(provider, address)
 
     const chainId = (await provider.getNetwork()).chainId
-    const contract = new ethers.Contract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], INonfungiblePositionManager.abi, provider)
+    const contract = new ethers.Contract(
+      NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+      INonfungiblePositionManager.abi,
+      provider
+    )
 
     const positionIdsPromises = []
     for (let i = 0n; i < balance; i += 1n) {
@@ -178,7 +199,15 @@ export class Position {
    * @param tokensOwed0 (optional) The fees owed to the position in token0.
    * @param tokensOwed1 (optional) The fees owed to the position in token1.
    */
-  public constructor({ pool, liquidity, tickLower, tickUpper, positionId, tokensOwed0, tokensOwed1 }: PositionConstructorArgs) {
+  public constructor({
+    pool,
+    liquidity,
+    tickLower,
+    tickUpper,
+    positionId,
+    tokensOwed0,
+    tokensOwed1,
+  }: PositionConstructorArgs) {
     invariant(tickLower < tickUpper, 'TICK_ORDER')
     invariant(tickLower >= TickMath.MIN_TICK && tickLower % pool.tickSpacing === 0, 'TICK_LOWER')
     invariant(tickUpper <= TickMath.MAX_TICK && tickUpper % pool.tickSpacing === 0, 'TICK_UPPER')
@@ -268,65 +297,54 @@ export class Position {
     signer: ethers.Signer
     provider: ethers.providers.Provider
     percentage: Fraction
-    options: RemoveLiquidityOptions
+    options: Omit<RemoveLiquidityOptions, 'liquidityPercentage' | 'collectOptions'>
     transactionOverrides?: TransactionOverrides
   }): Promise<ethers.providers.TransactionResponse> {
-    const toBeDecreasedByPosition = Position.fromAmounts({
-      pool: this.pool,
-      tickLower: this.tickLower,
-      tickUpper: this.tickUpper,
-      amount0: this.amount0.multiply(percentage).toExact(),
-      amount1: this.amount1.multiply(percentage).toExact(),
-      useFullPrecision: true,
-    })
+    const removeOptions: RemoveLiquidityOptions = {
+      ...options,
+      liquidityPercentage: new Percent(percentage.numerator, percentage.denominator),
+      collectOptions: {
+        recipient: await signer.getAddress(),
+        expectedCurrencyOwed0: CurrencyAmount.fromFractionalAmount(this.pool.token0, this.tokensOwed0 || 0n, 1),
+        expectedCurrencyOwed1: CurrencyAmount.fromFractionalAmount(this.pool.token0, this.tokensOwed1 || 0n, 1),
+      },
+    }
 
-    return NonfungiblePositionManager.removeOnChain(
-      signer,
-      provider,
-      toBeDecreasedByPosition,
-      options,
-      transactionOverrides
-    )
+    return NonfungiblePositionManager.removeOnChain(signer, provider, this, removeOptions, transactionOverrides)
   }
 
   public async collectFeesOnChain({
     signer,
     provider,
     percentage,
-    transactionOverrides
-  } : {
+    transactionOverrides,
+  }: {
     signer: ethers.Signer
     provider: ethers.providers.Provider
     percentage?: Fraction
     transactionOverrides?: TransactionOverrides
-  }): Promise<ethers.providers.TransactionResponse>  {
-    invariant(this.tokensOwed0 !== undefined && this.tokensOwed1 !== undefined, 'No fee data saved in this Position object') 
-    invariant(this.positionId !== undefined, 'No PositionId saved for this Position') 
+  }): Promise<ethers.providers.TransactionResponse> {
+    invariant(
+      this.tokensOwed0 !== undefined && this.tokensOwed1 !== undefined,
+      'No fee data saved in this Position object'
+    )
+    invariant(this.positionId !== undefined, 'No PositionId saved for this Position')
 
-    let currencyAmountOwed0 = CurrencyAmount.fromRawAmount(
-      this.pool.token0, this.tokensOwed0
-    )
-    let currencyAmountOwed1 = CurrencyAmount.fromRawAmount(
-      this.pool.token1, this.tokensOwed1
-    )
-      if (percentage !== undefined) {
-        currencyAmountOwed0 = currencyAmountOwed0.multiply(percentage)
-        currencyAmountOwed1 = currencyAmountOwed1.multiply(percentage)
-      }
+    let currencyAmountOwed0 = CurrencyAmount.fromRawAmount(this.pool.token0, this.tokensOwed0)
+    let currencyAmountOwed1 = CurrencyAmount.fromRawAmount(this.pool.token1, this.tokensOwed1)
+    if (percentage !== undefined) {
+      currencyAmountOwed0 = currencyAmountOwed0.multiply(percentage)
+      currencyAmountOwed1 = currencyAmountOwed1.multiply(percentage)
+    }
 
     const collectOptions: CollectOptions = {
       tokenId: this.positionId,
       expectedCurrencyOwed0: currencyAmountOwed0,
       expectedCurrencyOwed1: currencyAmountOwed1,
-      recipient: await signer.getAddress()
+      recipient: await signer.getAddress(),
     }
 
-    return NonfungiblePositionManager.collectOnChain(
-      signer,
-      provider,
-      collectOptions,
-      transactionOverrides
-    )
+    return NonfungiblePositionManager.collectOnChain(signer, provider, collectOptions, transactionOverrides)
   }
   /**
    * Returns the price of token0 at the lower tick
@@ -371,6 +389,7 @@ export class Position {
         this._token0Amount = CurrencyAmount.fromRawAmount(this.pool.token0, ZERO)
       }
     }
+
     return this._token0Amount
   }
 
