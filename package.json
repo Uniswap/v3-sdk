@@ -38,6 +38,12 @@
     "@uniswap/v3-core": "1.0.0",
     "tsdx": "^0.14.1"
   },
+  "resolutions": {
+    "regenerator-runtime": "^0.14.1"
+  },
+  "resolutionsComments": {
+    "regenerator-runtime": "Fixes https://github.com/facebook/regenerator/pull/480. It can be removed when `tsdx` updates their dependencies."
+  },
   "engines": {
     "node": ">=10"
   },
