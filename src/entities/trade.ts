@@ -483,12 +483,12 @@ export class Trade<TInput extends Currency, TOutput extends Currency, TTradeType
    * Note this does not consider aggregation, as routes are linear. It's possible a better route exists by splitting
    * the amount in among multiple routes.
    * @param pools the pools to consider in finding the best trade
-   * @param nextAmountIn exact amount of input currency to spend
+   * @param currencyAmountIn exact amount of input currency to spend
    * @param currencyOut the desired currency out
    * @param maxNumResults maximum number of results to return
    * @param maxHops maximum number of hops a returned trade can make, e.g. 1 hop goes through a single pool
    * @param currentPools used in recursion; the current list of pools
-   * @param currencyAmountIn used in recursion; the original value of the currencyAmountIn parameter
+   * @param nextAmountIn used in recursion; the original value of the currencyAmountIn parameter
    * @param bestTrades used in recursion; the current list of best trades
    * @returns The exact in trade
    */
