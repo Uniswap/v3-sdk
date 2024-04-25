@@ -1,6 +1,6 @@
 # @uniswap/v3-sdk - Now at `Uniswap/sdks`
 
-All versions after 4.3.0 of this SDK can be found in the [SDK monorepo](https://github.com/Uniswap/sdks/tree/main/sdks/v3-sdk)! Please file all future issues, PR’s, and discussions there.
+All versions after 3.11.0 of this SDK can be found in the [SDK monorepo](https://github.com/Uniswap/sdks/tree/main/sdks/v3-sdk)! Please file all future issues, PR’s, and discussions there.
 
 ### Old Issues and PR’s
 
